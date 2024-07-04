@@ -18,6 +18,19 @@ show_animation = True
 def dwa_control(x, config, goal, ob):
     """
     Dynamic Window Approach control
+    Parameters:
+        x: initial state
+            [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
+        config: simulation configuration
+        goal: goal position
+            [x(m), y(m)]
+        ob: obstacle positions
+            [[x(m), y(m)], ...]
+    Returns:
+        u: control input
+            [v(m/s), omega(rad/s)]
+        trajectory: predicted trajectory with selected input
+            [[x(m), y(m), yaw(rad), v(m/s), omega(rad/s)], ...]
     """
     dw = calc_dynamic_window(x, config)
 
@@ -47,11 +60,12 @@ class Config:
         self.yaw_rate_resolution = 0.1 * math.pi / 180.0  # [rad/s]
         self.dt = 0.1  # [s] Time tick for motion prediction
         self.predict_time = 3.0  # [s]
-        self.to_goal_cost_gain = 0.15
-        self.speed_cost_gain = 1.0
-        self.obstacle_cost_gain = 1.0
+        self.to_goal_cost_gain = 0.2
+        self.speed_cost_gain = 1
+        self.obstacle_cost_gain = 0.1
         self.robot_stuck_flag_cons = 0.001  # constant to prevent robot stucked
         self.robot_type = RobotType.circle
+        self.catch_goal_dist = 0.5 # [m] goal radius
 
         # if robot_type == RobotType.circle
         # Also used to check if goal is reached in both types
@@ -89,12 +103,18 @@ class Config:
         self._robot_type = value
 
 
-config = Config()
-
-
 def motion(x, u, dt):
     """
     motion model
+    Parameters:
+        x: current state 
+            [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
+        u: translational and angular velocities 
+            [v(m/s), omega(rad/s)]
+        dt: time interval (s)
+    Returns:
+        x: updated state
+            [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
     """
 
     x[2] += u[1] * dt
@@ -109,6 +129,13 @@ def motion(x, u, dt):
 def calc_dynamic_window(x, config):
     """
     calculation dynamic window based on current state x
+    Parameters:
+        x: current state
+            [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
+        config: simulation configuration
+    Returns:
+        dw: dynamic window
+            [v_min, v_max, yaw_rate_min, yaw_rate_max]
     """
 
     # Dynamic window from robot specification
@@ -131,6 +158,15 @@ def calc_dynamic_window(x, config):
 def predict_trajectory(x_init, v, y, config):
     """
     predict trajectory with an input
+    Parameters:
+        x_init: initial state
+            [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
+        v: translational velocity (m/s)
+        y: angular velocity (rad/s)
+        config: simulation configuration
+    Returns:
+        trajectory: predicted trajectory
+            [[x, y, yaw, v, omega], ...]
     """
 
     x = np.array(x_init)
@@ -147,6 +183,21 @@ def predict_trajectory(x_init, v, y, config):
 def calc_control_and_trajectory(x, dw, config, goal, ob):
     """
     calculation final input with dynamic window
+    Parameters:
+        x: current state
+            [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
+        dw: dynamic window
+            [v_min, v_max, yaw_rate_min, yaw_rate_max]
+        config: simulation configuration
+        goal: goal position
+            [x(m), y(m)]
+        ob: obstacle positions 
+            [[x(m), y(m)], ...]
+    Returns:
+        best_u: selected control input
+            [v(m/s), omega(rad/s)]
+        best_trajectory: predicted trajectory with selected input
+            [[x, y, yaw, v, omega], ...]
     """
 
     x_init = x[:]
@@ -184,6 +235,14 @@ def calc_control_and_trajectory(x, dw, config, goal, ob):
 def calc_obstacle_cost(trajectory, ob, config):
     """
     calc obstacle cost inf: collision
+    Parameters:
+        trajectory: predicted trajectory
+            [[x, y, yaw, v, omega], ...]
+        ob: obstacle positions 
+            [[x(m), y(m)], ...]
+        config: simulation configuration
+    Returns:
+        obstacle cost
     """
     ox = ob[:, 0]
     oy = ob[:, 1]
@@ -216,7 +275,14 @@ def calc_obstacle_cost(trajectory, ob, config):
 
 def calc_to_goal_cost(trajectory, goal):
     """
-        calc to goal cost with angle difference
+    calc to goal cost with angle difference
+    Parameters:
+        trajectory: predicted trajectory
+            [[x, y, yaw, v, omega], ...]
+        goal: goal position
+            [x(m), y(m)]
+    Returns:
+        to goal cost
     """
 
     dx = goal[0] - trajectory[-1, 0]
@@ -258,6 +324,17 @@ def plot_robot(x, y, yaw, config):  # pragma: no cover
 
 
 def main(gx=10.0, gy=10.0, robot_type=RobotType.circle):
+    '''
+    Main function for the dynamic window approach.
+    Parameters:
+        gx: X-coordinate of the goal position.
+        gy: Y-coordinate of the goal position.
+        robot_type (RobotType): 
+            Type of the robot. Default is RobotType.circle.
+    Returns:
+        None
+    '''
+    config = Config()
     print(__file__ + " start!!")
     # initial state [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
     x = np.array([0.0, 0.0, math.pi / 8.0, 0.0, 0.0])
@@ -292,7 +369,7 @@ def main(gx=10.0, gy=10.0, robot_type=RobotType.circle):
 
         # check reaching goal
         dist_to_goal = math.hypot(x[0] - goal[0], x[1] - goal[1])
-        if dist_to_goal <= config.robot_radius:
+        if dist_to_goal <= config.catch_goal_dist:
             print("Goal!!")
             break
 
