@@ -64,7 +64,7 @@ class Config:
         self.speed_cost_gain = 1
         self.obstacle_cost_gain = 0.1
         self.robot_stuck_flag_cons = 0.001  # constant to prevent robot stucked
-        self.robot_type = RobotType.circle
+        self.robot_type = RobotType.rectangle
         self.catch_goal_dist = 0.5 # [m] goal radius
 
         # if robot_type == RobotType.circle
@@ -74,23 +74,6 @@ class Config:
         # if robot_type == RobotType.rectangle
         self.robot_width = 0.5  # [m] for collision check
         self.robot_length = 1.2  # [m] for collision check
-        # obstacles [x(m) y(m), ....]
-        self.ob = np.array([[-1, -1],
-                            [0, 2],
-                            [4.0, 2.0],
-                            [5.0, 4.0],
-                            [5.0, 5.0],
-                            [5.0, 6.0],
-                            [5.0, 9.0],
-                            [8.0, 9.0],
-                            [7.0, 9.0],
-                            [8.0, 10.0],
-                            [9.0, 11.0],
-                            [12.0, 13.0],
-                            [12.0, 12.0],
-                            [15.0, 15.0],
-                            [13.0, 13.0]
-                            ])
 
     @property
     def robot_type(self):
@@ -323,7 +306,31 @@ def plot_robot(x, y, yaw, config):  # pragma: no cover
         plt.plot([x, out_x], [y, out_y], "-k")
 
 
-def main(gx=10.0, gy=10.0, robot_type=RobotType.circle):
+# initial state [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
+x = np.array([0.0, 0.0, math.pi / 8.0, 0.0, 0.0])
+# goal position [x(m), y(m)]
+goal = np.array([10.0, 10.0])
+# obstacles [x(m) y(m), ....]
+ob = np.array([
+    [-1, -1],
+    [0, 2],
+    [4.0, 2.0],
+    [5.0, 4.0],
+    [5.0, 5.0],
+    [5.0, 6.0],
+    [5.0, 9.0],
+    [8.0, 9.0],
+    [7.0, 9.0],
+    [8.0, 10.0],
+    [9.0, 11.0],
+    [12.0, 13.0],
+    [12.0, 12.0],
+    [15.0, 15.0],
+    [13.0, 13.0]
+])
+config = Config()
+
+def dwa(x, goal, ob, config):
     '''
     Main function for the dynamic window approach.
     Parameters:
@@ -334,18 +341,9 @@ def main(gx=10.0, gy=10.0, robot_type=RobotType.circle):
     Returns:
         None
     '''
-    config = Config()
     print(__file__ + " start!!")
-    # initial state [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
-    x = np.array([0.0, 0.0, math.pi / 8.0, 0.0, 0.0])
-    # goal position [x(m), y(m)]
-    goal = np.array([gx, gy])
 
-    # input [forward speed, yaw_rate]
-
-    config.robot_type = robot_type
     trajectory = np.array(x)
-    ob = config.ob
     while True:
         u, predicted_trajectory = dwa_control(x, config, goal, ob)
         x = motion(x, u, config.dt)  # simulate robot
@@ -381,5 +379,4 @@ def main(gx=10.0, gy=10.0, robot_type=RobotType.circle):
 
 
 if __name__ == '__main__':
-    main(robot_type=RobotType.rectangle)
-    # main(robot_type=RobotType.circle)
+    dwa(x, goal, ob, config)

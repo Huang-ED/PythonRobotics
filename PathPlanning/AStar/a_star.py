@@ -12,13 +12,17 @@ See Wikipedia article (https://en.wikipedia.org/wiki/A*_search_algorithm)
 import math
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 show_animation = True
 
 
 class AStarPlanner:
 
-    def __init__(self, ox, oy, resolution, rr):
+    def __init__(
+        self, ob, resolution, rr, 
+        min_x=None, min_y=None, max_x=None, max_y=None
+    ):
         """
         Initialize grid map for a star planning
 
@@ -28,14 +32,15 @@ class AStarPlanner:
         rr: robot radius[m]
         """
 
+        self.ob=ob
         self.resolution = resolution
         self.rr = rr
-        self.min_x, self.min_y = 0, 0
-        self.max_x, self.max_y = 0, 0
+        self.min_x, self.min_y = min_x, min_y
+        self.max_x, self.max_y = max_x, max_y
         self.obstacle_map = None
         self.x_width, self.y_width = 0, 0
         self.motion = self.get_motion_model()
-        self.calc_obstacle_map(ox, oy)
+        self.calc_obstacle_map()
 
     class Node:
         def __init__(self, x, y, cost, parent_index):
@@ -186,12 +191,17 @@ class AStarPlanner:
 
         return True
 
-    def calc_obstacle_map(self, ox, oy):
+    def calc_obstacle_map(self):
 
-        self.min_x = round(min(ox))
-        self.min_y = round(min(oy))
-        self.max_x = round(max(ox))
-        self.max_y = round(max(oy))
+        ox, oy = self.ob[:, 0], self.ob[:, 1]
+        if self.min_x is None:
+            self.min_x = round(min(ox))
+        if self.min_y is None:
+            self.min_y = round(min(oy))
+        if self.max_x is None:
+            self.max_x = round(max(ox))
+        if self.max_y is None:
+            self.max_y = round(max(oy))
         print("min_x:", self.min_x)
         print("min_y:", self.min_y)
         print("max_x:", self.max_x)
@@ -209,7 +219,7 @@ class AStarPlanner:
             x = self.calc_grid_position(ix, self.min_x)
             for iy in range(self.y_width):
                 y = self.calc_grid_position(iy, self.min_y)
-                for iox, ioy in zip(ox, oy):
+                for iox, ioy in self.ob:
                     d = math.hypot(iox - x, ioy - y)
                     if d <= self.rr:
                         self.obstacle_map[ix][iy] = True
@@ -241,26 +251,29 @@ def main():
     grid_size = 2.0  # [m]
     robot_radius = 1.0  # [m]
 
-    # set obstacle positions
+    ## Set obstacle positions
     ox, oy = [], []
-    for i in range(-10, 60):
-        ox.append(i)
-        oy.append(-10.0)
-    for i in range(-10, 60):
-        ox.append(60.0)
-        oy.append(i)
-    for i in range(-10, 61):
-        ox.append(i)
-        oy.append(60.0)
-    for i in range(-10, 61):
-        ox.append(-10.0)
-        oy.append(i)
+    # Create boundary obstacles
+    # for i in range(-10, 60):
+    #     ox.append(i)
+    #     oy.append(-10.0)
+    # for i in range(-10, 60):
+    #     ox.append(60.0)
+    #     oy.append(i)
+    # for i in range(-10, 61):
+    #     ox.append(i)
+    #     oy.append(60.0)
+    # for i in range(-10, 61):
+    #     ox.append(-10.0)
+    #     oy.append(i)
+    # Create internal obstacles
     for i in range(-10, 40):
         ox.append(20.0)
         oy.append(i)
     for i in range(0, 40):
         ox.append(40.0)
         oy.append(60.0 - i)
+        ob = np.array([ox, oy]).transpose()
 
     if show_animation:  # pragma: no cover
         plt.plot(ox, oy, ".k")
@@ -269,7 +282,11 @@ def main():
         plt.grid(True)
         plt.axis("equal")
 
-    a_star = AStarPlanner(ox, oy, grid_size, robot_radius)
+    a_star = AStarPlanner(
+        ob, grid_size, robot_radius,
+        min_x=min(*ox, sx-2, gx-2), min_y=min(*oy, sy-2, gy-2),
+        max_x=max(*ox, sx+2, gx+2), max_y=max(*oy, sy+2, gy+2)
+    )
     rx, ry = a_star.planning(sx, sy, gx, gy)
 
     if show_animation:  # pragma: no cover
