@@ -273,7 +273,7 @@ def main():
     for i in range(0, 40):
         ox.append(40.0)
         oy.append(60.0 - i)
-        ob = np.array([ox, oy]).transpose()
+    ob = np.array([ox, oy]).transpose()
 
     if show_animation:  # pragma: no cover
         plt.plot(ox, oy, ".k")
