@@ -306,30 +306,6 @@ def plot_robot(x, y, yaw, config):  # pragma: no cover
         plt.plot([x, out_x], [y, out_y], "-k")
 
 
-# initial state [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
-x = np.array([0.0, 0.0, math.pi / 8.0, 0.0, 0.0])
-# goal position [x(m), y(m)]
-goal = np.array([10.0, 10.0])
-# obstacles [x(m) y(m), ....]
-ob = np.array([
-    [-1, -1],
-    [0, 2],
-    [4.0, 2.0],
-    [5.0, 4.0],
-    [5.0, 5.0],
-    [5.0, 6.0],
-    [5.0, 9.0],
-    [8.0, 9.0],
-    [7.0, 9.0],
-    [8.0, 10.0],
-    [9.0, 11.0],
-    [12.0, 13.0],
-    [12.0, 12.0],
-    [15.0, 15.0],
-    [13.0, 13.0]
-])
-config = Config()
-
 def dwa(x, goal, ob, config):
     '''
     Main function for the dynamic window approach.
@@ -379,4 +355,28 @@ def dwa(x, goal, ob, config):
 
 
 if __name__ == '__main__':
+    # initial state [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
+    x = np.array([0.0, 0.0, math.pi / 8.0, 0.0, 0.0])
+    # goal position [x(m), y(m)]
+    goal = np.array([10.0, 10.0])
+    # obstacles [x(m) y(m), ....]
+    ob = np.array([
+        [-1, -1],
+        [0, 2],
+        [4.0, 2.0],
+        [5.0, 4.0],
+        [5.0, 5.0],
+        [5.0, 6.0],
+        [5.0, 9.0],
+        [8.0, 9.0],
+        [7.0, 9.0],
+        [8.0, 10.0],
+        [9.0, 11.0],
+        [12.0, 13.0],
+        [12.0, 12.0],
+        [15.0, 15.0],
+        [13.0, 13.0]
+    ])
+    config = Config()
+
     dwa(x, goal, ob, config)
