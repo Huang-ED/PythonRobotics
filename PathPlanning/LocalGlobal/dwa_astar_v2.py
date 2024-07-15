@@ -14,9 +14,7 @@ import matplotlib.pyplot as plt
 show_animation = True
 
 """
-In this version of codes, DWA and A* share the same start and goal positions.
-DWA does not make use of the A* path.
-This is a version of testing, only to see how DWA and A* plot on the same map.
+In this version of codes, a lower resolution A* path is used to guide the DWA path.
 """
 
 # Set up the map
@@ -56,11 +54,15 @@ def main():
 
     # Run A* path planning
     a_star_planner = a_star.AStarPlanner(
-        ob, resolution=2.0, rr=1.0,
+        ob, resolution=5.0, rr=1.0,
         min_x=min(*ox, sx-2, gx-2), min_y=min(*oy, sy-2, gy-2),
         max_x=max(*ox, sx+2, gx+2), max_y=max(*oy, sy+2, gy+2)
     )
     rx, ry = a_star_planner.planning(sx, sy, gx, gy)
+    
+    road_map = np.array([rx, ry]).transpose()[::-1]
+    # print(road_map)
+
     # Plot the path
     if show_animation:  # pragma: no cover
         plt.plot(rx, ry, "-r")
@@ -73,8 +75,6 @@ def main():
     config.robot_type = dwa.RobotType.rectangle
     config.robot_width = 1.0
     config.robot_length = 2.0
-    goal = np.array([gx, gy])
-    # dwa.dwa(x, goal, ob, config)
 
     print(__file__ + " start!!")
 
@@ -84,38 +84,39 @@ def main():
             'key_release_event',
             lambda event: [exit(0) if event.key == 'escape' else None])
 
-    trajectory = np.array(x)
-    while True:
-        plt_elements = []
-        u, predicted_trajectory = dwa.dwa_control(x, config, goal, ob)
-        x = dwa.motion(x, u, config.dt)  # simulate robot
-        trajectory = np.vstack((trajectory, x))  # store state history
+    for dwagoal in road_map[1:]:
+        trajectory = np.array(x)
+        while True:
+            plt_elements = []
+            u, predicted_trajectory = dwa.dwa_control(x, config, dwagoal, ob)
+            x = dwa.motion(x, u, config.dt)  # simulate robot
+            trajectory = np.vstack((trajectory, x))  # store state history
 
-        if show_animation:
-            # plt.cla()
-            # # for stopping simulation with the esc key.
-            # plt.gcf().canvas.mpl_connect(
-            #     'key_release_event',
-            #     lambda event: [exit(0) if event.key == 'escape' else None])
-            plt_elements.append(plt.plot(predicted_trajectory[:, 0], predicted_trajectory[:, 1], "-g")[0])
-            plt_elements.append(plt.plot(x[0], x[1], "xr")[0])
-            plt_elements.extend(dwa.plot_robot(x[0], x[1], x[2], config))
-            plt_elements.extend(dwa.plot_arrow(x[0], x[1], x[2]))
+            if show_animation:
+                plt_elements.append(plt.plot(predicted_trajectory[:, 0], predicted_trajectory[:, 1], "-g")[0])
+                plt_elements.append(plt.plot(x[0], x[1], "xr")[0])
+                plt_elements.extend(dwa.plot_robot(x[0], x[1], x[2], config))
+                plt_elements.extend(dwa.plot_arrow(x[0], x[1], x[2]))
+                plt.pause(0.0001)
+                for ele in plt_elements:
+                    ele.remove()
+
+            # check reaching goal
+            dist_to_goal = math.hypot(x[0] - dwagoal[0], x[1] - dwagoal[1])
+            if dist_to_goal <= config.catch_goal_dist:
+                print("Goal!!")
+                break
+
+        print("Done - for current DWA")
+        if show_animation: # pragma: no cover
+            plt.plot(trajectory[:, 0], trajectory[:, 1], "-r")
             plt.pause(0.0001)
-            for ele in plt_elements:
-                ele.remove()
-
-        # check reaching goal
-        dist_to_goal = math.hypot(x[0] - goal[0], x[1] - goal[1])
-        if dist_to_goal <= config.catch_goal_dist:
-            print("Goal!!")
-            break
-
+            # plt.show()
+        
     print("Done")
-    if show_animation:
-        plt.plot(trajectory[:, 0], trajectory[:, 1], "-r")
-        plt.pause(0.0001)
+    if show_animation: # pragma: no cover
         plt.show()
+        
 
 
 if __name__ == '__main__':
