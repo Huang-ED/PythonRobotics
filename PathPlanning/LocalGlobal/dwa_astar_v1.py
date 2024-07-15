@@ -13,6 +13,10 @@ import matplotlib.pyplot as plt
 
 show_animation = True
 
+"""
+In this version of codes, DWA and A* share the same start and goal positions.
+"""
+
 # Set up the map
 ox, oy = [], []
 for i in range(60):
