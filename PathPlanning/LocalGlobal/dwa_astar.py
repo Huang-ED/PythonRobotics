@@ -40,6 +40,7 @@ def main():
     sx, sy = 10.0, 10.0
     gx, gy = 50.0, 50.0
 
+    # Plot the map
     if show_animation:  # pragma: no cover
         plt.plot(ox, oy, ".k")
         plt.plot(sx, sy, "og")
@@ -54,6 +55,7 @@ def main():
         max_x=max(*ox, sx+2, gx+2), max_y=max(*oy, sy+2, gy+2)
     )
     rx, ry = a_star_planner.planning(sx, sy, gx, gy)
+    # Plot the path
     if show_animation:  # pragma: no cover
         plt.plot(rx, ry, "-r")
         plt.pause(0.001)
@@ -70,27 +72,32 @@ def main():
 
     print(__file__ + " start!!")
 
+    if show_animation:  # pragma: no cover
+        # for stopping simulation with the esc key.
+        plt.gcf().canvas.mpl_connect(
+            'key_release_event',
+            lambda event: [exit(0) if event.key == 'escape' else None])
+
     trajectory = np.array(x)
     while True:
+        plt_elements = []
         u, predicted_trajectory = dwa.dwa_control(x, config, goal, ob)
         x = dwa.motion(x, u, config.dt)  # simulate robot
         trajectory = np.vstack((trajectory, x))  # store state history
 
         if show_animation:
-            plt.cla()
-            # for stopping simulation with the esc key.
-            plt.gcf().canvas.mpl_connect(
-                'key_release_event',
-                lambda event: [exit(0) if event.key == 'escape' else None])
-            plt.plot(predicted_trajectory[:, 0], predicted_trajectory[:, 1], "-g")
-            plt.plot(x[0], x[1], "xr")
-            plt.plot(goal[0], goal[1], "xb")
-            plt.plot(ob[:, 0], ob[:, 1], "ok")
-            dwa.plot_robot(x[0], x[1], x[2], config)
-            dwa.plot_arrow(x[0], x[1], x[2])
-            plt.axis("equal")
-            plt.grid(True)
+            # plt.cla()
+            # # for stopping simulation with the esc key.
+            # plt.gcf().canvas.mpl_connect(
+            #     'key_release_event',
+            #     lambda event: [exit(0) if event.key == 'escape' else None])
+            plt_elements.append(plt.plot(predicted_trajectory[:, 0], predicted_trajectory[:, 1], "-g")[0])
+            plt_elements.append(plt.plot(x[0], x[1], "xr")[0])
+            plt_elements.extend(dwa.plot_robot(x[0], x[1], x[2], config))
+            plt_elements.extend(dwa.plot_arrow(x[0], x[1], x[2]))
             plt.pause(0.0001)
+            for ele in plt_elements:
+                ele.remove()
 
         # check reaching goal
         dist_to_goal = math.hypot(x[0] - goal[0], x[1] - goal[1])

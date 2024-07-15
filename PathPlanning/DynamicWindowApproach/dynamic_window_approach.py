@@ -278,12 +278,17 @@ def calc_to_goal_cost(trajectory, goal):
 
 
 def plot_arrow(x, y, yaw, length=0.5, width=0.1):  # pragma: no cover
-    plt.arrow(x, y, length * math.cos(yaw), length * math.sin(yaw),
+    plt_elements = []
+    arrow = plt.arrow(x, y, length * math.cos(yaw), length * math.sin(yaw),
               head_length=width, head_width=width)
-    plt.plot(x, y)
+    point, = plt.plot(x, y)
+    plt_elements.append(arrow)
+    plt_elements.append(point)
+    return plt_elements
 
 
 def plot_robot(x, y, yaw, config):  # pragma: no cover
+    plt_elements = []
     if config.robot_type == RobotType.rectangle:
         outline = np.array([[-config.robot_length / 2, config.robot_length / 2,
                              (config.robot_length / 2), -config.robot_length / 2,
@@ -296,14 +301,21 @@ def plot_robot(x, y, yaw, config):  # pragma: no cover
         outline = (outline.T.dot(Rot1)).T
         outline[0, :] += x
         outline[1, :] += y
-        plt.plot(np.array(outline[0, :]).flatten(),
-                 np.array(outline[1, :]).flatten(), "-k")
+        line, = plt.plot(
+            np.array(outline[0, :]).flatten(),
+            np.array(outline[1, :]).flatten(),
+            "-k"
+        )
+        plt_elements.append(line)
     elif config.robot_type == RobotType.circle:
         circle = plt.Circle((x, y), config.robot_radius, color="b")
+        plt_elements.append(circle)
         plt.gcf().gca().add_artist(circle)
         out_x, out_y = (np.array([x, y]) +
                         np.array([np.cos(yaw), np.sin(yaw)]) * config.robot_radius)
-        plt.plot([x, out_x], [y, out_y], "-k")
+        line, = plt.plot([x, out_x], [y, out_y], "-k")
+        plt_elements.append(line)
+    return plt_elements
 
 
 def dwa(x, goal, ob, config):
