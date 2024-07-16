@@ -52,14 +52,15 @@ class Config:
     def __init__(self):
         # robot parameter
         self.max_speed = 1.0  # [m/s]
-        self.min_speed = -0.5  # [m/s]
+        self.min_speed = 0.0  # [m/s]
         self.max_yaw_rate = 40.0 * math.pi / 180.0  # [rad/s]
         self.max_accel = 0.2  # [m/ss]
         self.max_delta_yaw_rate = 40.0 * math.pi / 180.0  # [rad/ss]
         self.v_resolution = 0.01  # [m/s]
         self.yaw_rate_resolution = 0.1 * math.pi / 180.0  # [rad/s]
         self.dt = 0.1  # [s] Time tick for motion prediction
-        self.predict_time = 3.0  # [s]
+        self.predict_time = 1.0  # [s]
+        self.check_time = 100.0 # [s] Time to check for collision - a large number
         self.to_goal_cost_gain = 0.2
         self.speed_cost_gain = 1
         self.obstacle_cost_gain = 0.1
@@ -69,7 +70,7 @@ class Config:
 
         # if robot_type == RobotType.circle
         # Also used to check if goal is reached in both types
-        self.robot_radius = 1.0  # [m] for collision check
+        self.robot_radius = 0.5  # [m] for collision check
 
         # if robot_type == RobotType.rectangle
         self.robot_width = 0.5  # [m] for collision check
@@ -183,7 +184,6 @@ def calc_control_and_trajectory(x, dw, config, goal, ob):
             [[x, y, yaw, v, omega], ...]
     """
 
-    x_init = x[:]
     min_cost = float("inf")
     best_u = [0.0, 0.0]
     best_trajectory = np.array([x])
@@ -192,11 +192,21 @@ def calc_control_and_trajectory(x, dw, config, goal, ob):
     for v in np.arange(dw[0], dw[1], config.v_resolution):
         for y in np.arange(dw[2], dw[3], config.yaw_rate_resolution):
 
-            trajectory = predict_trajectory(x_init, v, y, config)
+            # admissible velocities check
+            dist, _ = closest_obstacle_on_curve(x.copy(), ob, v, y, config)
+            if v > math.sqrt(2*config.max_accel*dist):
+                continue
+            # if y > math.sqrt(2*config.max_delta_yaw_rate*dist):
+            #     continue
+
+            trajectory = predict_trajectory(x.copy(), v, y, config)
             # calc cost
             to_goal_cost = config.to_goal_cost_gain * calc_to_goal_cost(trajectory, goal)
             speed_cost = config.speed_cost_gain * (config.max_speed - trajectory[-1, 3])
-            ob_cost = config.obstacle_cost_gain * calc_obstacle_cost(trajectory, ob, config)
+            if dist == 0:
+                ob_cost = float("Inf")
+            else:
+                ob_cost = config.obstacle_cost_gain * (1 / dist)
 
             final_cost = to_goal_cost + speed_cost + ob_cost
 
@@ -215,45 +225,31 @@ def calc_control_and_trajectory(x, dw, config, goal, ob):
     return best_u, best_trajectory
 
 
-def calc_obstacle_cost(trajectory, ob, config):
+def closest_obstacle_on_curve(x, ob, v, omega, config):
     """
-    calc obstacle cost inf: collision
+    Calculate the distance to the closest obstacle that intersects with the curvature
     Parameters:
-        trajectory: predicted trajectory
-            [[x, y, yaw, v, omega], ...]
-        ob: obstacle positions 
+        x: current state
+            [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
+        ob: obstacle positions
             [[x(m), y(m)], ...]
+        v: translational velocity (m/s)
+        omega: angular velocity (rad/s)
         config: simulation configuration
     Returns:
-        obstacle cost
+        dist: distance to the closest obstacle
+        t: time to reach the closest obstacle
     """
-    ox = ob[:, 0]
-    oy = ob[:, 1]
-    dx = trajectory[:, 0] - ox[:, None]
-    dy = trajectory[:, 1] - oy[:, None]
-    r = np.hypot(dx, dy)
-
-    if config.robot_type == RobotType.rectangle:
-        yaw = trajectory[:, 2]
-        rot = np.array([[np.cos(yaw), -np.sin(yaw)], [np.sin(yaw), np.cos(yaw)]])
-        rot = np.transpose(rot, [2, 0, 1])
-        local_ob = ob[:, None] - trajectory[:, 0:2]
-        local_ob = local_ob.reshape(-1, local_ob.shape[-1])
-        local_ob = np.array([local_ob @ x for x in rot])
-        local_ob = local_ob.reshape(-1, local_ob.shape[-1])
-        upper_check = local_ob[:, 0] <= config.robot_length / 2
-        right_check = local_ob[:, 1] <= config.robot_width / 2
-        bottom_check = local_ob[:, 0] >= -config.robot_length / 2
-        left_check = local_ob[:, 1] >= -config.robot_width / 2
-        if (np.logical_and(np.logical_and(upper_check, right_check),
-                           np.logical_and(bottom_check, left_check))).any():
-            return float("Inf")
-    elif config.robot_type == RobotType.circle:
-        if np.array(r <= config.robot_radius).any():
-            return float("Inf")
-
-    min_r = np.min(r)
-    return 1.0 / min_r  # OK
+    t = 0
+    dist = 0
+    while t < config.check_time:
+        x = motion(x, [v, omega], config.dt)
+        for ox, oy in ob:
+            if np.hypot(x[0] - ox, x[1] - oy) <= config.robot_radius:
+                return dist, t
+        t += config.dt
+        dist += v * config.dt
+    return float("Inf"), float("Inf")
 
 
 def calc_to_goal_cost(trajectory, goal):
