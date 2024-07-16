@@ -48,7 +48,7 @@ def main():
     if show_animation:  # pragma: no cover
         plt.plot(ox, oy, ".k")
         plt.plot(sx, sy, "og")
-        plt.plot(gx, gy, "xb")
+        plt.plot(gx, gy, "*b")
         plt.grid(True)
         plt.axis("equal")
 
@@ -77,6 +77,7 @@ def main():
     config.robot_length = 2.0
 
     print(__file__ + " start!!")
+    trajectory = np.array(x)
 
     if show_animation:  # pragma: no cover
         # for stopping simulation with the esc key.
@@ -85,7 +86,6 @@ def main():
             lambda event: [exit(0) if event.key == 'escape' else None])
 
     for dwagoal in road_map[1:]:
-        trajectory = np.array(x)
         while True:
             plt_elements = []
             u, predicted_trajectory = dwa.dwa_control(x, config, dwagoal, ob)
@@ -97,6 +97,7 @@ def main():
                 plt_elements.append(plt.plot(x[0], x[1], "xr")[0])
                 plt_elements.extend(dwa.plot_robot(x[0], x[1], x[2], config))
                 plt_elements.extend(dwa.plot_arrow(x[0], x[1], x[2]))
+                plt_elements.append(plt.plot(trajectory[:, 0], trajectory[:, 1], "-r")[0])
                 plt.pause(0.0001)
                 for ele in plt_elements:
                     ele.remove()
@@ -106,12 +107,6 @@ def main():
             if dist_to_goal <= config.catch_goal_dist:
                 print("Goal!!")
                 break
-
-        print("Done - for current DWA")
-        if show_animation: # pragma: no cover
-            plt.plot(trajectory[:, 0], trajectory[:, 1], "-r")
-            plt.pause(0.0001)
-            # plt.show()
         
     print("Done")
     if show_animation: # pragma: no cover

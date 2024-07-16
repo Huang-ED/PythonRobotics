@@ -83,9 +83,7 @@ class AStarPlanner:
 
             c_id = min(
                 open_set,
-                key=lambda o: open_set[o].cost + self.calc_heuristic(goal_node,
-                                                                     open_set[
-                                                                         o]))
+                key=lambda o: open_set[o].cost + self.calc_heuristic(goal_node, open_set[o]))
             current = open_set[c_id]
 
             # show graph
