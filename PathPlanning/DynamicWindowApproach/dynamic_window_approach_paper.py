@@ -259,9 +259,9 @@ def closest_obstacle_on_curve(x, ob, v, omega, config):
     dist = 0
     while t < config.check_time:
         x = motion(x, [v, omega], config.dt)
-        for ox, oy in ob:
-            if np.hypot(x[0] - ox, x[1] - oy) <= config.robot_radius:
-                return dist, t
+        distances = np.linalg.norm(ob - x[:2], axis=1)
+        if np.any(distances <= config.robot_radius):
+            return dist, t
         t += config.dt
         dist += v * config.dt
     return float("Inf"), float("Inf")
