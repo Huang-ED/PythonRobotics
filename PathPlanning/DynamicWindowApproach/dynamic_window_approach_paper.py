@@ -4,8 +4,13 @@ Mobile robot motion planning sample with Dynamic Window Approach
 
 author: Atsushi Sakai (@Atsushi_twi), Göktuğ Karakaşlı
 
+Modified by: Huang Erdong (@Huang-ED)
+In this version of codes, 
+    the methodology proposed in the original DWA paper is implemented.
+
 """
 
+import os
 import math
 from enum import Enum
 
@@ -13,6 +18,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 show_animation = True
+save_costs_fig = True
+
+if save_costs_fig:
+    to_goal_cost_list, speed_cost_list, ob_cost_list = [], [], []
 
 
 def dwa_control(x, config, goal, ob):
@@ -215,6 +224,12 @@ def calc_control_and_trajectory(x, dw, config, goal, ob):
                 min_cost = final_cost
                 best_u = [v, y]
                 best_trajectory = trajectory
+
+                if save_costs_fig:
+                    to_goal_cost_list.append(to_goal_cost)
+                    speed_cost_list.append(speed_cost)
+                    ob_cost_list.append(ob_cost)
+
                 if abs(best_u[0]) < config.robot_stuck_flag_cons \
                         and abs(x[3]) < config.robot_stuck_flag_cons:
                     # to ensure the robot do not get stuck in
@@ -388,3 +403,17 @@ if __name__ == '__main__':
     config = Config()
 
     dwa(x, goal, ob, config)
+
+    if save_costs_fig:
+        time_list = [i * config.dt for i in range(len(to_goal_cost_list))]
+        plt.figure(figsize=(32, 18))
+        plt.plot(time_list, to_goal_cost_list, label='To goal cost')
+        plt.plot(time_list, speed_cost_list, label='Speed cost')
+        plt.plot(time_list, ob_cost_list, label='Obstacle cost')
+        plt.xlabel('Time(s)')
+        plt.ylabel('Cost')
+        plt.legend()
+
+        cur_dir = os.path.dirname(__file__)
+        plt.savefig(os.path.join(cur_dir, 'costs.png'))
+        print('Costs figure saved as costs.png')
