@@ -415,5 +415,12 @@ if __name__ == '__main__':
         plt.legend()
 
         cur_dir = os.path.dirname(__file__)
-        plt.savefig(os.path.join(cur_dir, 'costs.png'))
+        fig_path = os.path.join(cur_dir, 'costs.png')
+        while os.path.exists(fig_path):
+            try:
+                i_fig += 1
+            except NameError: # if i_fig is not defined, define it
+                i_fig = 1
+            fig_path = os.path.join(cur_dir, 'costs({}).png'.format(i_fig))
+        plt.savefig(fig_path)
         print('Costs figure saved as costs.png')
