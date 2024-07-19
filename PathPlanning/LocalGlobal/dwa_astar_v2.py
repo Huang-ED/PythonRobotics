@@ -12,6 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 show_animation = True
+save_animation_to_figs = True
 
 """
 In this version of codes, a lower resolution A* path is used to guide the DWA path.
@@ -40,6 +41,13 @@ for i in range(40):
 ob = np.array([ox, oy]).transpose()
 
 def main():
+    if save_animation_to_figs:
+        cur_dir = os.path.dirname(__file__)
+        fig_dir = os.path.join(cur_dir, 'figs')
+        os.makedirs(fig_dir, exist_ok=False)
+        i_fig = 0
+        fig_path = os.path.join(fig_dir, 'frame_{}.png'.format(i_fig))
+
     # Set the start and goal positions
     sx, sy = 10.0, 10.0
     gx, gy = 50.0, 50.0
@@ -67,7 +75,11 @@ def main():
     if show_animation:  # pragma: no cover
         plt.plot(rx, ry, "-r")
         plt.pause(0.001)
-        # plt.show()
+
+        if save_animation_to_figs:
+            plt.savefig(fig_path)
+            i_fig += 1
+            fig_path = os.path.join(fig_dir, 'frame_{}.png'.format(i_fig))
 
     # # Run DWA path planning
     x = np.array([sx, sy, math.pi / 8.0, 0.0, 0.0])
@@ -98,7 +110,13 @@ def main():
                 plt_elements.extend(dwa.plot_robot(x[0], x[1], x[2], config))
                 plt_elements.extend(dwa.plot_arrow(x[0], x[1], x[2]))
                 plt_elements.append(plt.plot(trajectory[:, 0], trajectory[:, 1], "-r")[0])
-                plt.pause(0.0001)
+                plt.pause(0.001)
+
+                if save_animation_to_figs:
+                    plt.savefig(fig_path)
+                    i_fig += 1
+                    fig_path = os.path.join(fig_dir, 'frame_{}.png'.format(i_fig))
+
                 for ele in plt_elements:
                     ele.remove()
 
