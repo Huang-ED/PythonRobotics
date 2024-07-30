@@ -6,6 +6,7 @@ author: Atsushi Sakai (@Atsushi_twi), Göktuğ Karakaşlı
 
 """
 
+import os
 import math
 from enum import Enum
 
@@ -13,6 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 show_animation = True
+save_animation_to_figs = True
 
 
 def dwa_control(x, config, goal, ob):
@@ -330,6 +332,12 @@ def dwa(x, goal, ob, config):
         None
     '''
     print(__file__ + " start!!")
+    if save_animation_to_figs:
+        cur_dir = os.path.dirname(__file__)
+        fig_dir = os.path.join(cur_dir, 'figs')
+        os.makedirs(fig_dir, exist_ok=False)
+        i_fig = 0
+        fig_path = os.path.join(fig_dir, 'frame_{}.png'.format(i_fig))
 
     trajectory = np.array(x)
     while True:
@@ -353,6 +361,11 @@ def dwa(x, goal, ob, config):
             plt.grid(True)
             plt.pause(0.0001)
 
+            if save_animation_to_figs:
+                plt.savefig(fig_path)
+                i_fig += 1
+                fig_path = os.path.join(fig_dir, 'frame_{}.png'.format(i_fig))
+
         # check reaching goal
         dist_to_goal = math.hypot(x[0] - goal[0], x[1] - goal[1])
         if dist_to_goal <= config.catch_goal_dist:
@@ -363,6 +376,12 @@ def dwa(x, goal, ob, config):
     if show_animation:
         plt.plot(trajectory[:, 0], trajectory[:, 1], "-r")
         plt.pause(0.0001)
+
+        if save_animation_to_figs:
+            plt.savefig(fig_path)
+            i_fig += 1
+            fig_path = os.path.join(fig_dir, 'frame_{}.png'.format(i_fig))
+
         plt.show()
 
 
