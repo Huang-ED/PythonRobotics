@@ -206,7 +206,7 @@ for i_goal, dwagoal in enumerate(road_map):
 
         # check reaching goal
         dist_to_goal = math.hypot(x[0] - dwagoal[0], x[1] - dwagoal[1])
-        if i_goal == len(road_map):
+        if i_goal == len(road_map) - 1:
             if dist_to_goal <= config.catch_goal_dist:
                 print("Goal!!")
                 break
