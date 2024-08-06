@@ -5,7 +5,7 @@ rpath = os.path.abspath(
 sys.path.append(rpath)
 
 from PathPlanning.AStar import a_star
-from PathPlanning.DynamicWindowApproach import dynamic_window_approach as dwa
+from PathPlanning.DynamicWindowApproach import dynamic_window_approach_paper as dwa
 
 import math
 import numpy as np
@@ -73,7 +73,8 @@ def main():
 
     # Plot the path
     if show_animation:  # pragma: no cover
-        plt.plot(rx, ry, "-r")
+        # plt.plot(rx, ry, "-r")
+        plt.plot(rx, ry, ".b")
         plt.pause(0.001)
 
         if save_animation_to_figs:
