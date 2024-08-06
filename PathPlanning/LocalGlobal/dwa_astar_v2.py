@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 show_animation = True
-save_animation_to_figs = True
+save_animation_to_figs = False
 
 """
 In this version of codes, a lower resolution A* path is used to guide the DWA path.
@@ -96,15 +96,18 @@ def main():
         plt.gcf().canvas.mpl_connect(
             'key_release_event',
             lambda event: [exit(0) if event.key == 'escape' else None])
+        plt_elements = []
 
     for dwagoal in road_map[1:]:
         while True:
-            plt_elements = []
             u, predicted_trajectory = dwa.dwa_control(x, config, dwagoal, ob)
             x = dwa.motion(x, u, config.dt)  # simulate robot
             trajectory = np.vstack((trajectory, x))  # store state history
 
             if show_animation:
+                for ele in plt_elements:
+                    ele.remove()
+                plt_elements = []
                 plt_elements.append(plt.plot(predicted_trajectory[:, 0], predicted_trajectory[:, 1], "-g")[0])
                 plt_elements.append(plt.plot(x[0], x[1], "xr")[0])
                 plt_elements.extend(dwa.plot_robot(x[0], x[1], x[2], config))
@@ -117,8 +120,6 @@ def main():
                     i_fig += 1
                     fig_path = os.path.join(fig_dir, 'frame_{}.png'.format(i_fig))
 
-                for ele in plt_elements:
-                    ele.remove()
 
             # check reaching goal
             dist_to_goal = math.hypot(x[0] - dwagoal[0], x[1] - dwagoal[1])

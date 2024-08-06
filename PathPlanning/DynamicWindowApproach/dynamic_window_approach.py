@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 show_animation = True
-save_animation_to_figs = True
+save_animation_to_figs = False
 
 
 def dwa_control(x, config, goal, ob):

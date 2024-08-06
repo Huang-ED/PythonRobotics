@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 show_animation = True
-save_animation_to_figs = True
+save_animation_to_figs = False
 save_costs_fig = False
 
 if save_costs_fig:
