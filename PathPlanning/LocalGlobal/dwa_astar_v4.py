@@ -51,8 +51,8 @@ class Config:
         self.robot_radius = 0.5  # [m] for collision check
 
         # if robot_type == RobotType.rectangle
-        self.robot_width = 0.5  # [m] for collision check
-        self.robot_length = 1.2  # [m] for collision check
+        self.robot_width = 1.0  # [m] for collision check
+        self.robot_length = 2.0  # [m] for collision check
 
     @property
     def robot_type(self):
@@ -166,8 +166,6 @@ if show_animation:  # pragma: no cover
 x = np.array([sx, sy, math.pi / 8.0, 0.0, 0.0])
 config = Config()
 config.robot_type = dwa.RobotType.rectangle
-config.robot_width = 1.0
-config.robot_length = 2.0
 
 print(__file__ + " start!!")
 trajectory = np.array(x)
