@@ -1,3 +1,40 @@
+For v3 and v4, 
+.1 means using dynamic_window_approach (PythonRobotics)
+.2 means using dynamic_window_approach_paper, but confused circle and rectangle
+
+
+----- ----- ----- -----
+v3.2 (without suffix)
+- use circle to calculate
+- use rectangle to plot
+
+
+----- ----- ----- -----
+v4.2 (without suffix)
+- use circle to calculate
+- use rectangle to plot
+max_speed = 1.0
+robot_width = 1.0
+robot_length = 2.0
+
+
+v4.2_exp1
+- use circle to calculate
+- use rectangle to plot
+max_speed = 0.5
+robot_width = 1.0
+robot_length = 2.0
+
+
+v4.2_exp2
+- use circle to calculate
+- use rectangle to plot
+max_speed = 0.5
+robot_width = 0.5
+robot_length = 1.2
+
+
+----- ----- ----- -----
 original config for v3 and v4
 class Config:
     """
@@ -41,20 +78,3 @@ class Config:
         if not isinstance(value, dwa.RobotType):
             raise TypeError("robot_type must be an instance of RobotType")
         self._robot_type = value
-
-
-
-v4.2 (without suffix)
-max_speed = 1.0
-robot_width = 1.0
-robot_length = 2.0
-
-v4.2_exp1
-max_speed = 0.5
-robot_width = 1.0
-robot_length = 2.0
-
-v4.2_exp2
-max_speed = 0.5
-robot_width = 0.5
-robot_length = 1.2

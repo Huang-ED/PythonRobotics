@@ -241,6 +241,43 @@ def calc_control_and_trajectory(x, dw, config, goal, ob):
     return best_u, best_trajectory
 
 
+def any_points_in_rotated_box(points, center, length, width, rot):
+    """
+    Check whether any of the given points are within a rotated rectangular box.
+
+    Parameters:
+    - points: 2D numpy array, shape (N, 2), where each row is a 2D coordinate of a point
+    - center: tuple (cx, cy), the 2D coordinate of the center of the box
+    - length: float, length of the box
+    - width: float, width of the box
+    - rot: float, rotational angle of the box in radians
+
+    Returns:
+    - Boolean: True if any point is within the box, False otherwise
+    """
+    # Translate points so that the center of the box is at the origin
+    translated_points = points - np.array(center)
+
+    # Rotation matrix for the negative of the box's rotation angle
+    cos_rot = np.cos(-rot)
+    sin_rot = np.sin(-rot)
+    rotation_matrix = np.array([[cos_rot, -sin_rot], [sin_rot, cos_rot]])
+
+    # Rotate all points using matrix multiplication
+    rotated_points = translated_points @ rotation_matrix
+
+    # Half dimensions of the box
+    half_length = length / 2
+    half_width = width / 2
+
+    # Check if any rotated point is within the box's bounds
+    within_length = np.logical_and(rotated_points[:, 0] >= -half_length, rotated_points[:, 0] <= half_length)
+    within_width = np.logical_and(rotated_points[:, 1] >= -half_width, rotated_points[:, 1] <= half_width)
+
+    # Return True if any point is within both bounds
+    return np.any(np.logical_and(within_length, within_width))
+
+
 def closest_obstacle_on_curve(x, ob, v, omega, config):
     """
     Calculate the distance to the closest obstacle that intersects with the curvature
@@ -260,9 +297,15 @@ def closest_obstacle_on_curve(x, ob, v, omega, config):
     dist = 0
     while t < config.check_time:
         x = motion(x, [v, omega], config.dt)
-        distances = np.linalg.norm(ob - x[:2], axis=1)
-        if np.any(distances <= config.robot_radius):
-            return dist, t
+        if config.robot_type == RobotType.rectangle:
+            if any_points_in_rotated_box(ob, x[:2], config.robot_length, config.robot_width, x[2]):
+                return dist, t
+        elif config.robot_type == RobotType.circle:
+            distances = np.linalg.norm(ob - x[:2], axis=1)
+            if np.any(distances <= config.robot_radius):
+                return dist, t
+        else:
+            raise ValueError("Invalid robot type")
         t += config.dt
         dist += v * config.dt
     return float("Inf"), float("Inf")
