@@ -165,7 +165,6 @@ if show_animation:  # pragma: no cover
 # ----- Run DWA path planning -----
 x = np.array([sx, sy, math.pi / 8.0, 0.0, 0.0])
 config = Config()
-config.robot_type = dwa.RobotType.rectangle
 
 print(__file__ + " start!!")
 trajectory = np.array(x)
