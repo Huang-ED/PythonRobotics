@@ -7,6 +7,9 @@ author: Atsushi Sakai (@Atsushi_twi), Göktuğ Karakaşlı
 Modified by: Huang Erdong (@Huang-ED)
 In this version of codes, 
     the methodology proposed in the original DWA paper is implemented.
+Compared to dynamic_window_approach_paper.py,
+    robot are considered in rectangle shape when indicated,
+    and the obstacle is considered as a circle with radius.
 
 """
 
@@ -77,6 +80,7 @@ class Config:
         self.robot_stuck_flag_cons = 0.001  # constant to prevent robot stucked
         self.robot_type = RobotType.rectangle
         self.catch_goal_dist = 0.5 # [m] goal radius
+        self.obstacle_radius = 0.5  # [m] for collision check
 
         # if robot_type == RobotType.circle
         # Also used to check if goal is reached in both types
@@ -241,6 +245,49 @@ def calc_control_and_trajectory(x, dw, config, goal, ob):
     return best_u, best_trajectory
 
 
+def any_circle_overlap_with_box(circles, center, length, width, rot):
+    """
+    Check whether any of the given circles overlap with a rotated rectangular box.
+
+    Parameters:
+    - circles: 2D numpy array, shape (N, 3), where each row contains the 2D coordinate of the point and the radius of the circle (x, y, radius)
+    - center: tuple (cx, cy), the 2D coordinate of the center of the box
+    - length: float, length of the box
+    - width: float, width of the box
+    - rot: float, rotational angle of the box in radians
+
+    Returns:
+    - Boolean: True if any circle overlaps with the box, False otherwise
+    """
+    # Translate circle centers so that the center of the box is at the origin
+    translated_circles = circles[:, :2] - np.array(center)
+    
+    # Rotation matrix for the negative of the box's rotation angle
+    cos_rot = np.cos(-rot)
+    sin_rot = np.sin(-rot)
+    rotation_matrix = np.array([[cos_rot, -sin_rot], [sin_rot, cos_rot]])
+
+    # Rotate all circle centers using matrix multiplication
+    rotated_centers = translated_circles @ rotation_matrix
+
+    # Half dimensions of the box
+    half_length = length / 2
+    half_width = width / 2
+
+    # Calculate the distances of each circle center to the closest box boundary
+    clamped_x = np.clip(rotated_centers[:, 0], -half_length, half_length)
+    clamped_y = np.clip(rotated_centers[:, 1], -half_width, half_width)
+    closest_points = np.vstack((clamped_x, clamped_y)).T
+    
+    # Calculate distances from circle centers to closest points on the box boundary
+    distances = np.linalg.norm(rotated_centers - closest_points, axis=1)
+    
+    # Check if any distance is less than or equal to the circle radius
+    overlap = distances <= circles[:, 2]
+
+    return np.any(overlap)
+
+
 def closest_obstacle_on_curve(x, ob, v, omega, config):
     """
     Calculate the distance to the closest obstacle that intersects with the curvature
@@ -260,9 +307,16 @@ def closest_obstacle_on_curve(x, ob, v, omega, config):
     dist = 0
     while t < config.check_time:
         x = motion(x, [v, omega], config.dt)
-        distances = np.linalg.norm(ob - x[:2], axis=1)
-        if np.any(distances <= config.robot_radius):
-            return dist, t
+        if config.robot_type == RobotType.rectangle:
+            ob_with_radius = np.concatenate([ob, np.full((len(ob), 1), config.obstacle_radius)], axis=1)
+            if any_circle_overlap_with_box(ob_with_radius, x[:2], config.robot_length, config.robot_width, x[2]):
+                return dist, t
+        elif config.robot_type == RobotType.circle:
+            distances = np.linalg.norm(ob - x[:2], axis=1)
+            if np.any(distances <= config.robot_radius):
+                return dist, t
+        else:
+            raise ValueError("Invalid robot type")
         t += config.dt
         dist += v * config.dt
     return float("Inf"), float("Inf")
