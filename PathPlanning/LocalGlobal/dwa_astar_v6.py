@@ -8,11 +8,12 @@ from PathPlanning.AStar import a_star
 from PathPlanning.DynamicWindowApproach import dwa_paper_with_width as dwa
 
 import math
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 
 show_animation = True
-save_animation_to_figs = False
+save_animation_to_figs = True
 
 """
 From v2 onwards, a lower resolution A* path is used to guide the DWA path.
@@ -31,12 +32,12 @@ class Config:
 
     def __init__(self):
         # robot parameter
-        self.max_speed = 1.0  # [m/s]
+        self.max_speed = 10.0  # [m/s]
         self.min_speed = 0.0  # [m/s]
         self.max_yaw_rate = 40.0 * math.pi / 180.0  # [rad/s]
-        self.max_accel = 0.2  # [m/ss]
+        self.max_accel = 2  # [m/ss]
         self.max_delta_yaw_rate = 40.0 * math.pi / 180.0  # [rad/ss]
-        self.v_resolution = 0.01  # [m/s]
+        self.v_resolution = 0.1  # [m/s]
         self.yaw_rate_resolution = 0.1 * math.pi / 180.0  # [rad/s]
         self.dt = 0.1  # [s] Time tick for motion prediction
         self.predict_time = 1.0  # [s]
@@ -46,8 +47,8 @@ class Config:
         self.obstacle_cost_gain = 0.05
         self.robot_stuck_flag_cons = 0.001  # constant to prevent robot stucked
         self.robot_type = dwa.RobotType.rectangle
-        self.catch_goal_dist = 0.5  # [m] goal radius
-        self.catch_localgoal_dist = 1.0  # [m] local goal radius
+        self.catch_goal_dist = 5  # [m] goal radius
+        self.catch_localgoal_dist = 10  # [m] local goal radius
         self.obstacle_radius = 0.5  # [m] for collision check
 
         # if robot_type == RobotType.circle
@@ -70,33 +71,34 @@ class Config:
 
 
 config = Config()
+t0 = time.time()
 
 # ----- Set up the map -----
 ox, oy = [], []
-for i in range(60):
+for i in range(600):
     ox.append(i)
     oy.append(0.0)
-for i in range(60):
-    ox.append(60.0)
+for i in range(600):
+    ox.append(600.0)
     oy.append(i)
-for i in range(61):
+for i in range(601):
     ox.append(i)
-    oy.append(60.0)
-for i in range(61):
+    oy.append(600.0)
+for i in range(601):
     ox.append(0.0)
     oy.append(i)
-for i in range(40):
-    ox.append(20.0)
+for i in range(400):
+    ox.append(200.0)
     oy.append(i)
-for i in range(40):
-    ox.append(40.0)
-    oy.append(60.0 - i)
+for i in range(400):
+    ox.append(400.0)
+    oy.append(600.0 - i)
 ob = np.array([ox, oy]).transpose()
 
 # ----- Set up the start and goal positions -----
 # Set the start and goal positions
-sx, sy = 10.0, 10.0
-gx, gy = 50.0, 50.0
+sx, sy = 100.0, 100.0
+gx, gy = 500.0, 500.0
 
 # Plot the map
 if show_animation:  # pragma: no cover
@@ -122,6 +124,8 @@ a_star_planner = a_star.AStarPlanner(
     max_x=max(*ox, sx+2, gx+2), max_y=max(*oy, sy+2, gy+2)
 )
 rx, ry = a_star_planner.planning(sx, sy, gx, gy)
+rx = [rx[i] for i in range(len(rx)) if (len(rx) - 1 - i) % 10 == 0]
+ry = [ry[i] for i in range(len(ry)) if (len(ry) - 1 - i) % 10 == 0]
 
 road_map = np.array([rx, ry]).transpose()[::-1]
 # print(road_map)
@@ -137,40 +141,43 @@ if show_animation:  # pragma: no cover
         i_fig += 1
         fig_path = os.path.join(fig_dir, 'frame_{}.png'.format(i_fig))
 
-# ----- Put new obstacles on the A* path -----
-new_ob = np.array([
-    [12.5, 12.5], 
-    [15.0, 17.5], 
-    [15.0, 22.5], 
-    [15.0, 27.5], 
-    [15.0, 32.5], 
-    [15.0, 37.5], 
-    [17.5, 42.5], 
-    [22.5, 42.5], 
-    [27.5, 37.5], 
-    [32.5, 32.5], 
-    [35.0, 27.5], 
-    [35.0, 22.5], 
-    [37.5, 17.5], 
-    [42.5, 17.5], 
-    [45.0, 22.5], 
-    [45.0, 27.5], 
-    [45.0, 32.5], 
-    [45.0, 37.5], 
-    [45.0, 42.5], 
-    [47.5, 47.5]
-])
-new_ob1 = new_ob + np.array([0.5, 0.5])
-new_ob2 = new_ob + np.array([-0.5, -0.5])
-new_ob3 = new_ob + np.array([0.5, -0.5])
-new_ob4 = new_ob + np.array([-0.5, 0.5])
-new_ob = np.concatenate((new_ob1, new_ob2, new_ob3, new_ob4), axis=0)
-ob = np.append(ob, new_ob, axis=0)
-if show_animation:  # pragma: no cover
-    # plt.plot(new_ob[:,0], new_ob[:,1], ".k")
-    for (x, y) in new_ob:
-        circle = plt.Circle((x, y), config.robot_radius, color="k")
-        plt.gca().add_patch(circle)
+t1 = time.time()
+print("A* time: ", t1 - t0)
+
+# # ----- Put new obstacles on the A* path -----
+# new_ob = np.array([
+#     [12.5, 12.5], 
+#     [15.0, 17.5], 
+#     [15.0, 22.5], 
+#     [15.0, 27.5], 
+#     [15.0, 32.5], 
+#     [15.0, 37.5], 
+#     [17.5, 42.5], 
+#     [22.5, 42.5], 
+#     [27.5, 37.5], 
+#     [32.5, 32.5], 
+#     [35.0, 27.5], 
+#     [35.0, 22.5], 
+#     [37.5, 17.5], 
+#     [42.5, 17.5], 
+#     [45.0, 22.5], 
+#     [45.0, 27.5], 
+#     [45.0, 32.5], 
+#     [45.0, 37.5], 
+#     [45.0, 42.5], 
+#     [47.5, 47.5]
+# ])
+# new_ob1 = new_ob + np.array([0.5, 0.5])
+# new_ob2 = new_ob + np.array([-0.5, -0.5])
+# new_ob3 = new_ob + np.array([0.5, -0.5])
+# new_ob4 = new_ob + np.array([-0.5, 0.5])
+# new_ob = np.concatenate((new_ob1, new_ob2, new_ob3, new_ob4), axis=0)
+# ob = np.append(ob, new_ob, axis=0)
+# if show_animation:  # pragma: no cover
+#     # plt.plot(new_ob[:,0], new_ob[:,1], ".k")
+#     for (x, y) in new_ob:
+#         circle = plt.Circle((x, y), config.robot_radius, color="k")
+#         plt.gca().add_patch(circle)
 
 
 # ----- Run DWA path planning -----
@@ -186,6 +193,7 @@ if show_animation:  # pragma: no cover
         'key_release_event',
         lambda event: [exit(0) if event.key == 'escape' else None])
     plt_elements = []
+
 
 for i_goal, dwagoal in enumerate(road_map):
     if i_goal == 0:  # Skip the start point
@@ -224,6 +232,8 @@ for i_goal, dwagoal in enumerate(road_map):
                 break
     
 print("Done")
+t2 = time.time()
+print("DWA time: ", t2 - t1)
 if show_animation:  # pragma: no cover
     plt.show()
         
