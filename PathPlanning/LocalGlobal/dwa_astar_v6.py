@@ -128,8 +128,8 @@ a_star_planner = a_star.AStarPlanner(
     max_x=max(*ox, sx+2, gx+2), max_y=max(*oy, sy+2, gy+2)
 )
 rx, ry = a_star_planner.planning(sx, sy, gx, gy)
-rx = [rx[i] for i in range(len(rx)) if (len(rx) - 1 - i) % 10 == 0]
-ry = [ry[i] for i in range(len(ry)) if (len(ry) - 1 - i) % 10 == 0]
+rx = [rx[i] for i in range(len(rx)) if i % 10 == 0]
+ry = [ry[i] for i in range(len(ry)) if i % 10 == 0]
 
 road_map = np.array([rx, ry]).transpose()[::-1]
 # print(road_map)
