@@ -47,7 +47,7 @@ class Config:
         self.obstacle_cost_gain = 0.05
         self.robot_stuck_flag_cons = 0.001  # constant to prevent robot stucked
         self.robot_type = dwa.RobotType.rectangle
-        self.catch_goal_dist = 1  # [m] goal radius
+        self.catch_goal_dist = 3  # [m] goal radius
         self.catch_localgoal_dist = 10  # [m] local goal radius
         self.obstacle_radius = 0.5  # [m] for collision check
 

@@ -36,6 +36,15 @@ robot_length = 1.2
 
 
 ----- ----- ----- -----
+v6_exp1
+max_speed = 10.0
+
+
+v6_exp1
+max_speed = 1.0
+
+
+----- ----- ----- -----
 original config for v3 and v4
 class Config:
     """
@@ -69,6 +78,55 @@ class Config:
         # if robot_type == RobotType.rectangle
         self.robot_width = 1.0  # [m] for collision check
         self.robot_length = 2.0  # [m] for collision check
+
+    @property
+    def robot_type(self):
+        return self._robot_type
+
+    @robot_type.setter
+    def robot_type(self, value):
+        if not isinstance(value, dwa.RobotType):
+            raise TypeError("robot_type must be an instance of RobotType")
+        self._robot_type = value
+
+
+----- ----- ----- -----
+original config for v6
+class Config:
+    """
+    simulation parameter class
+    """
+
+    def __init__(self):
+        # robot parameter
+        self.max_speed = 10.0  # [m/s]
+        self.min_speed = 0.0  # [m/s]
+        self.max_yaw_rate = 40.0 * math.pi / 180.0  # [rad/s]
+        self.max_accel = 2  # [m/ss]
+        self.max_delta_yaw_rate = 40.0 * math.pi / 180.0  # [rad/ss]
+        self.v_resolution = 0.1  # [m/s]
+        self.yaw_rate_resolution = 0.1 * math.pi / 180.0  # [rad/s]
+        self.dt = 0.1  # [s] Time tick for motion prediction
+        self.predict_time = 1.0  # [s]
+        self.check_time = 100.0 # [s] Time to check for collision - a large number
+        self.to_goal_cost_gain = 0.2
+        self.speed_cost_gain = 1
+        self.obstacle_cost_gain = 0.05
+        self.robot_stuck_flag_cons = 0.001  # constant to prevent robot stucked
+        self.robot_type = dwa.RobotType.rectangle
+        self.catch_goal_dist = 3  # [m] goal radius
+        self.catch_localgoal_dist = 10  # [m] local goal radius
+        self.obstacle_radius = 0.5  # [m] for collision check
+
+        self.astar_resolution = 5.0  # [m] A* path resolution
+
+        # if robot_type == RobotType.circle
+        # Also used to check if goal is reached in both types
+        self.robot_radius = 0.5  # [m] for collision check
+
+        # if robot_type == RobotType.rectangle
+        self.robot_width = 0.5  # [m] for collision check
+        self.robot_length = 1.2  # [m] for collision check
 
     @property
     def robot_type(self):
