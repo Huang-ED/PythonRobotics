@@ -16,13 +16,13 @@ show_animation = True
 save_animation_to_figs = True
 
 """
-From v2 onwards, a lower resolution A* path is used to guide the DWA path.
-From v3 onwards, obstacles are then put onto the A* path, to simulate dynamic obstacles and test the performance of DWA.
-From v4 onwards, the robot will head to the next local goal once it is "close enough" the current local goal. 
-From v5 onwards, for collision check,
+v3: Obstacles are put onto the A* path, to simulate dynamic obstacles and test the performance of DWA.
+v4: The robot will head to the next local goal once it is "close enough" the current local goal. 
+v5: For collision check,
     the robot is a rectangle with width and length when specified, rather than always a circle.
     Obstacles are circles with radius. 
-v6: Increase the resolution to match the real-world environment map
+v6: Local goals are selected waypoints (1 in every 10 A* waypoints) on the A* path. 
+    Increase the resolution to match the real-world environment map.
 """
 
 class Config:
