@@ -22,7 +22,7 @@ From v4 onwards, the robot will head to the next local goal once it is "close en
 From v5 onwards, for collision check,
     the robot is a rectangle with width and length when specified, rather than always a circle.
     Obstacles are circles with radius. 
-v6: Increase the resolution of the environment map.
+v6: Increase the resolution to match the real-world environment map
 """
 
 class Config:
@@ -47,9 +47,11 @@ class Config:
         self.obstacle_cost_gain = 0.05
         self.robot_stuck_flag_cons = 0.001  # constant to prevent robot stucked
         self.robot_type = dwa.RobotType.rectangle
-        self.catch_goal_dist = 5  # [m] goal radius
+        self.catch_goal_dist = 1  # [m] goal radius
         self.catch_localgoal_dist = 10  # [m] local goal radius
         self.obstacle_radius = 0.5  # [m] for collision check
+
+        self.astar_resolution = 5.0  # [m] A* path resolution
 
         # if robot_type == RobotType.circle
         # Also used to check if goal is reached in both types
@@ -102,6 +104,7 @@ gx, gy = 500.0, 500.0
 
 # Plot the map
 if show_animation:  # pragma: no cover
+    plt.figure(figsize=(10, 10))
     if save_animation_to_figs:
         cur_dir = os.path.dirname(__file__)
         fig_dir = os.path.join(cur_dir, 'figs')
@@ -119,7 +122,8 @@ if show_animation:  # pragma: no cover
 
 # ----- Run A* path planning -----
 a_star_planner = a_star.AStarPlanner(
-    ob, resolution=5.0, rr=1.0,
+    ob, resolution=config.astar_resolution, 
+    rr=max(config.robot_width, config.robot_length),
     min_x=min(*ox, sx-2, gx-2), min_y=min(*oy, sy-2, gy-2),
     max_x=max(*ox, sx+2, gx+2), max_y=max(*oy, sy+2, gy+2)
 )

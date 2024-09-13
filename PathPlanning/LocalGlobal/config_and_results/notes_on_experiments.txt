@@ -1,6 +1,7 @@
 For v3 and v4, 
 .1 means using dynamic_window_approach (PythonRobotics)
 .2 means using dynamic_window_approach_paper, but confused circle and rectangle
+v5.2 solved this confused problem.
 
 
 ----- ----- ----- -----
