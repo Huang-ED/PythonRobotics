@@ -39,9 +39,16 @@ robot_length = 1.2
 v6_exp1
 max_speed = 10.0
 
-
-v6_exp1
+v6_failed1 - Wrong direction for obstacle avoidance around the corner
 max_speed = 1.0
+
+v6_failed2 - Wrong direction for obstacle avoidance around the corner
+max_speed = 1.0
+rx = [rx[i] for i in range(len(rx)) if i % 5 == 0]
+ry = [ry[i] for i in range(len(ry)) if i % 5 == 0]
+
+
+v7_slow - Too slow (ob list too large)
 
 
 ----- ----- ----- -----
