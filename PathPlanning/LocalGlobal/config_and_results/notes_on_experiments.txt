@@ -35,6 +35,26 @@ robot_width = 0.5
 robot_length = 1.2
 
 
+-----
+v5_vid1
+1. new_ob is added too late
+2. new_ob is 3*3 instead of desired 2*2
+3. new_ob is behind the A* search dots
+
+v5_vid2
+obstacle_cost_gain = 0.05
+
+v5_vid3
+obstacle_cost_gain = 0.1
+
+v5_vid4
+obstacle_cost_gain = 0.08
+
+v5_vid5
+obstacle_cost_gain = 0.08
+add A* searching animations
+
+
 ----- ----- ----- -----
 v6_exp1
 max_speed = 10.0

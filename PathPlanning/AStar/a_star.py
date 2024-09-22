@@ -8,7 +8,7 @@ author: Atsushi Sakai(@Atsushi_twi)
 See Wikipedia article (https://en.wikipedia.org/wiki/A*_search_algorithm)
 
 """
-
+import os
 import math
 
 import matplotlib.pyplot as plt
@@ -21,7 +21,9 @@ class AStarPlanner:
 
     def __init__(
         self, ob, resolution, rr, 
-        min_x=None, min_y=None, max_x=None, max_y=None
+        min_x=None, min_y=None, max_x=None, max_y=None,
+        save_animation_to_figs=False,
+        fig_dir=None
     ):
         """
         Initialize grid map for a star planning
@@ -42,6 +44,10 @@ class AStarPlanner:
         self.motion = self.get_motion_model()
         self.calc_obstacle_map()
 
+        self.save_animation_to_figs = save_animation_to_figs
+        self.fig_dir = fig_dir
+        self.i_fig = 0
+
     class Node:
         def __init__(self, x, y, cost, parent_index):
             self.x = x  # index of grid
@@ -53,7 +59,7 @@ class AStarPlanner:
             return str(self.x) + "," + str(self.y) + "," + str(
                 self.cost) + "," + str(self.parent_index)
 
-    def planning(self, sx, sy, gx, gy):
+    def planning(self, sx, sy, gx, gy, curr_i_fig=None):
         """
         A star path search
 
@@ -76,6 +82,10 @@ class AStarPlanner:
         open_set, closed_set = dict(), dict()
         open_set[self.calc_grid_index(start_node)] = start_node
 
+        if self.save_animation_to_figs:
+            if curr_i_fig is None:
+                self.i_fig = curr_i_fig
+
         while True:
             if len(open_set) == 0:
                 print("Open set is empty..")
@@ -96,6 +106,11 @@ class AStarPlanner:
                                                  0) if event.key == 'escape' else None])
                 if len(closed_set.keys()) % 10 == 0:
                     plt.pause(0.001)
+
+                    if self.save_animation_to_figs:
+                        plt.savefig(os.path.join(self.fig_dir, 'frame_{}.png'.format(self.i_fig)))
+                        self.i_fig += 1
+
 
             if current.x == goal_node.x and current.y == goal_node.y:
                 print("Find goal")

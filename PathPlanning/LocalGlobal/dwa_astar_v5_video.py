@@ -46,7 +46,7 @@ class Config:
         self.check_time = 100.0 # [s] Time to check for collision - a large number
         self.to_goal_cost_gain = 0.2
         self.speed_cost_gain = 1
-        self.obstacle_cost_gain = 0.05
+        self.obstacle_cost_gain = 0.08
         self.robot_stuck_flag_cons = 0.001  # constant to prevent robot stucked
         self.robot_type = dwa.RobotType.rectangle
         self.catch_goal_dist = 0.5  # [m] goal radius
@@ -103,7 +103,9 @@ ob_astar[:, 1] = arr_astar.shape[0] - ob_astar[:, 1] - 1  # Flip y-axis
 ox_astar, oy_astar = ob_astar[:, 0], ob_astar[:, 1]
 
 # Map for DWA
-
+'''
+to be implemented: boundary extraction + local map
+'''
 
 # ----- Set up the start and goal positions -----
 # Set the start and goal positions
@@ -118,7 +120,7 @@ if show_animation:  # pragma: no cover
         fig_dir = os.path.join(cur_dir, 'figs')
         os.makedirs(fig_dir, exist_ok=False)
         i_fig = 0
-        fig_path = os.path.join(fig_dir, 'frame_{}.png'.format(i_fig))
+        # fig_path = os.path.join(fig_dir, 'frame_{}.png'.format(i_fig))
     # plt.plot(ox, oy, ".k")
     for (x, y) in ob:
         circle = plt.Circle((x, y), config.robot_radius, color="k")
@@ -133,9 +135,11 @@ a_star_planner = a_star.AStarPlanner(
     ob=ob, resolution=1.0, 
     rr=max(config.robot_width, config.robot_length),
     min_x=min(*ox, sx-2, gx-2), min_y=min(*oy, sy-2, gy-2),
-    max_x=max(*ox, sx+2, gx+2), max_y=max(*oy, sy+2, gy+2)
+    max_x=max(*ox, sx+2, gx+2), max_y=max(*oy, sy+2, gy+2),
+    save_animation_to_figs=save_animation_to_figs,
+    fig_dir=fig_dir
 )
-rx, ry = a_star_planner.planning(sx, sy, gx, gy)  # full A* path
+rx, ry = a_star_planner.planning(sx, sy, gx, gy, curr_i_fig=i_fig)  # full A* path
 
 rx_select = [rx[i] for i in range(len(rx)) if i % 10 == 0]
 ry_select = [ry[i] for i in range(len(ry)) if i % 10 == 0]
@@ -149,9 +153,10 @@ if show_animation:  # pragma: no cover
     plt.pause(0.001)
 
     if save_animation_to_figs:
-        plt.savefig(fig_path)
+        i_fig = a_star_planner.i_fig # update i_fig
+        plt.savefig(os.path.join(fig_dir, 'frame_{}.png'.format(i_fig)))
         i_fig += 1
-        fig_path = os.path.join(fig_dir, 'frame_{}.png'.format(i_fig))
+        # fig_path = os.path.join(fig_dir, 'frame_{}.png'.format(i_fig))
 
 
 # ----- Put new obstacles on the A* path -----
@@ -215,9 +220,9 @@ for i_goal, dwagoal in enumerate(road_map):
             plt.pause(0.001)
 
             if save_animation_to_figs:
-                plt.savefig(fig_path)
+                plt.savefig(os.path.join(fig_dir, 'frame_{}.png'.format(i_fig)))
                 i_fig += 1
-                fig_path = os.path.join(fig_dir, 'frame_{}.png'.format(i_fig))
+                # fig_path = os.path.join(fig_dir, 'frame_{}.png'.format(i_fig))
 
         # check reaching goal
         dist_to_goal = math.hypot(x[0] - dwagoal[0], x[1] - dwagoal[1])
