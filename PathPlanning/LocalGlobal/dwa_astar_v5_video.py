@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 
-plt.switch_backend('Agg')
+# plt.switch_backend('Agg')
 show_animation = True
 save_animation_to_figs = True
 
@@ -73,6 +73,9 @@ class Config:
 
 
 config = Config()
+config_plot = Config()
+config_plot.robot_width *= 2
+config_plot.robot_length *= 2
 
 # ----- Set up the map -----
 ## Load the map from image
@@ -109,24 +112,29 @@ to be implemented: boundary extraction + local map
 
 # ----- Set up the start and goal positions -----
 # Set the start and goal positions
-sx, sy = 20.0, 80.0
-gx, gy = 80.0, 40.0
+# sx, sy = 20.0, 80.0
+# gx, gy = 80.0, 40.0
+sx, sy = 70, 90
+gx, gy = 60, 10
 
 # Plot the map
 if show_animation:  # pragma: no cover
     plt.figure(figsize=(10, 10))
     if save_animation_to_figs:
         cur_dir = os.path.dirname(__file__)
-        fig_dir = os.path.join(cur_dir, 'figs')
+        fig_dir = os.path.join(cur_dir, 'figs_vid8')
         os.makedirs(fig_dir, exist_ok=False)
         i_fig = 0
-        # fig_path = os.path.join(fig_dir, 'frame_{}.png'.format(i_fig))
+
+    else:
+        fig_dir = None
+        i_fig = 0
     # plt.plot(ox, oy, ".k")
     for (x, y) in ob:
         circle = plt.Circle((x, y), config.robot_radius, color="k")
         plt.gca().add_patch(circle)
-    plt.plot(sx, sy, "og")
-    plt.plot(gx, gy, "*b")
+    plt.plot(sx, sy, "or", zorder=10)
+    plt.plot(gx, gy, "sr", zorder=10)
     plt.grid(True)
     plt.axis("equal")
 
@@ -146,17 +154,26 @@ ry_select = [ry[i] for i in range(len(ry)) if i % 10 == 0]
 road_map = np.array([rx_select, ry_select]).transpose()[::-1]  # selected A* path
 # print(road_map)
 
-# Plot the path
+# Plot the A* path
 if show_animation:  # pragma: no cover
-    plt.plot(rx, ry, "-r")
-    plt.plot(rx_select, ry_select, "xb")
+    ele = plt.plot(rx, ry, "-b")[0]
     plt.pause(0.001)
-
     if save_animation_to_figs:
         i_fig = a_star_planner.i_fig # update i_fig
         plt.savefig(os.path.join(fig_dir, 'frame_{}.png'.format(i_fig)))
         i_fig += 1
-        # fig_path = os.path.join(fig_dir, 'frame_{}.png'.format(i_fig))
+
+    plt.plot(rx_select, ry_select, "Db")
+    plt.pause(0.001)
+    if save_animation_to_figs:
+        plt.savefig(os.path.join(fig_dir, 'frame_{}.png'.format(i_fig)))
+        i_fig += 1
+    
+    ele.remove()
+    plt.pause(0.001)
+    if save_animation_to_figs:
+        plt.savefig(os.path.join(fig_dir, 'frame_{}.png'.format(i_fig)))
+        i_fig += 1
 
 
 # ----- Put new obstacles on the A* path -----
@@ -174,7 +191,7 @@ def put_new_ob(ob, new_ob):
     if show_animation:  # pragma: no cover
         # plt.plot(new_ob[:,0], new_ob[:,1], ".k")
         for (x, y) in new_ob:
-            circle = plt.Circle((x, y), config.robot_radius, color="k", zorder=10)
+            circle = plt.Circle((x, y), config.robot_radius, color="brown", zorder=10)
             plt.gca().add_patch(circle)
     return ob
 
@@ -196,11 +213,17 @@ if show_animation:  # pragma: no cover
 for i_goal, dwagoal in enumerate(road_map):
     if np.array_equal(dwagoal, [sx, sy]):  # Skip the start point
         continue
-    if i_goal == 1:
-        new_ob = np.array([[29., 72.], [28., 71.], [29., 71.], [28., 72.]])
+    if i_goal == 2:
+        new_ob = np.array([[67., 75.], [67., 74.], [66., 75.], [66., 74.]])
         ob = put_new_ob(ob, new_ob)
-    if i_goal == 4:
+    if i_goal == 3:
+        new_ob = np.array([[57., 65.], [57., 66.], [58., 65.], [58., 66.]])
+        ob = put_new_ob(ob, new_ob)
+    if i_goal == 5:
         new_ob = np.array([[43., 44.], [42., 43.], [43., 43.], [42., 44.]])
+        ob = put_new_ob(ob, new_ob)
+    if i_goal == 8:
+        new_ob = np.array([[67., 23.], [67., 24.], [68., 23.], [68., 24.]])
         ob = put_new_ob(ob, new_ob)
 
     while True:
@@ -214,7 +237,7 @@ for i_goal, dwagoal in enumerate(road_map):
             plt_elements = []
             plt_elements.append(plt.plot(predicted_trajectory[:, 0], predicted_trajectory[:, 1], "-g")[0])
             plt_elements.append(plt.plot(x[0], x[1], "xr")[0])
-            plt_elements.extend(dwa.plot_robot(x[0], x[1], x[2], config))
+            plt_elements.extend(dwa.plot_robot(x[0], x[1], x[2], config_plot))
             plt_elements.extend(dwa.plot_arrow(x[0], x[1], x[2]))
             plt_elements.append(plt.plot(trajectory[:, 0], trajectory[:, 1], "-r")[0])
             plt.pause(0.001)
@@ -222,7 +245,6 @@ for i_goal, dwagoal in enumerate(road_map):
             if save_animation_to_figs:
                 plt.savefig(os.path.join(fig_dir, 'frame_{}.png'.format(i_fig)))
                 i_fig += 1
-                # fig_path = os.path.join(fig_dir, 'frame_{}.png'.format(i_fig))
 
         # check reaching goal
         dist_to_goal = math.hypot(x[0] - dwagoal[0], x[1] - dwagoal[1])
