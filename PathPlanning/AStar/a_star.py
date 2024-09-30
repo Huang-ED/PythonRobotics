@@ -47,6 +47,7 @@ class AStarPlanner:
         self.save_animation_to_figs = save_animation_to_figs
         self.fig_dir = fig_dir
         self.i_fig = 0
+        self.plt_elements = []
 
     class Node:
         def __init__(self, x, y, cost, parent_index):
@@ -98,17 +99,22 @@ class AStarPlanner:
 
             # show graph
             if show_animation:  # pragma: no cover
-                plt.plot(self.calc_grid_position(current.x, self.min_x),
-                         self.calc_grid_position(current.y, self.min_y), ".c")
+                self.plt_elements.append(
+                    plt.plot(
+                        self.calc_grid_position(current.x, self.min_x),
+                        self.calc_grid_position(current.y, self.min_y), ".y"
+                    )[0]
+                )
                 # for stopping simulation with the esc key.
-                plt.gcf().canvas.mpl_connect('key_release_event',
-                                             lambda event: [exit(
-                                                 0) if event.key == 'escape' else None])
+                plt.gcf().canvas.mpl_connect(
+                    'key_release_event',
+                    lambda event: [exit(0) if event.key == 'escape' else None]
+                )
                 if len(closed_set.keys()) % 10 == 0:
                     plt.pause(0.001)
 
                     if self.save_animation_to_figs:
-                        plt.savefig(os.path.join(self.fig_dir, 'frame_{}.png'.format(self.i_fig)))
+                        plt.savefig(os.path.join(self.fig_dir, 'frame_{}.png'.format(self.i_fig)), bbox_inches='tight')
                         self.i_fig += 1
 
 

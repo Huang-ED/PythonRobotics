@@ -113,8 +113,6 @@ to be implemented: boundary extraction + local map
 # ----- Set up the start and goal positions -----
 # Set the start and goal positions
 sx, sy = 20, 90
-# gx, gy = 75, 5
-# gx, gy = 10, 20
 gx, gy = 3, 3
 
 # Plot the map
@@ -131,7 +129,7 @@ if show_animation:  # pragma: no cover
         i_fig = 0
     # plt.plot(ox, oy, ".k")
     for (x, y) in ob:
-        circle = plt.Circle((x, y), config.robot_radius, color="k")
+        circle = plt.Circle((x, y), config.robot_radius, color="darkgrey")
         plt.gca().add_patch(circle)
     plt.plot(sx, sy, "or", zorder=10)
     plt.plot(gx, gy, "sr", zorder=10)
@@ -156,23 +154,29 @@ road_map = np.array([rx_select, ry_select]).transpose()[::-1]  # selected A* pat
 
 # Plot the A* path
 if show_animation:  # pragma: no cover
-    ele = plt.plot(rx, ry, "-b")[0]
+    ## Full A* Path
+    # ele = plt.plot(rx, ry, "-b")[0]
+    plt.plot(rx, ry, "-c")
     plt.pause(0.001)
     if save_animation_to_figs:
-        i_fig = a_star_planner.i_fig # update i_fig
-        plt.savefig(os.path.join(fig_dir, 'frame_{}.png'.format(i_fig)))
+        i_fig = a_star_planner.i_fig  # update i_fig
+        plt.savefig(os.path.join(fig_dir, 'frame_{}.png'.format(i_fig)), bbox_inches='tight')
         i_fig += 1
 
+    ## Local Goals
     plt.plot(rx_select, ry_select, "Db")
     plt.pause(0.001)
     if save_animation_to_figs:
-        plt.savefig(os.path.join(fig_dir, 'frame_{}.png'.format(i_fig)))
+        plt.savefig(os.path.join(fig_dir, 'frame_{}.png'.format(i_fig)), bbox_inches='tight')
         i_fig += 1
-    
-    ele.remove()
+
+    ## Remove the full A* path
+    for ele in a_star_planner.plt_elements:
+        ele.remove()
+    # ele.remove()
     plt.pause(0.001)
     if save_animation_to_figs:
-        plt.savefig(os.path.join(fig_dir, 'frame_{}.png'.format(i_fig)))
+        plt.savefig(os.path.join(fig_dir, 'frame_{}.png'.format(i_fig)), bbox_inches='tight')
         i_fig += 1
 
 
@@ -218,6 +222,7 @@ for i_goal, dwagoal in enumerate(road_map):
         ob = put_new_ob(ob, new_ob)
     if i_goal == 3:
         new_ob = np.array([[35., 55.], [36., 56]])
+        # new_ob = np.array([[34., 56.], [35., 57]])
         ob = put_new_ob(ob, new_ob)
     if i_goal == 4:
         new_ob = np.array([[28., 46.], [27., 47.]])
@@ -243,7 +248,7 @@ for i_goal, dwagoal in enumerate(road_map):
             plt.pause(0.001)
 
             if save_animation_to_figs:
-                plt.savefig(os.path.join(fig_dir, 'frame_{}.png'.format(i_fig)))
+                plt.savefig(os.path.join(fig_dir, 'frame_{}.png'.format(i_fig)), bbox_inches='tight')
                 i_fig += 1
 
         # check reaching goal

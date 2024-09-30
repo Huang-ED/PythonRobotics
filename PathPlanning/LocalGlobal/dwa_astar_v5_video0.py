@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 
-plt.switch_backend('Agg')
+# plt.switch_backend('Agg')
 show_animation = True
 save_animation_to_figs = True
 
@@ -44,9 +44,9 @@ class Config:
         self.dt = 0.1  # [s] Time tick for motion prediction
         self.predict_time = 1.0  # [s]
         self.check_time = 100.0 # [s] Time to check for collision - a large number
-        self.to_goal_cost_gain = 0.2
+        self.to_goal_cost_gain = 0.4
         self.speed_cost_gain = 1
-        self.obstacle_cost_gain = 0.08
+        self.obstacle_cost_gain = 0.05
         self.robot_stuck_flag_cons = 0.001  # constant to prevent robot stucked
         self.robot_type = dwa.RobotType.rectangle
         self.catch_goal_dist = 0.5  # [m] goal radius
@@ -99,6 +99,19 @@ for i in range(40):
     oy.append(60.0 - i)
 ob = np.array([ox, oy]).transpose()
 
+ob_astar = np.concatenate([
+    ob,
+    ob+np.array([1, 0]),
+    ob+np.array([0, 1]),
+    ob+np.array([-1, 0]),
+    ob+np.array([0, -1]),
+    ob+np.array([2, 0]),
+    ob+np.array([0, 2]),
+    ob+np.array([-2, 0]),
+    ob+np.array([0, -2])
+], axis=0)
+ob_astar = np.unique(ob_astar, axis=0)
+
 # Map for DWA
 '''
 to be implemented: boundary extraction + local map
@@ -114,7 +127,7 @@ if show_animation:  # pragma: no cover
     plt.figure(figsize=(10, 10))
     if save_animation_to_figs:
         cur_dir = os.path.dirname(__file__)
-        fig_dir = os.path.join(cur_dir, 'figs_maxspeed05')
+        fig_dir = os.path.join(cur_dir, 'figs')
         os.makedirs(fig_dir, exist_ok=False)
         i_fig = 0
 
@@ -132,11 +145,12 @@ if show_animation:  # pragma: no cover
 
 # ----- Run A* path planning -----
 a_star_planner = a_star.AStarPlanner(
-    ob=ob, resolution=1.0, 
+    ob=ob_astar, resolution=1.0, 
     rr=max(config.robot_width, config.robot_length),
     min_x=min(*ox, sx-2, gx-2), min_y=min(*oy, sy-2, gy-2),
     max_x=max(*ox, sx+2, gx+2), max_y=max(*oy, sy+2, gy+2),
-    save_animation_to_figs=save_animation_to_figs,
+    # save_animation_to_figs=save_animation_to_figs,
+    save_animation_to_figs=False,
     fig_dir=fig_dir
 )
 rx, ry = a_star_planner.planning(sx, sy, gx, gy, curr_i_fig=i_fig)  # full A* path
@@ -170,22 +184,24 @@ if show_animation:  # pragma: no cover
 
 # ----- Put new obstacles on the A* path -----
 new_ob = np.array([
-    [15.5, 16.5],
-    [17, 21.5],
-    [17, 26.5],
-    [17, 31.5],
-    [17.5, 36.5],
-    [20.5, 38.5],
-    [25.5, 35.5],
-    [30.5, 30.5],
-    [35, 25.5],
-    [39.5, 21.5],
-    [41.5, 22.5],
-    [42, 27.5],
-    [42.5, 32.5],
-    [44, 37.5],
+    [14, 14.5],
+    # [16, 19.5],
+    # [16, 24.5],
+    # [16, 29.5],
+    [16, 34.5],
+    # [17.5, 39.5],
+    # [21.5, 40.5],
+    # [26.5, 36.5],
+    [31.5, 31.5],
+    # [34.5, 26.5],
+    # [36.5, 21.5],
+    # [40.5, 19.5],
+    [43.5, 22.5],
+    # [44, 27.5],
+    # [44, 32.5],
+    # [44.5, 37.5],
     [46.5, 42.5],
-    [49, 47.5]
+    # [49, 47.5]
 ])
 new_ob1 = new_ob + np.array([0.5, 0.5])
 new_ob2 = new_ob + np.array([-0.5, -0.5])
