@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 
-# plt.switch_backend('Agg')
+plt.switch_backend('Agg')
 show_animation = True
 save_animation_to_figs = True
 
@@ -34,7 +34,7 @@ class Config:
 
     def __init__(self):
         # robot parameter
-        self.max_speed = 1.0  # [m/s]
+        self.max_speed = 0.5  # [m/s]
         self.min_speed = 0.0  # [m/s]
         self.max_yaw_rate = 40.0 * math.pi / 180.0  # [rad/s]
         self.max_accel = 0.2  # [m/ss]
@@ -78,32 +78,26 @@ config_plot.robot_width *= 2
 config_plot.robot_length *= 2
 
 # ----- Set up the map -----
-## Load the map from image
-image_path = "env_data/AISData_20240827/land_shapes_sf_crop.png"
-arr = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-arr = cv2.resize(arr, (100, 100))
-_, arr = cv2.threshold(arr, 128, 1, cv2.THRESH_BINARY)
-
-## add boundary obstacles
-arr[0, :] = 0  # Top edge
-arr[-1, :] = 0  # Bottom edge
-arr[:, 0] = 0  # Left edge
-arr[:, -1] = 0  # Right edge
-# arr = cv2.erode(arr, kernel=np.ones((5, 5), np.uint8), iterations=1)
-ob = np.argwhere(arr == 0)
-
-## imread direction and plot direction are different
-ob[:, [0, 1]] = ob[:, [1, 0]]  # Swap columns to match (x, y)
-ob[:, 1] = arr.shape[0] - ob[:, 1] - 1  # Flip y-axis
-ox, oy = ob[:, 0], ob[:, 1]
-
-# Map for A*
-arr_astar = cv2.erode(arr, kernel=np.ones((3, 3), np.uint8), iterations=1)
-# arr_astar = arr
-ob_astar = np.argwhere(arr_astar == 0)
-ob_astar[:, [0, 1]] = ob_astar[:, [1, 0]]  # Swap columns to match (x, y)
-ob_astar[:, 1] = arr_astar.shape[0] - ob_astar[:, 1] - 1  # Flip y-axis
-ox_astar, oy_astar = ob_astar[:, 0], ob_astar[:, 1]
+ox, oy = [], []
+for i in range(60):
+    ox.append(i)
+    oy.append(0.0)
+for i in range(60):
+    ox.append(60.0)
+    oy.append(i)
+for i in range(61):
+    ox.append(i)
+    oy.append(60.0)
+for i in range(61):
+    ox.append(0.0)
+    oy.append(i)
+for i in range(40):
+    ox.append(20.0)
+    oy.append(i)
+for i in range(40):
+    ox.append(40.0)
+    oy.append(60.0 - i)
+ob = np.array([ox, oy]).transpose()
 
 # Map for DWA
 '''
@@ -112,17 +106,15 @@ to be implemented: boundary extraction + local map
 
 # ----- Set up the start and goal positions -----
 # Set the start and goal positions
-sx, sy = 20, 90
-# gx, gy = 75, 5
-# gx, gy = 10, 20
-gx, gy = 3, 3
+sx, sy = 10.0, 10.0
+gx, gy = 50.0, 50.0
 
 # Plot the map
 if show_animation:  # pragma: no cover
     plt.figure(figsize=(10, 10))
     if save_animation_to_figs:
         cur_dir = os.path.dirname(__file__)
-        fig_dir = os.path.join(cur_dir, 'figs_video2')
+        fig_dir = os.path.join(cur_dir, 'figs_maxspeed05')
         os.makedirs(fig_dir, exist_ok=False)
         i_fig = 0
 
@@ -149,8 +141,8 @@ a_star_planner = a_star.AStarPlanner(
 )
 rx, ry = a_star_planner.planning(sx, sy, gx, gy, curr_i_fig=i_fig)  # full A* path
 
-rx_select = [rx[i] for i in range(len(rx)) if i % 10 == 0]
-ry_select = [ry[i] for i in range(len(ry)) if i % 10 == 0]
+rx_select = [rx[i] for i in range(len(rx)) if i % 5 == 0]
+ry_select = [ry[i] for i in range(len(ry)) if i % 5 == 0]
 road_map = np.array([rx_select, ry_select]).transpose()[::-1]  # selected A* path
 # print(road_map)
 
@@ -177,23 +169,35 @@ if show_animation:  # pragma: no cover
 
 
 # ----- Put new obstacles on the A* path -----
-# new_ob = np.array([
-#     [28.5, 71.5],
-#     [42.5, 43.5]
-# ])
-def put_new_ob(ob, new_ob):
-    # new_ob1 = new_ob_center + np.array([0.5, 0.5])
-    # new_ob2 = new_ob_center + np.array([-0.5, -0.5])
-    # new_ob3 = new_ob_center + np.array([0.5, -0.5])
-    # new_ob4 = new_ob_center + np.array([-0.5, 0.5])
-    # new_ob_center = np.concatenate((new_ob1, new_ob2, new_ob3, new_ob4), axis=0)
-    ob = np.append(ob, new_ob, axis=0)
-    if show_animation:  # pragma: no cover
-        # plt.plot(new_ob[:,0], new_ob[:,1], ".k")
-        for (x, y) in new_ob:
-            circle = plt.Circle((x, y), config.robot_radius, color="brown", zorder=10)
-            plt.gca().add_patch(circle)
-    return ob
+new_ob = np.array([
+    [15.5, 16.5],
+    [17, 21.5],
+    [17, 26.5],
+    [17, 31.5],
+    [17.5, 36.5],
+    [20.5, 38.5],
+    [25.5, 35.5],
+    [30.5, 30.5],
+    [35, 25.5],
+    [39.5, 21.5],
+    [41.5, 22.5],
+    [42, 27.5],
+    [42.5, 32.5],
+    [44, 37.5],
+    [46.5, 42.5],
+    [49, 47.5]
+])
+new_ob1 = new_ob + np.array([0.5, 0.5])
+new_ob2 = new_ob + np.array([-0.5, -0.5])
+new_ob3 = new_ob + np.array([0.5, -0.5])
+new_ob4 = new_ob + np.array([-0.5, 0.5])
+new_ob = np.concatenate((new_ob1, new_ob2, new_ob3, new_ob4), axis=0)
+ob = np.append(ob, new_ob, axis=0)
+if show_animation:  # pragma: no cover
+    # plt.plot(new_ob[:,0], new_ob[:,1], ".k")
+    for (x, y) in new_ob:
+        circle = plt.Circle((x, y), config.robot_radius, color="k", zorder=10)
+        plt.gca().add_patch(circle)
 
 
 # ----- Run DWA path planning -----
@@ -213,18 +217,6 @@ if show_animation:  # pragma: no cover
 for i_goal, dwagoal in enumerate(road_map):
     if np.array_equal(dwagoal, [sx, sy]):  # Skip the start point
         continue
-    if i_goal == 1: # 25, 26, 79, 80
-        new_ob = np.array([[25., 79.], [25., 80.], [26., 79.], [26., 80.]])
-        ob = put_new_ob(ob, new_ob)
-    if i_goal == 3:
-        new_ob = np.array([[35., 55.], [36., 56]])
-        ob = put_new_ob(ob, new_ob)
-    if i_goal == 4:
-        new_ob = np.array([[28., 46.], [27., 47.]])
-        ob = put_new_ob(ob, new_ob)
-    if i_goal == 7: # 10, 11, 19, 20
-        new_ob = np.array([[10., 19.], [10., 20.], [11., 19.], [11., 20.]])
-        ob = put_new_ob(ob, new_ob)
 
     while True:
         u, predicted_trajectory = dwa.dwa_control(x, config, dwagoal, ob)

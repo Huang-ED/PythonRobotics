@@ -122,7 +122,7 @@ if show_animation:  # pragma: no cover
     plt.figure(figsize=(10, 10))
     if save_animation_to_figs:
         cur_dir = os.path.dirname(__file__)
-        fig_dir = os.path.join(cur_dir, 'figs_vid8')
+        fig_dir = os.path.join(cur_dir, 'figs_video1')
         os.makedirs(fig_dir, exist_ok=False)
         i_fig = 0
 

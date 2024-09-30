@@ -75,4 +75,5 @@ matplotrecorder/*
 ## Added by Huang-ED
 .draft
 figs*
+*demo*
 env_data
