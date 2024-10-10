@@ -183,37 +183,37 @@ if show_animation:  # pragma: no cover
 
 
 # ----- Put new obstacles on the A* path -----
-new_ob = np.array([
-    [14, 14.5],
-    # [16, 19.5],
-    # [16, 24.5],
-    # [16, 29.5],
-    [16, 34.5],
-    # [17.5, 39.5],
-    # [21.5, 40.5],
-    # [26.5, 36.5],
-    [31.5, 31.5],
-    # [34.5, 26.5],
-    # [36.5, 21.5],
-    # [40.5, 19.5],
-    [43.5, 22.5],
-    # [44, 27.5],
-    # [44, 32.5],
-    # [44.5, 37.5],
-    [46.5, 42.5],
-    # [49, 47.5]
-])
-new_ob1 = new_ob + np.array([0.5, 0.5])
-new_ob2 = new_ob + np.array([-0.5, -0.5])
-new_ob3 = new_ob + np.array([0.5, -0.5])
-new_ob4 = new_ob + np.array([-0.5, 0.5])
-new_ob = np.concatenate((new_ob1, new_ob2, new_ob3, new_ob4), axis=0)
-ob = np.append(ob, new_ob, axis=0)
-if show_animation:  # pragma: no cover
-    # plt.plot(new_ob[:,0], new_ob[:,1], ".k")
-    for (x, y) in new_ob:
-        circle = plt.Circle((x, y), config.robot_radius, color="k", zorder=10)
-        plt.gca().add_patch(circle)
+# new_ob = np.array([
+#     [14, 14.5],
+#     # [16, 19.5],
+#     # [16, 24.5],
+#     # [16, 29.5],
+#     [16, 34.5],
+#     # [17.5, 39.5],
+#     # [21.5, 40.5],
+#     # [26.5, 36.5],
+#     [31.5, 31.5],
+#     # [34.5, 26.5],
+#     # [36.5, 21.5],
+#     # [40.5, 19.5],
+#     [43.5, 22.5],
+#     # [44, 27.5],
+#     # [44, 32.5],
+#     # [44.5, 37.5],
+#     [46.5, 42.5],
+#     # [49, 47.5]
+# ])
+# new_ob1 = new_ob + np.array([0.5, 0.5])
+# new_ob2 = new_ob + np.array([-0.5, -0.5])
+# new_ob3 = new_ob + np.array([0.5, -0.5])
+# new_ob4 = new_ob + np.array([-0.5, 0.5])
+# new_ob = np.concatenate((new_ob1, new_ob2, new_ob3, new_ob4), axis=0)
+# ob = np.append(ob, new_ob, axis=0)
+# if show_animation:  # pragma: no cover
+#     # plt.plot(new_ob[:,0], new_ob[:,1], ".k")
+#     for (x, y) in new_ob:
+#         circle = plt.Circle((x, y), config.robot_radius, color="k", zorder=10)
+#         plt.gca().add_patch(circle)
 
 
 # ----- Run DWA path planning -----
