@@ -73,7 +73,7 @@ matplotrecorder/*
 .vscode/settings.json
 
 ## Added by Huang-ED
-.draft
+*.draft
 figs*
 *demo*
 env_data
