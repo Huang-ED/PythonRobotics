@@ -17,14 +17,14 @@ show_animation = True
 save_animation_to_figs = False
 
 """
-In this version of codes, a lower resolution A* path is used to guide the DWA path.
-Obstacles are then put onto the A* path, to test the performance of DWA.
-The robot will head to the next local goal once it is close enough the current local goal.
-v4 introduces a catch_localgoal_dist parameter that is larger than the catch_goal_dist. 
-
-In this version, the robot is a rectangle with width and length when specified, 
-    rather than always a circle, for collision check.
-Obstacles are circles with radius. 
+v3: Obstacles are put onto the A* path, to simulate dynamic obstacles and test the performance of DWA.
+v4: The robot will head to the next local goal once it is "close enough" the current local goal. 
+v5: For collision check,
+    the robot is a rectangle with width and length when specified, rather than always a circle.
+    Obstacles are circles with radius. 
+v5_video: Local goals are selected waypoints (1 in every 10 A* waypoints) on the A* path. 
+v6: Fix a radius around the robot to determine the local goal. 
+    This is not working under A*. Will try Theta* next. 
 """
 
 class Config:
@@ -46,7 +46,7 @@ class Config:
         self.check_time = 100.0 # [s] Time to check for collision - a large number
         self.to_goal_cost_gain = 0.4
         self.speed_cost_gain = 1
-        self.obstacle_cost_gain = 0.05
+        self.obstacle_cost_gain = 0.08
         self.robot_stuck_flag_cons = 0.001  # constant to prevent robot stucked
         self.robot_type = dwa.RobotType.rectangle
         self.catch_goal_dist = 0.5  # [m] goal radius
@@ -61,6 +61,9 @@ class Config:
         self.robot_width = 0.5  # [m] for collision check
         self.robot_length = 1.2  # [m] for collision check
 
+        self.min_dist_localgoal = 4.0  # [m] min distance to local goal
+        self.max_dist_localgoal = 5.5  # [m] max distance to local goal
+
     @property
     def robot_type(self):
         return self._robot_type
@@ -70,6 +73,20 @@ class Config:
         if not isinstance(value, dwa.RobotType):
             raise TypeError("robot_type must be an instance of RobotType")
         self._robot_type = value
+
+
+def find_points_within_distance(state, path, min_dist, max_dist):
+    # Calculate the Euclidean distances from each point on the path to the location
+    distances = np.sqrt((path[:, 0] - state[0])**2 + (path[:, 1] - state[1])**2)
+    
+    # Find indices where distance is within the range (min_dist, max_dist)
+    within_range_indices = np.where((distances > min_dist) & (distances < max_dist))[0]
+    
+    # Select the points that are within the range
+    points_within_range = path[within_range_indices]
+    
+    return points_within_range
+
 
 
 config = Config()
@@ -153,67 +170,52 @@ a_star_planner = a_star.AStarPlanner(
     save_animation_to_figs=False,
     fig_dir=fig_dir
 )
-rx, ry = a_star_planner.planning(sx, sy, gx, gy, curr_i_fig=i_fig)  # full A* path
-
-rx_select = [rx[i] for i in range(len(rx)) if i % 5 == 0]
-ry_select = [ry[i] for i in range(len(ry)) if i % 5 == 0]
-road_map = np.array([rx_select, ry_select]).transpose()[::-1]  # selected A* path
+rx, ry = a_star_planner.planning(sx, sy, gx, gy, curr_i_fig=i_fig)  # full A* path (reversed)
+road_map = np.array([rx, ry]).transpose()[::-1]  # full A* path
 # print(road_map)
 
 # Plot the A* path
 if show_animation:  # pragma: no cover
-    ele = plt.plot(rx, ry, "-b")[0]
+    plt.plot(rx, ry, "-b")[0]
     plt.pause(0.001)
     if save_animation_to_figs:
         i_fig = a_star_planner.i_fig # update i_fig
         plt.savefig(os.path.join(fig_dir, 'frame_{}.png'.format(i_fig)))
         i_fig += 1
 
-    plt.plot(rx_select, ry_select, "Db")
-    plt.pause(0.001)
-    if save_animation_to_figs:
-        plt.savefig(os.path.join(fig_dir, 'frame_{}.png'.format(i_fig)))
-        i_fig += 1
-    
-    ele.remove()
-    plt.pause(0.001)
-    if save_animation_to_figs:
-        plt.savefig(os.path.join(fig_dir, 'frame_{}.png'.format(i_fig)))
-        i_fig += 1
-
 
 # ----- Put new obstacles on the A* path -----
-new_ob = np.array([
-    [14, 14.5],
-    # [16, 19.5],
-    # [16, 24.5],
-    # [16, 29.5],
-    [16, 34.5],
-    # [17.5, 39.5],
-    # [21.5, 40.5],
-    # [26.5, 36.5],
-    [31.5, 31.5],
-    # [34.5, 26.5],
-    # [36.5, 21.5],
-    # [40.5, 19.5],
-    [43.5, 22.5],
-    # [44, 27.5],
-    # [44, 32.5],
-    # [44.5, 37.5],
-    [46.5, 42.5],
-    # [49, 47.5]
-])
-new_ob1 = new_ob + np.array([0.5, 0.5])
-new_ob2 = new_ob + np.array([-0.5, -0.5])
-new_ob3 = new_ob + np.array([0.5, -0.5])
-new_ob4 = new_ob + np.array([-0.5, 0.5])
-new_ob = np.concatenate((new_ob1, new_ob2, new_ob3, new_ob4), axis=0)
-ob = np.append(ob, new_ob, axis=0)
-if show_animation:  # pragma: no cover
-    # plt.plot(new_ob[:,0], new_ob[:,1], ".k")
-    for (x, y) in new_ob:
-        circle = plt.Circle((x, y), config.robot_radius, color="k", zorder=10)
-        plt.gca().add_patch(circle)
+# new_ob = np.array([
+#     [14, 14.5],
+#     # [16, 19.5],
+#     # [16, 24.5],
+#     # [16, 29.5],
+#     [16, 34.5],
+#     # [17.5, 39.5],
+#     # [21.5, 40.5],
+#     # [26.5, 36.5],
+#     [31.5, 31.5],
+#     # [34.5, 26.5],
+#     # [36.5, 21.5],
+#     # [40.5, 19.5],
+#     [43.5, 22.5],
+#     # [44, 27.5],
+#     # [44, 32.5],
+#     # [44.5, 37.5],
+#     [46.5, 42.5],
+#     # [49, 47.5]
+# ])
+# new_ob1 = new_ob + np.array([0.5, 0.5])
+# new_ob2 = new_ob + np.array([-0.5, -0.5])
+# new_ob3 = new_ob + np.array([0.5, -0.5])
+# new_ob4 = new_ob + np.array([-0.5, 0.5])
+# new_ob = np.concatenate((new_ob1, new_ob2, new_ob3, new_ob4), axis=0)
+# ob = np.append(ob, new_ob, axis=0)
+# if show_animation:  # pragma: no cover
+#     # plt.plot(new_ob[:,0], new_ob[:,1], ".k")
+#     for (x, y) in new_ob:
+#         circle = plt.Circle((x, y), config.robot_radius, color="k", zorder=10)
+#         plt.gca().add_patch(circle)
 
 
 # ----- Run DWA path planning -----
@@ -230,41 +232,44 @@ if show_animation:  # pragma: no cover
         lambda event: [exit(0) if event.key == 'escape' else None])
     plt_elements = []
 
-for i_goal, dwagoal in enumerate(road_map):
-    if np.array_equal(dwagoal, [sx, sy]):  # Skip the start point
-        continue
 
-    while True:
-        u, predicted_trajectory = dwa.dwa_control(x, config, dwagoal, ob)
-        x = dwa.motion(x, u, config.dt)  # simulate robot
-        trajectory = np.vstack((trajectory, x))  # store state history
-
-        if show_animation:  # pragma: no cover
-            for ele in plt_elements:
-                ele.remove()
-            plt_elements = []
-            plt_elements.append(plt.plot(predicted_trajectory[:, 0], predicted_trajectory[:, 1], "-g")[0])
-            plt_elements.append(plt.plot(x[0], x[1], "xr")[0])
-            plt_elements.extend(dwa.plot_robot(x[0], x[1], x[2], config_plot))
-            plt_elements.extend(dwa.plot_arrow(x[0], x[1], x[2]))
-            plt_elements.append(plt.plot(trajectory[:, 0], trajectory[:, 1], "-r")[0])
-            plt.pause(0.001)
-
-            if save_animation_to_figs:
-                plt.savefig(os.path.join(fig_dir, 'frame_{}.png'.format(i_fig)))
-                i_fig += 1
-
-        # check reaching goal
-        dist_to_goal = math.hypot(x[0] - dwagoal[0], x[1] - dwagoal[1])
-        if i_goal == len(road_map) - 1:
-            if dist_to_goal <= config.catch_goal_dist:
-                print("Goal!!")
-                break
-        else:
-            if dist_to_goal <= config.catch_localgoal_dist:
-                print("Local goal!!")
-                break
+# for i_goal, dwagoal in enumerate(road_map):
+while True:
+    points_within_distance = find_points_within_distance(
+        x, road_map, config.min_dist_localgoal, config.max_dist_localgoal
+    )
+    if len(points_within_distance) == 0:
+        break
     
+    dwagoal = points_within_distance[-1]
+
+    u, predicted_trajectory = dwa.dwa_control(x, config, dwagoal, ob)
+    x = dwa.motion(x, u, config.dt)  # simulate robot
+    trajectory = np.vstack((trajectory, x))  # store state history
+
+    if show_animation:  # pragma: no cover
+        for ele in plt_elements:
+            ele.remove()
+        plt_elements = []
+        plt_elements.append(plt.plot(predicted_trajectory[:, 0], predicted_trajectory[:, 1], "-g")[0])
+        plt_elements.append(plt.plot(x[0], x[1], "xr")[0])
+        plt_elements.extend(dwa.plot_robot(x[0], x[1], x[2], config_plot))
+        plt_elements.extend(dwa.plot_arrow(x[0], x[1], x[2]))
+        plt_elements.append(plt.plot(trajectory[:, 0], trajectory[:, 1], "-r")[0])
+
+        plt_elements.append(plt.plot(dwagoal[0], dwagoal[1], "Db")[0])
+        plt.pause(0.001)
+
+        if save_animation_to_figs:
+            plt.savefig(os.path.join(fig_dir, 'frame_{}.png'.format(i_fig)))
+            i_fig += 1
+
+    # check reaching goal
+    dist_to_goal = math.hypot(x[0] - dwagoal[0], x[1] - dwagoal[1])
+    if dist_to_goal <= config.catch_localgoal_dist:
+        print("Local goal!!")
+        break
+
 print("Done")
 if show_animation:  # pragma: no cover
     plt.show()
