@@ -34,7 +34,7 @@ class AStarPlanner:
         rr: robot radius[m]
         """
 
-        self.ob=ob
+        self.ob = ob
         self.resolution = resolution
         self.rr = rr
         self.min_x, self.min_y = min_x, min_y
