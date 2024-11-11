@@ -14,7 +14,7 @@ import cv2
 
 # plt.switch_backend('Agg')
 show_animation = True
-save_animation_to_figs = True
+save_animation_to_figs = False
 
 """
 v3: Obstacles are put onto the A* path, to simulate dynamic obstacles and test the performance of DWA.
@@ -24,7 +24,6 @@ v5: For collision check,
     Obstacles are circles with radius. 
 v5_video: Local goals are selected waypoints (1 in every 10 A* waypoints) on the A* path. 
 v6: Fix a radius around the robot to determine the local goal. 
-    This is not working under A*. Will try Theta* next. 
 v7: Replace A* with Theta*. 
 """
 
