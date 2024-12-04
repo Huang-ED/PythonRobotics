@@ -147,9 +147,16 @@ ob_astar[:, 1] = arr_astar.shape[0] - ob_astar[:, 1] - 1  # Flip y-axis
 ox_astar, oy_astar = ob_astar[:, 0], ob_astar[:, 1]
 
 # Map for DWA
-'''
-to be implemented: boundary extraction + local map
-'''
+arr = 1 - arr
+eroded_arr = cv2.erode(arr, kernel=np.ones((3, 3), np.uint8), iterations=1)
+arr_dwa = cv2.subtract(arr, eroded_arr)
+arr_dwa = 1 - arr_dwa
+
+ob_dwa = np.argwhere(arr_dwa == 0)
+ob_dwa[:, [0, 1]] = ob_dwa[:, [1, 0]]  # Swap columns to match (x, y)
+ob_dwa[:, 1] = arr_dwa.shape[0] - ob_dwa[:, 1] - 1  # Flip y-axis
+# ox_dwa, oy_dwa = ob_dwa[:, 0], ob_dwa[:, 1]
+
 
 # ----- Set up the start and goal positions -----
 # Set the start and goal positions
@@ -170,6 +177,9 @@ if show_animation:  # pragma: no cover
         i_fig = 0
     # plt.plot(ox, oy, ".k")
     for (x, y) in ob:
+        circle = plt.Circle((x, y), config.robot_radius, color="darkgrey")
+        plt.gca().add_patch(circle)
+    for (x, y) in ob_dwa:
         circle = plt.Circle((x, y), config.robot_radius, color="k")
         plt.gca().add_patch(circle)
     plt.plot(sx, sy, "or", zorder=10)
@@ -208,7 +218,7 @@ new_ob = np.array([
     [43., 44.], [42., 43.], [43., 43.], [42., 44.],
     [67., 23.], [67., 24.], [68., 23.], [68., 24.]
 ])
-ob = np.append(ob, new_ob, axis=0)
+ob_dwa = np.append(ob_dwa, new_ob, axis=0)
 if show_animation:  # pragma: no cover
     # plt.plot(new_ob[:,0], new_ob[:,1], ".k")
     for (x, y) in new_ob:
@@ -262,7 +272,7 @@ for i_turning_point, turning_point in enumerate(road_map):
 
 
         ## Execute DWA
-        u, predicted_trajectory = dwa.dwa_control(x, config, dwagoal, ob)
+        u, predicted_trajectory = dwa.dwa_control(x, config, dwagoal, ob_dwa)
         x = dwa.motion(x, u, config.dt)  # simulate robot
         trajectory = np.vstack((trajectory, x))  # store state history
 
