@@ -25,6 +25,7 @@ v5: For collision check,
 v5_video: Local goals are selected waypoints (1 in every 10 A* waypoints) on the A* path. 
 v6: Fix a radius around the robot to determine the local goal. 
 v7: Replace A* with Theta*. 
+    Add boundary extraction for DWA map.
 """
 
 class Config:
