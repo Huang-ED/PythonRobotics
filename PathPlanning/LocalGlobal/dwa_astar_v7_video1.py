@@ -11,6 +11,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
+import warnings
 
 # plt.switch_backend('Agg')
 show_animation = True
@@ -91,7 +92,11 @@ def line_circle_intersection(line_endpoint_1, line_endpoint_2, center, r):
 
     # Discriminant
     discriminant = b**2 - 4 * a * c
-    
+
+    # Check if the discriminant is effectively zero
+    if abs(discriminant) < 1e-9:
+        discriminant = 0
+
     # No intersection if discriminant is negative
     if discriminant < 0:
         return []  # No intersections
@@ -268,8 +273,22 @@ for i_turning_point, turning_point in enumerate(road_map):
                 raise ValueError("No intersection points found")
         elif len(intersection_points) == 1:
             dwagoal = intersection_points[0]
+        elif len(intersection_points) == 2:
+            # Choose the intersection point that is closer to the turning point
+            dist0 = math.hypot(intersection_points[0][0] - turning_point[0], intersection_points[0][1] - turning_point[1])
+            dist1 = math.hypot(intersection_points[1][0] - turning_point[0], intersection_points[1][1] - turning_point[1])
+            if dist0 < dist1:
+                dwagoal = intersection_points[0]
+            else:
+                dwagoal = intersection_points[1]
+            warnings.warn(f"""\
+2 intersection points found: {intersection_points}.
+This means the robot is too far away from the turning point ({turning_point}),
+that the distance is longer than both intersection points. By right, this shall not happen.\
+""", UserWarning)
         else:
-            raise ValueError("More than 2 intersection points found")
+            raise ValueError(f"More than 2 intersection points found - {intersection_points}")
+
 
 
         ## Execute DWA

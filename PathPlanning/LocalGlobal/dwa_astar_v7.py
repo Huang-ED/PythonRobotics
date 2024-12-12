@@ -15,7 +15,7 @@ import warnings
 
 # plt.switch_backend('Agg')
 show_animation = True
-save_animation_to_figs = False
+save_animation_to_figs = True
 
 """
 v3: Obstacles are put onto the A* path, to simulate dynamic obstacles and test the performance of DWA.
