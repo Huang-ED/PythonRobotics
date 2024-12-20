@@ -76,5 +76,5 @@ matplotrecorder/*
 *.draft
 figs*
 *demo*
-EnvData
+env_data
 **TrashBin**
