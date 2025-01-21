@@ -16,9 +16,17 @@ v7.5 for video1 and video2
 catch_turning_point_dist = 1.0
 self.obstacle_cost_gain = 0.12
 
-v7.5 for video1 and video2
+v7.6 for video1 and video2
 catch_turning_point_dist = 1.0
 self.obstacle_cost_gain = 0.10
+
+v7.7 for video1 and video2
+catch_turning_point_dist = 1.0
+self.obstacle_cost_gain = 0.18
+
+v7.8 for video1 and video2
+catch_turning_point_dist = 1.0
+self.obstacle_cost_gain = 0.25
 
 ----- ----- ----- -----
 original config for v7
