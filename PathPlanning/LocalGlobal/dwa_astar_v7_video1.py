@@ -233,7 +233,7 @@ if show_animation:  # pragma: no cover
 
 
 # ----- Run DWA path planning -----
-x = np.array([sx, sy, - math.pi / 8.0, 1.0, 0.0])
+x = np.array([sx, sy, - math.pi / 8.0, 0.0, 0.0])
 # config = Config()
 
 print(__file__ + " start!!")
