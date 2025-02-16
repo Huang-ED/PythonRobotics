@@ -29,6 +29,21 @@ catch_turning_point_dist = 1.0
 self.obstacle_cost_gain = 0.25
 
 ----- ----- ----- -----
+Problem:
+When implementing DWA weight normalization, 
+it is realized that the available options for (v, omega) might be an empty set. 
+
+Attempt 0:
+max_accel = 0.2
+
+Attempt 1:
+change max_accel to 1
+
+Attempt 2: - not yet implemented
+change dt to 1
+
+
+----- ----- ----- -----
 original config for v7
 class Config:
     """
