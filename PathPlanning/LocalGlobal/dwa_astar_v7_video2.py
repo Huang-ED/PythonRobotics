@@ -13,6 +13,10 @@ import matplotlib.pyplot as plt
 import cv2
 import warnings
 
+import json
+from datetime import datetime
+import traceback
+
 # plt.switch_backend('Agg')
 show_animation = True
 save_animation_to_figs = True
@@ -246,84 +250,114 @@ if show_animation:  # pragma: no cover
         lambda event: [exit(0) if event.key == 'escape' else None])
     plt_elements = []
 
+# Initialize data logging
+log_data = []
+iteration = 0
 
-for i_turning_point, turning_point in enumerate(road_map):
-    if i_turning_point == 0:  # skip the start point
-        continue
+try:
+    for i_turning_point, turning_point in enumerate(road_map):
+        if i_turning_point == 0:  # skip the start point
+            continue
 
-    while True:
+        while True:
+            ## Determine the local goal
+            intersection_points = line_circle_intersection(
+                road_map[i_turning_point-1], road_map[i_turning_point], (x[0], x[1]), config.dist_localgoal
+            )
+            # remove intersection points that are behind my current position
+            for intersection_point in intersection_points:
+                dist_intersection_turning = math.hypot(intersection_point[0] - turning_point[0], intersection_point[1] - turning_point[1])
+                dist_to_turning_point = math.hypot(x[0] - turning_point[0], x[1] - turning_point[1])
+                if dist_intersection_turning > dist_to_turning_point:
+                    intersection_points.remove(intersection_point)
 
-        ## Determine the local goal
-        intersection_points = line_circle_intersection(
-            road_map[i_turning_point-1], road_map[i_turning_point], (x[0], x[1]), config.dist_localgoal
-        )
-        # remove intersection points that are behind my current position
-        for intersection_point in intersection_points:
-            dist_intersection_turning = math.hypot(intersection_point[0] - turning_point[0], intersection_point[1] - turning_point[1])
-            dist_to_turning_point = math.hypot(x[0] - turning_point[0], x[1] - turning_point[1])
-            if dist_intersection_turning > dist_to_turning_point:
-                intersection_points.remove(intersection_point)
-
-        if len(intersection_points) == 0:
-            dist_to_turning_point = math.hypot(x[0] - turning_point[0], x[1] - turning_point[1])
-            if dist_to_turning_point <= config.dist_localgoal:
-                dwagoal = turning_point
-            else:
-                """ To be implemented: Re-plan the path"""
-                raise ValueError("No intersection points found")
-        elif len(intersection_points) == 1:
-            dwagoal = intersection_points[0]
-        elif len(intersection_points) == 2:
-            # Choose the intersection point that is closer to the turning point
-            dist0 = math.hypot(intersection_points[0][0] - turning_point[0], intersection_points[0][1] - turning_point[1])
-            dist1 = math.hypot(intersection_points[1][0] - turning_point[0], intersection_points[1][1] - turning_point[1])
-            if dist0 < dist1:
+            if len(intersection_points) == 0:
+                dist_to_turning_point = math.hypot(x[0] - turning_point[0], x[1] - turning_point[1])
+                if dist_to_turning_point <= config.dist_localgoal:
+                    dwagoal = turning_point
+                else:
+                    """ To be implemented: Re-plan the path"""
+                    raise ValueError("No intersection points found")
+            elif len(intersection_points) == 1:
                 dwagoal = intersection_points[0]
+            elif len(intersection_points) == 2:
+                # Choose the intersection point that is closer to the turning point
+                dist0 = math.hypot(intersection_points[0][0] - turning_point[0], intersection_points[0][1] - turning_point[1])
+                dist1 = math.hypot(intersection_points[1][0] - turning_point[0], intersection_points[1][1] - turning_point[1])
+                if dist0 < dist1:
+                    dwagoal = intersection_points[0]
+                else:
+                    dwagoal = intersection_points[1]
+                warnings.warn(f"""\
+    2 intersection points found: {intersection_points}.
+    This means the robot is too far away from the turning point ({turning_point}),
+    that the distance is longer than both intersection points. By right, this shall not happen.\
+    """, UserWarning)
             else:
-                dwagoal = intersection_points[1]
-            warnings.warn(f"""\
-2 intersection points found: {intersection_points}.
-This means the robot is too far away from the turning point ({turning_point}),
-that the distance is longer than both intersection points. By right, this shall not happen.\
-""", UserWarning)
-        else:
-            raise ValueError(f"More than 2 intersection points found - {intersection_points}")
+                raise ValueError(f"More than 2 intersection points found - {intersection_points}")
 
 
 
-        ## Execute DWA
-        u, predicted_trajectory = dwa.dwa_control(x, config, dwagoal, ob_dwa)
-        x = dwa.motion(x, u, config.dt)  # simulate robot
-        trajectory = np.vstack((trajectory, x))  # store state history
+            ## Execute DWA
+            u, predicted_trajectory, dw, admissible, inadmissible = dwa.dwa_control(x, config, dwagoal, ob_dwa)
+            
+            # Record data for this iteration
+            log_entry = {
+                "iteration": iteration,
+                "dynamic_window": [float(dw[0]), float(dw[1]), float(dw[2]), float(dw[3])],
+                "admissible": admissible,
+                "inadmissible": inadmissible
+            }
+            log_data.append(log_entry)
+            iteration += 1
 
-        if show_animation:  # pragma: no cover
-            for ele in plt_elements:
-                ele.remove()
-            plt_elements = []
-            plt_elements.append(plt.plot(predicted_trajectory[:, 0], predicted_trajectory[:, 1], "-g")[0])
-            plt_elements.append(plt.plot(x[0], x[1], "xr")[0])
-            plt_elements.extend(dwa.plot_robot(x[0], x[1], x[2], config_plot))
-            plt_elements.extend(dwa.plot_arrow(x[0], x[1], x[2]))
-            plt_elements.append(plt.plot(trajectory[:, 0], trajectory[:, 1], "-r")[0])
+            x = dwa.motion(x, u, config.dt)  # simulate robot
+            trajectory = np.vstack((trajectory, x))  # store state history
 
-            plt_elements.append(plt.plot(dwagoal[0], dwagoal[1], "Db")[0])
-            plt.pause(0.001)
+            if show_animation:  # pragma: no cover
+                for ele in plt_elements:
+                    ele.remove()
+                plt_elements = []
+                plt_elements.append(plt.plot(predicted_trajectory[:, 0], predicted_trajectory[:, 1], "-g")[0])
+                plt_elements.append(plt.plot(x[0], x[1], "xr")[0])
+                plt_elements.extend(dwa.plot_robot(x[0], x[1], x[2], config_plot))
+                plt_elements.extend(dwa.plot_arrow(x[0], x[1], x[2]))
+                plt_elements.append(plt.plot(trajectory[:, 0], trajectory[:, 1], "-r")[0])
 
-            if save_animation_to_figs:
-                plt.savefig(os.path.join(fig_dir, 'frame_{}.png'.format(i_fig)))
-                i_fig += 1
+                plt_elements.append(plt.plot(dwagoal[0], dwagoal[1], "Db")[0])
+                plt.pause(0.001)
 
-        
-        ## Check reaching turning point
-        dist_to_turning_point = math.hypot(x[0] - turning_point[0], x[1] - turning_point[1])
-        if i_turning_point == len(road_map) - 1:
-            if dist_to_turning_point <= config.catch_goal_dist:
-                print("Goal!!")
-                break
-        else:
-            if dist_to_turning_point <= config.catch_turning_point_dist:
-                print("Local goal!!")
-                break
+                if save_animation_to_figs:
+                    plt.savefig(os.path.join(fig_dir, 'frame_{}.png'.format(i_fig)))
+                    i_fig += 1
+
+            
+            ## Check reaching turning point
+            dist_to_turning_point = math.hypot(x[0] - turning_point[0], x[1] - turning_point[1])
+            if i_turning_point == len(road_map) - 1:
+                if dist_to_turning_point <= config.catch_goal_dist:
+                    print("Goal!!")
+                    break
+            else:
+                if dist_to_turning_point <= config.catch_turning_point_dist:
+                    print("Local goal!!")
+                    break
+
+except Exception as e:
+    print(f"Error: {e}", file=sys.stderr)
+    traceback.print_exc()  # Print stack trace for debugging
+
+except KeyboardInterrupt:
+    print("Simulation manually stopped.")
+
+finally:
+    # Always save data before exiting
+    if log_data:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        log_filename = f"dwa_log_{timestamp}.json"
+        with open(log_filename, 'w') as f:
+            json.dump(log_data, f, indent=2)
+        print(f"Data saved to {log_filename}")
 
 print("Done")
 if show_animation:  # pragma: no cover

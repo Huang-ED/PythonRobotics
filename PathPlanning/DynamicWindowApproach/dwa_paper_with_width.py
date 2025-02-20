@@ -47,9 +47,9 @@ def dwa_control(x, config, goal, ob):
     """
     dw = calc_dynamic_window(x, config)
 
-    u, trajectory = calc_control_and_trajectory(x, dw, config, goal, ob)
+    u, trajectory, dw, admissible, inadmissible = calc_control_and_trajectory(x, dw, config, goal, ob)
 
-    return u, trajectory
+    return u, trajectory, dw, admissible, inadmissible
 
 
 class RobotType(Enum):
@@ -283,14 +283,20 @@ def calc_control_and_trajectory(x, dw, config, goal, ob):
     # print(np.arange(dw[0], dw[1], config.v_resolution))
     # print(np.arange(dw[2], dw[3], config.yaw_rate_resolution))
 
+    # Initialize lists to track pairs
+    admissible = []
+    inadmissible = []
+
     # Evaluate all trajectories with sampled inputs in dynamic window
     for v in np.arange(dw[0], dw[1], config.v_resolution):
         for y in np.arange(dw[2], dw[3], config.yaw_rate_resolution):
 
             # Admissible velocities check
             dist, _ = closest_obstacle_on_curve(x.copy(), ob, v, y, config)
+            inadmissible.append([float(v), float(y)])
             if v > math.sqrt(2 * config.max_accel * dist):
                 continue
+            admissible.append([float(v), float(y)])
 
             # Predict trajectory
             trajectory = predict_trajectory(x.copy(), v, y, config)
@@ -337,7 +343,7 @@ def calc_control_and_trajectory(x, dw, config, goal, ob):
     if abs(best_u[0]) < config.robot_stuck_flag_cons and abs(x[3]) < config.robot_stuck_flag_cons:
         best_u[1] = -config.max_delta_yaw_rate
 
-    return best_u, best_trajectory
+    return best_u, best_trajectory, dw, admissible, inadmissible
 
 
 def any_circle_overlap_with_box(circles, center, length, width, rot):
