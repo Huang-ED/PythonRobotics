@@ -29,27 +29,16 @@ if save_costs_fig:
 
 
 def dwa_control(x, config, goal, ob):
-    """
-    Dynamic Window Approach control
-    Parameters:
-        x: initial state
-            [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
-        config: simulation configuration
-        goal: goal position
-            [x(m), y(m)]
-        ob: obstacle positions
-            [[x(m), y(m)], ...]
-    Returns:
-        u: control input
-            [v(m/s), omega(rad/s)]
-        trajectory: predicted trajectory with selected input
-            [[x(m), y(m), yaw(rad), v(m/s), omega(rad/s)], ...]
-    """
     dw = calc_dynamic_window(x, config)
+    (u, trajectory, dw, admissible, inadmissible,
+     to_goal_before, speed_before, ob_before,
+     to_goal_after, speed_after, ob_after,
+     final_cost) = calc_control_and_trajectory(x, dw, config, goal, ob)
+    return (u, trajectory, dw, admissible, inadmissible,
+            to_goal_before, speed_before, ob_before,
+            to_goal_after, speed_after, ob_after,
+            final_cost)
 
-    u, trajectory, dw, admissible, inadmissible = calc_control_and_trajectory(x, dw, config, goal, ob)
-
-    return u, trajectory, dw, admissible, inadmissible
 
 
 class RobotType(Enum):
@@ -246,104 +235,80 @@ def predict_trajectory(x_init, v, y, config):
 
 
 def calc_control_and_trajectory(x, dw, config, goal, ob):
-    """
-    Calculate the best control input with dynamic window, and record all costs.
-    
-    Parameters:
-        x: current state
-            [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
-        dw: dynamic window
-            [v_min, v_max, yaw_rate_min, yaw_rate_max]
-        config: simulation configuration
-        goal: goal position
-            [x(m), y(m)]
-        ob: obstacle positions 
-            [[x(m), y(m)], ...]
-    
-    Returns:
-        best_u: selected control input
-            [v(m/s), omega(rad/s)]
-        best_trajectory: predicted trajectory with selected input
-            [[x, y, yaw, v, omega], ...]
-    """
-
-    # Initialize
     min_cost = float("inf")
     best_u = [0.0, 0.0]
     best_trajectory = np.array([x])
-    
-    # Lists to store all costs and inputs
+    best_index = -1
+
     to_goal_costs = []
     speed_costs = []
     ob_costs = []
     trajectories = []
     controls = []
-
-    # print(dw)
-    # print(np.arange(dw[0], dw[1], config.v_resolution))
-    # print(np.arange(dw[2], dw[3], config.yaw_rate_resolution))
-
-    # Initialize lists to track pairs
     admissible = []
     inadmissible = []
 
-    # Evaluate all trajectories with sampled inputs in dynamic window
     for v in np.arange(dw[0], dw[1], config.v_resolution):
         for y in np.arange(dw[2], dw[3], config.yaw_rate_resolution):
-
-            # Admissible velocities check
             dist, _ = closest_obstacle_on_curve(x.copy(), ob, v, y, config)
             inadmissible.append([float(v), float(y)])
             if v > math.sqrt(2 * config.max_accel * dist):
                 continue
             admissible.append([float(v), float(y)])
 
-            # Predict trajectory
             trajectory = predict_trajectory(x.copy(), v, y, config)
-
-            # Calculate individual costs
             to_goal_cost = calc_to_goal_cost(trajectory, goal)
             speed_cost = config.max_speed - trajectory[-1, 3]
             ob_cost = float("inf") if dist == 0 else 1 / dist
 
-            # Record costs and trajectory
             to_goal_costs.append(to_goal_cost)
             speed_costs.append(speed_cost)
             ob_costs.append(ob_cost)
             trajectories.append(trajectory)
             controls.append([v, y])
 
-    # print(len(to_goal_costs), len(speed_costs), len(ob_costs), len(trajectories), len(controls))
-
-    # Normalize costs
     def normalize_costs(costs):
         total = sum(costs)
+        # return [c / total if total != 0 else 0 for c in costs]
         if total == 0:  # Avoid division by zero
             return [1.0 / len(costs)] * len(costs)  # Equal weight
         return [c / total for c in costs]
 
-    normalized_to_goal_costs = normalize_costs(to_goal_costs)
-    normalized_speed_costs = normalize_costs(speed_costs)
-    normalized_ob_costs = normalize_costs(ob_costs)
+    if to_goal_costs and speed_costs and ob_costs:
+        norm_to_goal = normalize_costs(to_goal_costs)
+        norm_speed = normalize_costs(speed_costs)
+        norm_ob = normalize_costs(ob_costs)
 
-    # Calculate final costs and find the minimum
-    for i in range(len(normalized_to_goal_costs)):
-        final_cost = (
-            config.to_goal_cost_gain * normalized_to_goal_costs[i]
-            + config.speed_cost_gain * normalized_speed_costs[i]
-            + config.obstacle_cost_gain * normalized_ob_costs[i]
-        )
+        for i in range(len(controls)):
+            final_cost = (config.to_goal_cost_gain * norm_to_goal[i] +
+                          config.speed_cost_gain * norm_speed[i] +
+                          config.obstacle_cost_gain * norm_ob[i])
+            if final_cost < min_cost:
+                min_cost = final_cost
+                best_index = i
+                best_u = controls[i]
+                best_trajectory = trajectories[i]
+    print(f"len(to_goal_costs): {len(to_goal_costs)}\nlen(speed_costs): {len(speed_costs)}\nlen(ob_costs): {len(ob_costs)}")
+    if len(to_goal_costs) == 0:
+        raise ValueError("No admissible (v, ω) pairs found in dynamic window")
 
-        if final_cost < min_cost:
-            min_cost = final_cost
-            best_u = controls[i]
-            best_trajectory = trajectories[i]
+    if best_index != -1:
+        to_goal_before = to_goal_costs[best_index]
+        speed_before = speed_costs[best_index]
+        ob_before = ob_costs[best_index]
+        to_goal_after = norm_to_goal[best_index]
+        speed_after = norm_speed[best_index]
+        ob_after = norm_ob[best_index]
+    else:
+        raise ValueError("No admissible (v, ω) pairs found in dynamic window")
+        to_goal_before = speed_before = ob_before = 0.0
+        to_goal_after = speed_after = ob_after = 0.0
 
-    # Avoid getting stuck in place
-    if abs(best_u[0]) < config.robot_stuck_flag_cons and abs(x[3]) < config.robot_stuck_flag_cons:
-        best_u[1] = -config.max_delta_yaw_rate
+    return (best_u, best_trajectory, dw, admissible, inadmissible,
+            to_goal_before, speed_before, ob_before,
+            to_goal_after, speed_after, ob_after,
+            min_cost)
 
-    return best_u, best_trajectory, dw, admissible, inadmissible
 
 
 def any_circle_overlap_with_box(circles, center, length, width, rot):

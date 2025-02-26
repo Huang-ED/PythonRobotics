@@ -299,11 +299,20 @@ try:
 
 
             ## Execute DWA
-            u, predicted_trajectory, dw, admissible, inadmissible = dwa.dwa_control(x, config, dwagoal, ob_dwa)
-            
+            u, predicted_trajectory, dw, admissible, inadmissible, to_goal_before, speed_before, ob_before, to_goal_after, speed_after, ob_after, final_cost = dwa.dwa_control(x, config, dwagoal, ob_dwa)
+
             # Record data for this iteration
             log_entry = {
                 "iteration": iteration,
+                "chosen_v": float(u[0]),
+                "chosen_omega": float(u[1]),
+                "final_cost": float(final_cost),
+                "to_goal_cost_before": float(to_goal_before),
+                "speed_cost_before": float(speed_before),
+                "ob_cost_before": float(ob_before),
+                "to_goal_cost_after": float(to_goal_after),
+                "speed_cost_after": float(speed_after),
+                "ob_cost_after": float(ob_after),
                 "dynamic_window": [float(dw[0]), float(dw[1]), float(dw[2]), float(dw[3])],
                 "admissible": admissible,
                 "inadmissible": inadmissible
@@ -354,10 +363,12 @@ finally:
     # Always save data before exiting
     if log_data:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        log_filename = f"dwa_log_{timestamp}.json"
-        with open(log_filename, 'w') as f:
+        # details_filename = f"dwa_log_details_{timestamp}.json"
+        details_filename = os.path.join("Logs", f"dwa_log_details_{timestamp}", "log_details.json")
+        os.makedirs(os.path.dirname(details_filename), exist_ok=False)
+        with open(details_filename, 'w') as f:
             json.dump(log_data, f, indent=2)
-        print(f"Data saved to {log_filename}")
+        print(f"Detailed data saved to {details_filename}")
 
 print("Done")
 if show_animation:  # pragma: no cover
