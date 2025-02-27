@@ -367,8 +367,11 @@ finally:
         details_filename = os.path.join("Logs", f"dwa_log_details_{timestamp}", "log_details.json")
         os.makedirs(os.path.dirname(details_filename), exist_ok=False)
         with open(details_filename, 'w') as f:
-            json.dump(log_data, f, indent=2)
-        print(f"Detailed data saved to {details_filename}")
+            json.dump({
+                "log_entries": log_data,
+                "trajectory": trajectory.tolist()  # Add trajectory data
+            }, f, indent=2)
+        print(f"Data saved to {details_filename}")
 
 print("Done")
 if show_animation:  # pragma: no cover
