@@ -68,29 +68,20 @@ def calculate_all_costs(x, config, goal, ob):
     return to_goal_cost, speed_cost, ob_cost, v_samples, omega_samples
 
 
+
 def main():
     log_file_path = "Logs/dwa_log_details_20250306_155027/log_details.csv"
 
     ## Config
     config = Config()
 
-    ## Obtain x and goal from log_datails.csv
-    # x = np.array([0.0, 0.0, np.pi/4, 0.0, 0.0])  # [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
-    # goal = np.array([10.0, 10.0])                 # Target position
-    iter_num = 227
-    df = pd.read_csv(log_file_path, index_col="iteration")
-    print(df.loc[iter_num])
-    x = np.array(df.loc[iter_num, ['x_traj', 'y_traj', 'yaw_traj', 'v_traj', 'omega_traj']])
-    goal = np.array(df.loc[iter_num, ['local_goal_x', 'local_goal_y']])
-
     ## Define the map
-    # 读取并预处理地图图像
     image_path = "EnvData/AISData_20240827/land_shapes_sf_crop.png"
-    arr = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)        # 读取灰度图像
-    arr = cv2.resize(arr, (100, 100))                         # 调整分辨率
-    _, arr = cv2.threshold(arr, 128, 1, cv2.THRESH_BINARY)    # 二值化
+    arr = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    arr = cv2.resize(arr, (100, 100))
+    _, arr = cv2.threshold(arr, 128, 1, cv2.THRESH_BINARY)
 
-    # 添加边界障碍
+    # Add boundary obstacles
     arr[0, :] = 0    # Top edge
     arr[-1, :] = 0   # Bottom edge
     arr[:, 0] = 0    # Left edge
@@ -103,7 +94,7 @@ def main():
     arr_dwa = 1 - arr_dwa  # 再次反转，获得原始障碍表示格式
 
     # 提取障碍坐标
-    ob_dwa = np.argwhere(arr_dwa == 0)  # 找出所有障碍点
+    ob_dwa = np.argwhere(arr_dwa == 0)
     ob_dwa[:, [0, 1]] = ob_dwa[:, [1, 0]]  # 交换x,y坐标
     ob_dwa[:, 1] = arr_dwa.shape[0] - ob_dwa[:, 1] - 1  # 翻转y轴坐标系
 
@@ -116,51 +107,109 @@ def main():
     ])
     ob_dwa = np.append(ob_dwa, new_ob, axis=0)  # 合并障碍物
 
-    ## Calculate costs
-    tg_cost, sp_cost, ob_cost, v_samples, omega_samples = calculate_all_costs(x, config, goal, ob_dwa)
-    
-    # # Save results
-    # np.save("to_goal_cost.npy", tg_cost)
-    # np.save("speed_cost.npy", sp_cost)
-    # np.save("obstacle_cost.npy", ob_cost)
-    # np.save("v_samples.npy", v_samples)
-    # np.save("omega_samples.npy", omega_samples)
+    ## Obtain x and goal from log_datails.csv
+    # x = np.array([0.0, 0.0, np.pi/4, 0.0, 0.0])  # [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
+    # goal = np.array([10.0, 10.0])                 # Target position
+    # iter_num = 227
+    iter_nums = [225, 226, 227, 228, 229, 230, 231, 232, 233, 234]
+    for iter_num in iter_nums:
+        df = pd.read_csv(log_file_path, index_col="iteration")
+        # print(df.loc[iter_num])
+        x = np.array(df.loc[iter_num, ['x_traj', 'y_traj', 'yaw_traj', 'v_traj', 'omega_traj']])
+        goal = np.array(df.loc[iter_num, ['local_goal_x', 'local_goal_y']])
 
-    # Save results as text
-    log_dir = os.path.dirname(log_file_path)
-    curr_cost_dir = os.path.join(log_dir, f"cost_matrices_{iter_num}")
-    os.makedirs(curr_cost_dir, exist_ok=True)
-    np.savetxt(os.path.join(curr_cost_dir, "to_goal_cost.txt"), tg_cost, fmt='%.3f', delimiter='\t')
-    np.savetxt(os.path.join(curr_cost_dir, "speed_cost.txt"), sp_cost, fmt='%.3f', delimiter='\t')
-    np.savetxt(os.path.join(curr_cost_dir, "obstacle_cost.txt"), ob_cost, fmt='%.3f', delimiter='\t')
-    np.savetxt(os.path.join(curr_cost_dir, "v_samples.txt"), v_samples, fmt='%.3f', delimiter='\t')
-    np.savetxt(os.path.join(curr_cost_dir, "omega_samples.txt"), omega_samples, fmt='%.3f', delimiter='\t')
+        ## Calculate costs
+        tg_cost, sp_cost, ob_cost, v_samples, omega_samples = calculate_all_costs(x, config, goal, ob_dwa)
+        
+        # Get the chosen (v, omega) pair for the next time-step
+        if iter_num + 1 in df.index:
+            chosen_v = df.loc[iter_num + 1, 'v_traj']
+            chosen_omega = df.loc[iter_num + 1, 'omega_traj']
+        else:
+            chosen_v, chosen_omega = None, None
+        
+        # Save results as text
+        log_dir = os.path.dirname(log_file_path)
+        curr_cost_dir = os.path.join(log_dir, f"cost_matrices_{iter_num}")
+        os.makedirs(curr_cost_dir, exist_ok=True)
+        np.savetxt(os.path.join(curr_cost_dir, "to_goal_cost.txt"), tg_cost, fmt='%.3f', delimiter='\t')
+        np.savetxt(os.path.join(curr_cost_dir, "speed_cost.txt"), sp_cost, fmt='%.3f', delimiter='\t')
+        np.savetxt(os.path.join(curr_cost_dir, "obstacle_cost.txt"), ob_cost, fmt='%.3f', delimiter='\t')
+        np.savetxt(os.path.join(curr_cost_dir, "v_samples.txt"), v_samples, fmt='%.3f', delimiter='\t')
+        np.savetxt(os.path.join(curr_cost_dir, "omega_samples.txt"), omega_samples, fmt='%.3f', delimiter='\t')
 
-    # Display as image
-    # To Goal Cost
-    plt.figure()
-    plt.imshow(tg_cost, origin='lower', cmap='jet')
-    plt.x
-    plt.colorbar()
-    plt.title("To Goal Cost")
-    plt.savefig(os.path.join(curr_cost_dir, "to_goal_cost.png"))
-    plt.close()
+        # Display as image with custom ticks
+        # Extract unique omega labels (show every 2nd or 3rd sample to reduce density)
+        step = 4  # Adjust this value as needed
+        x_ticks_indices = np.arange(0, len(omega_samples), step)
+        omega_samples_rounded = np.round(omega_samples, 2)
 
-    # Speed Cost
-    plt.figure()
-    plt.imshow(sp_cost, origin='lower', cmap='jet')
-    plt.colorbar()
-    plt.title("Speed Cost")
-    plt.savefig(os.path.join(curr_cost_dir, "speed_cost.png"))
-    plt.close()
+        """
+        # To Goal Cost
+        plt.figure()
+        plt.imshow(tg_cost, origin='lower', cmap='jet', aspect='auto')
+        plt.colorbar(label='Cost')
+        plt.xticks(x_ticks_indices, omega_samples_rounded[::step], rotation=45)  # Selective ticks
+        plt.yticks(np.arange(len(v_samples)), np.round(v_samples, 2))
+        plt.xlabel('Omega (rad/s)')
+        plt.ylabel('V (m/s)')
+        plt.title("To Goal Cost")
+        plt.savefig(os.path.join(curr_cost_dir, "to_goal_cost.png"))
+        plt.close()
 
-    # Obstacle Cost
-    plt.figure()
-    plt.imshow(ob_cost, origin='lower', cmap='jet')
-    plt.colorbar()
-    plt.title("Obstacle Cost")
-    plt.savefig(os.path.join(curr_cost_dir, "obstacle_cost.png"))
-    plt.close()
+        # Speed Cost
+        plt.figure()
+        plt.imshow(sp_cost, origin='lower', cmap='jet', aspect='auto')
+        plt.colorbar(label='Cost')
+        plt.xticks(x_ticks_indices, omega_samples_rounded[::step], rotation=45)
+        plt.yticks(np.arange(len(v_samples)), np.round(v_samples, 2))
+        plt.xlabel('Omega (rad/s)')
+        plt.ylabel('V (m/s)')
+        plt.title("Speed Cost")
+        plt.savefig(os.path.join(curr_cost_dir, "speed_cost.png"))
+        plt.close()
+
+        # Obstacle Cost
+        plt.figure()
+        plt.imshow(ob_cost, origin='lower', cmap='jet', aspect='auto')
+        plt.colorbar(label='Cost')
+        plt.xticks(x_ticks_indices, omega_samples_rounded[::step], rotation=45)
+        plt.yticks(np.arange(len(v_samples)), np.round(v_samples, 2))
+        plt.xlabel('Omega (rad/s)')
+        plt.ylabel('V (m/s)')
+        plt.title("Obstacle Cost")
+        plt.savefig(os.path.join(curr_cost_dir, "obstacle_cost.png"))
+        plt.close()
+        """
+
+        # Create combined figure with subplots
+        fig, axs = plt.subplots(1, 3, figsize=(18, 6))
+        plt.subplots_adjust(wspace=0.3, hspace=0.3)
+
+        def plot_cost(ax, cost, title):
+            im = ax.imshow(cost, origin='lower', cmap='jet', aspect='auto')
+            plt.colorbar(im, ax=ax, label='Cost')
+            ax.set_xticks(x_ticks_indices)
+            ax.set_xticklabels(omega_samples_rounded[::step], rotation=45)
+            ax.set_yticks(np.arange(len(v_samples)))
+            ax.set_yticklabels(np.round(v_samples, 2))
+            ax.set_xlabel('Omega (rad/s)')
+            ax.set_ylabel('V (m/s)')
+            ax.set_title(title)
+            if chosen_v is not None and chosen_omega is not None:
+                ax.plot(np.argmin(np.abs(omega_samples - chosen_omega)),
+                            np.argmin(np.abs(v_samples - chosen_v)), 'ro', markersize=10, label='Chosen (v, ω)')
+                ax.legend()
+        
+        plot_cost(axs[0], tg_cost, "To Goal Cost")
+        plot_cost(axs[1], sp_cost, "Speed Cost")
+        plot_cost(axs[2], ob_cost, "Obstacle Cost")
+
+        # Save combined figure
+        os.makedirs(os.path.join(log_dir, "cost_images"), exist_ok=True)
+        plt.savefig(os.path.join(log_dir, "cost_images", f"cost_matrices_{iter_num}.png"))
+        plt.close()
+
 
     print("Cost matrices saved to disk")
 

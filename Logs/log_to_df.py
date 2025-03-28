@@ -70,11 +70,12 @@ def main(args):
     #     print(f"{key}: {len(data[key])}")
     df = pd.DataFrame(data)
 
-    # Convert omega from rad/s to deg/s
-    df['omega'] = np.rad2deg(df['omega'])
+    # # Convert omega from rad/s to deg/s
+    # df['omega'] = np.rad2deg(df['omega'])
+    # df['omega_traj'] = np.rad2deg(df['omega_traj'])
 
     csv_file_path = os.path.splitext(log_file_path)[0] + '.csv'
-    df.to_csv(csv_file_path, index=False, float_format='%.3f')
+    df.to_csv(csv_file_path, index=False, float_format='%.8f')
 
 if __name__ == "__main__":
     import argparse
