@@ -110,7 +110,7 @@ def calculate_all_costs_debug(x, config, goal, ob):
                 # 输出最终计算结果
                 final_cost_value = 1.0 / collision_dist if collision_dist != 0 else np.inf
                 print(
-                    f"----- 计算结果 [v={v:.2f}, ω={omega:.5 f}] -----\n"
+                    f"----- 计算结果 [v={v:.2f}, ω={omega:.5f}] -----\n"
                     f"到达首次碰撞距离: {collision_dist:.2f}m | "
                     f"障碍物成本: {final_cost_value:.2f}\n"
                     f"------------------------------------------\n"
