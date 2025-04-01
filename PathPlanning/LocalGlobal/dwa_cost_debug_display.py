@@ -15,10 +15,10 @@ from PathPlanning.DynamicWindowApproach.dwa_paper_with_width import (
 from PathPlanning.LocalGlobal.dwa_astar_v7_video2 import Config
 
 def get_robot_bounding_box(center_x, center_y, yaw, length, width):
-    """Compute the bounding box vertices of the robot."""
+    """Compute the bounding box vertices of the robot with proper length/width orientation"""
     outline = np.array([
-        [-length / 2, length / 2, length / 2, -length / 2, -length / 2],
-        [width / 2, width / 2, -width / 2, -width / 2, width / 2]
+        [-width / 2, width / 2, width / 2, -width / 2, -width / 2],  # X-axis (left-right)
+        [-length / 2, -length / 2, length / 2, length / 2, -length / 2]  # Y-axis (front-back)
     ])
     rotation_matrix = np.array([
         [np.cos(yaw), np.sin(yaw)],
@@ -27,6 +27,7 @@ def get_robot_bounding_box(center_x, center_y, yaw, length, width):
     rotated_outline = rotation_matrix @ outline
     translated_outline = rotated_outline + np.array([[center_x], [center_y]])
     return translated_outline.T
+
 
 def find_colliding_obstacles(robot_center, robot_length, robot_width, robot_yaw, obstacles, obstacle_radius):
     """Find obstacles that collide with the robot."""
@@ -58,14 +59,15 @@ def plot_collision_details(original_pose, collision_pose, colliding_obstacles, a
     collision_box = get_robot_bounding_box(collision_pose[0], collision_pose[1], collision_pose[2], config.robot_length, config.robot_width)
     plt.plot(collision_box[:, 0], collision_box[:, 1], 'r-', linewidth=2, label='Collision Bounding Box')
     
-    # Set view limits
-    plt.xlim([collision_pose[0] - 2*config.robot_length, collision_pose[0] + 2*config.robot_length])
-    plt.ylim([collision_pose[1] - 2*config.robot_width, collision_pose[1] + 2*config.robot_width])
+    # Set view limits (corrected for length/width)
+    plt.xlim([collision_pose[0] - 2*config.robot_width, collision_pose[0] + 2*config.robot_width])  # X-axis uses width
+    plt.ylim([collision_pose[1] - 2*config.robot_length, collision_pose[1] + 2*config.robot_length])  # Y-axis uses length
     plt.axis('equal')
     plt.grid(True)
     plt.legend()
     plt.title('Zoom-in View at Collision')
     plt.show()
+
 
 def calculate_all_costs_debug(x, config, goal, ob):
     """
