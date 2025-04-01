@@ -34,10 +34,10 @@ def calculate_all_costs_debug(x, config, goal, ob):
     
     # 调试目标速度集合 
     debug_targets = [
-        # (0.36, 0.060),
-        # (0.36, 0.065),
-        # (0.36, 0.070)
-        (0.36, 0)
+        (0.36, 0.060),
+        (0.36, 0.065),
+        (0.36, 0.070)
+        # (0.36, 0)
     ]
     
     for i in range(V.shape[0]):
@@ -58,7 +58,7 @@ def calculate_all_costs_debug(x, config, goal, ob):
             
             # --- 调试逻辑：捕获目标速度组合 ---
             target_found = any(
-                abs(v - tv) < 0.005 and abs(omega - tw) < 0.005
+                abs(v - tv) < 0.005 and abs(omega - tw) < 0.0005
                 for tv, tw in debug_targets
             )
             # print(f"v={v}, ω={omega} | 目标速度组合: {target_found}")
