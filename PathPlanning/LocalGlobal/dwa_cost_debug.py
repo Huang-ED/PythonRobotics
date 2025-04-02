@@ -65,7 +65,7 @@ def calculate_all_costs_debug(x, config, goal, ob):
             
             if target_found:
                 print(f"\n----- 开始详细计算 [v={v:.2f}, ω={omega:.5f}] -----")
-                print(f"当前状态: x={x[0]:.2f}, y={x[1]:.2f}, yaw={x[2]:.5f} rad")
+                print(f"当前状态: x={x[0]:.5f}, y={x[1]:.5f}, yaw={x[2]:.5f} rad")
                 
                 # 独立轨迹模拟
                 x_sim = x.copy()
@@ -92,7 +92,8 @@ def calculate_all_costs_debug(x, config, goal, ob):
                     
                     print(
                         f"时间: {_ * config.dt:.1f}s | "
-                        f"位置: ({x_sim[0]:.2f}, {x_sim[1]:.2f}) | "
+                        f"位置: ({x_sim[0]:.5f}, {x_sim[1]:.5f}) | "
+                        f"yaw: {x_sim[2]:.5f} rad | "  # Added yaw output
                         f"最近障碍物距离: {closest_distance:.2f}m | "
                         f"碰撞状态: {collision}"
                     )
