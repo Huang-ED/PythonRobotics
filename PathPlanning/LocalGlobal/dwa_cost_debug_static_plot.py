@@ -74,6 +74,13 @@ def main():
     ob_dwa = np.argwhere(arr_dwa == 0)
     ob_dwa[:, [0, 1]] = ob_dwa[:, [1, 0]]  # Swap columns to match (x, y)
     ob_dwa[:, 1] = arr_dwa.shape[0] - ob_dwa[:, 1] - 1  # Flip y-axis
+    new_ob = np.array([
+        [25., 79.], [25., 80.], [26., 79.], [26., 80.],
+        [35., 55.], [36., 56],
+        [28., 46.], [27., 47.],
+        [10., 19.], [10., 20.], [11., 19.], [11., 20.]
+    ])
+    ob_dwa = np.append(ob_dwa, new_ob, axis=0)
 
     # ----- Set up the start and goal positions -----
     sx, sy = 20, 90
@@ -82,11 +89,9 @@ def main():
     # ----- Define ships to plot -----
     ships = [
         # Format: (pos_x, pos_y, yaw, length, width, color)
-        (30, 50, np.pi/4, 5.0, 2.0, 'blue'),  # NE orientation
-        (70, 80, 0, 4.0, 1.5, 'red'),        # East facing
-        (50, 20, np.pi/2, 3.0, 1.0, 'cyan'),  # North facing
-        (10, 40, -np.pi/6, 4.5, 1.8, 'black'), # SE orientation
-        (80, 30, np.pi, 6.0, 2.2, 'green')     # West facing
+        (26.00318, 81.41164, -0.96587, 1.2, 0.5, 'blue'),
+        (26.10839, 81.26560, -0.93358, 1.2, 0.5, 'blue'),
+        (26.21826, 81.12303, -0.90129, 1.2, 0.5, 'red'),
     ]
 
     # ----- Plot the map with ships -----
