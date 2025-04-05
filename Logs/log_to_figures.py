@@ -4,6 +4,11 @@ import numpy as np
 import os
 from datetime import datetime
 
+"""
+In the command line, run:
+python log_to_figures.py Logs/dwa_log_details_xxx/log_details.json
+"""
+
 def plot_dwa_logs(log_file_path):
     # Load log data
     with open(log_file_path, 'r') as f:

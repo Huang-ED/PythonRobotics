@@ -3,6 +3,11 @@ import json
 import numpy as np
 import pandas as pd
 
+"""
+In the command line, run:
+python log_to_df.py Logs/dwa_log_details_xxx/log_details.json
+"""
+
 def main(args):
     log_file_path = args.log_file
 
