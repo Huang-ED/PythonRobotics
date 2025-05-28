@@ -92,19 +92,22 @@ def closest_obstacle_on_curve(x, ob, v, omega, config):
             check_span = (v / radius) * config.check_time
             
             in_span = False
-            if omega > 0:
-                end_angle = (start_angle_norm + check_span) % (2 * math.pi)
-                if start_angle_norm <= end_angle:
-                    in_span = start_angle_norm <= obstacle_angle <= end_angle
-                else:
-                    in_span = obstacle_angle >= start_angle_norm or obstacle_angle <= end_angle
+            if check_span > 2 * math.pi:
+                in_span = True
             else:
-                end_angle = (start_angle_norm - check_span) % (2 * math.pi)
-                if start_angle_norm >= end_angle:
-                    in_span = end_angle <= obstacle_angle <= start_angle_norm
+                if omega > 0:
+                    end_angle = (start_angle_norm + check_span) % (2 * math.pi)
+                    if start_angle_norm <= end_angle:
+                        in_span = start_angle_norm <= obstacle_angle <= end_angle
+                    else:
+                        in_span = obstacle_angle >= start_angle_norm or obstacle_angle <= end_angle
                 else:
-                    in_span = obstacle_angle <= start_angle_norm or obstacle_angle >= end_angle
-            
+                    end_angle = (start_angle_norm - check_span) % (2 * math.pi)
+                    if start_angle_norm >= end_angle:
+                        in_span = end_angle <= obstacle_angle <= start_angle_norm
+                    else:
+                        in_span = obstacle_angle <= start_angle_norm or obstacle_angle >= end_angle
+
             if not in_span:
                 continue
             
@@ -231,64 +234,79 @@ def visualize_test_case(x, ob, v, omega, config, result):
     plt.grid(True)
     plt.show()
 
-# 在 closest_obstacle_on_curve_test.py 中添加以下测试函数
 
-def test_cases():
-    # 初始配置
-    config.obstacle_radius = 0.5
+# def test_cases():
+#     # 初始配置
+#     config.obstacle_radius = 0.5
     
-    # Test Case 1：直线路径前方有障碍物（圆形机器人）
-    print("Test Case 1: Straight path with front obstacle (circle)")
+#     # Test Case 1：直线路径前方有障碍物（圆形机器人）
+#     print("Test Case 1: Straight path with front obstacle (circle)")
+#     config.robot_type = RobotType.rectangle
+#     config.robot_length = 1.2
+#     config.robot_width = 0.5
+#     x1 = np.array([0, 0, 0])  # 朝向正东
+#     ob1 = np.array([[4.5, 0]])
+#     v1 = 1.0
+#     omega1 = 0.0
+#     res1 = closest_obstacle_on_curve(x1, ob1, v1, omega1, config)
+#     visualize_test_case(x1, ob1, v1, omega1, config, res1)
+
+#     # Test Case 2：圆弧左转路径内有障碍物
+#     print("Test Case 2: Left turn arc with obstacle")
+#     config.robot_type = RobotType.circle
+#     x2 = np.array([0, 0, 0])  # 圆心在(0,2)
+#     ob2 = np.array([[2, 2.5]])
+#     v2 = 2.0
+#     omega2 = 1.0  # 左转，半径2
+#     res2 = closest_obstacle_on_curve(x2, ob2, v2, omega2, config)
+#     visualize_test_case(x2, ob2, v2, omega2, config, res2)
+
+#     # Test Case 3：多障碍物检测最近
+#     print("Test Case 3: Multiple obstacles")
+#     x3 = np.array([0, 0, np.pi/4])  # 东北方向
+#     ob3 = np.array([[3, -3], [3.5, 0], [2, 2]])
+#     v3 = 1.0
+#     omega3 = 0.0
+#     res3 = closest_obstacle_on_curve(x3, ob3, v3, omega3, config)
+#     visualize_test_case(x3, ob3, v3, omega3, config, res3)
+
+#     # Test Case 4：矩形机器人右转检测
+#     print("Test Case 4: Rectangle robot right turn")
+#     config.robot_type = RobotType.rectangle
+#     config.robot_length = 1.2
+#     config.robot_width = 0.5
+#     x4 = np.array([0, 0, 0])
+#     ob4 = np.array([[2, -1]])
+#     v4 = 1.0
+#     omega4 = -0.5  # 右转，半径2
+#     res4 = closest_obstacle_on_curve(x4, ob4, v4, omega4, config)
+#     visualize_test_case(x4, ob4, v4, omega4, config, res4)
+
+#     # Test Case 5：无碰撞情况
+#     print("Test Case 5: No collision")
+#     config.robot_type = RobotType.circle
+#     x5 = np.array([0, 0, 0])
+#     ob5 = np.array([[5, 3]])
+#     v5 = 1.0
+#     omega5 = 0.0
+#     res5 = closest_obstacle_on_curve(x5, ob5, v5, omega5, config)
+#     visualize_test_case(x5, ob5, v5, omega5, config, res5)
+
+
+def test_case_from_exp():
+    config.obstacle_radius = 0.5
     config.robot_type = RobotType.rectangle
     config.robot_length = 1.2
     config.robot_width = 0.5
-    x1 = np.array([0, 0, 0])  # 朝向正东
-    ob1 = np.array([[4.5, 0]])
-    v1 = 1.0
-    omega1 = 0.0
-    res1 = closest_obstacle_on_curve(x1, ob1, v1, omega1, config)
-    visualize_test_case(x1, ob1, v1, omega1, config, res1)
+    # x = np.array([26.78515083, 80.50046229, -1.27025063, 0.49000000, -0.25307274])
+    x = np.array([26.20515359,81.57102452,-0.90146256,0.49000000,-0.06457718])
+    ob = np.array([[25.0, 79.0], [25.0, 80.0], [26.0, 79.0], [26.0, 80.0]])
+    v, omega = (0.49000000,-0.12740904)
+    res = closest_obstacle_on_curve(x, ob, v, omega, config)
+    visualize_test_case(x, ob, v, omega, config, res)
+    print(f"Result: Distance = {res[0]:.2f} m, Time = {res[1]:.2f} s")
 
-    # Test Case 2：圆弧左转路径内有障碍物
-    print("Test Case 2: Left turn arc with obstacle")
-    config.robot_type = RobotType.circle
-    x2 = np.array([0, 0, 0])  # 圆心在(0,2)
-    ob2 = np.array([[2, 2.5]])
-    v2 = 2.0
-    omega2 = 1.0  # 左转，半径2
-    res2 = closest_obstacle_on_curve(x2, ob2, v2, omega2, config)
-    visualize_test_case(x2, ob2, v2, omega2, config, res2)
-
-    # Test Case 3：多障碍物检测最近
-    print("Test Case 3: Multiple obstacles")
-    x3 = np.array([0, 0, np.pi/4])  # 东北方向
-    ob3 = np.array([[3, -3], [3.5, 0], [2, 2]])
-    v3 = 1.0
-    omega3 = 0.0
-    res3 = closest_obstacle_on_curve(x3, ob3, v3, omega3, config)
-    visualize_test_case(x3, ob3, v3, omega3, config, res3)
-
-    # Test Case 4：矩形机器人右转检测
-    print("Test Case 4: Rectangle robot right turn")
-    config.robot_type = RobotType.rectangle
-    config.robot_length = 1.2
-    config.robot_width = 0.5
-    x4 = np.array([0, 0, 0])
-    ob4 = np.array([[2, -1]])
-    v4 = 1.0
-    omega4 = -0.5  # 右转，半径2
-    res4 = closest_obstacle_on_curve(x4, ob4, v4, omega4, config)
-    visualize_test_case(x4, ob4, v4, omega4, config, res4)
-
-    # Test Case 5：无碰撞情况
-    print("Test Case 5: No collision")
-    config.robot_type = RobotType.circle
-    x5 = np.array([0, 0, 0])
-    ob5 = np.array([[5, 3]])
-    v5 = 1.0
-    omega5 = 0.0
-    res5 = closest_obstacle_on_curve(x5, ob5, v5, omega5, config)
-    visualize_test_case(x5, ob5, v5, omega5, config, res5)
 
 if __name__ == '__main__':
-    test_cases()
+    # test_cases()
+    test_case_from_exp()
