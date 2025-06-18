@@ -20,6 +20,9 @@ from enum import Enum
 import matplotlib.pyplot as plt
 import numpy as np
 
+import warnings
+warnings.filterwarnings("error", category=RuntimeWarning)
+
 show_animation = True
 save_animation_to_figs = False
 save_costs_fig = False
@@ -221,17 +224,20 @@ def calc_control_and_trajectory(x, dw, config, goal, ob):
     inadmissible = []
 
     # evaluate all trajectory with sampled input in dynamic window
-    for v in np.arange(dw[0], dw[1], config.v_resolution):
-        for y in np.arange(dw[2], dw[3], config.yaw_rate_resolution):
+    for v in np.arange(dw[0], dw[1] + 1e-6, config.v_resolution):
+        for y in np.arange(dw[2], dw[3] + 1e-6, config.yaw_rate_resolution):
             # Track all control inputs as inadmissible initially
             inadmissible.append([float(v), float(y)])
             
             # admissible velocities check
             dist, _ = closest_obstacle_on_curve(x.copy(), ob, v, y, config)
-            if v > math.sqrt(2*config.max_accel*dist):
+            # if v > math.sqrt(2*config.max_accel*dist):
+            # if v**2 + config.max_accel * v * config.dt > 2 * config.max_accel * dist:
+            if v**2 + 2 * config.max_accel * v * config.dt > 2 * config.max_accel * dist:
                 continue
                 
             # If we reach here, the control is admissible
+            inadmissible.pop()  # Remove the last inadmissible entry
             admissible.append([float(v), float(y)])
             
             trajectory = predict_trajectory(x.copy(), v, y, config)
@@ -440,7 +446,7 @@ def closest_obstacle_on_curve_old(x, ob, v, omega, config):
     return float("Inf"), float("Inf")
 
 
-def closest_obstacle_on_curve(x, ob, v, omega, config):
+def closest_obstacle_on_curve_with_check_time(x, ob, v, omega, config):
     """
     Was called "closest_obstacle_on_curve_math" after implementation
     Calculate the distance to the closest obstacle that intersects with the curvature
@@ -461,8 +467,12 @@ def closest_obstacle_on_curve(x, ob, v, omega, config):
     heading = x[2]
     min_dist = float("inf")
     min_time = float("inf")
+
+    # if abs(v) < 1e-6:
+    #     heading = x[2] + omega * config.dt
     
     if abs(omega) < 1e-6:
+    # if abs(omega) < 1e-6 or abs(v) < 1e-6:
         heading_vector = np.array([math.cos(heading), math.sin(heading)])
         
         for i in range(len(ob)):
@@ -532,7 +542,7 @@ def closest_obstacle_on_curve(x, ob, v, omega, config):
             obstacle_angle = obstacle_angle % (2 * math.pi)
             start_angle_norm = start_angle % (2 * math.pi)
             
-            check_span = (v / radius) * config.check_time
+            check_span = abs(omega) * config.check_time
             
             in_span = False
             if check_span > 2 * math.pi:
@@ -609,6 +619,143 @@ def closest_obstacle_on_curve(x, ob, v, omega, config):
     
     return min_dist, min_time
 
+
+def closest_obstacle_on_curve(x, ob, v, omega, config):
+    """
+    Calculate the distance to the closest obstacle that intersects with the curvature
+    without time/span limitations - checks the entire trajectory
+    
+    Parameters:
+    x: current state
+        [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
+    ob: obstacle positions
+        [[x(m), y(m)], ...]
+    v: translational velocity (m/s)
+    omega: angular velocity (rad/s)
+    config: simulation configuration
+    
+    Returns:
+    dist: distance to the closest obstacle
+    t: time to reach the closest obstacle
+    """
+    start_pos = (x[0], x[1])
+    heading = x[2]
+    min_dist = float("inf")
+    min_time = float("inf")
+
+    if abs(omega) < 1e-6:
+        # Straight line motion - check entire line
+        heading_vector = np.array([math.cos(heading), math.sin(heading)])
+        
+        for i in range(len(ob)):
+            obstacle = np.array([ob[i, 0], ob[i, 1]])
+            obstacle_radius = config.obstacle_radius
+            
+            to_center = obstacle - np.array(start_pos)
+            projection = np.dot(to_center, heading_vector)
+            
+            if projection < 0:
+                continue
+                
+            closest_approach = np.linalg.norm(to_center - projection * heading_vector)
+            
+            collision_threshold = 0
+            if config.robot_type == RobotType.rectangle:
+                robot_diagonal = math.sqrt((config.robot_length/2)**2 + (config.robot_width/2)**2)
+                collision_threshold = obstacle_radius + robot_diagonal
+            else:
+                collision_threshold = obstacle_radius + config.robot_radius
+                
+            if closest_approach > collision_threshold:
+                continue
+                
+            dist_to_intersection = projection - math.sqrt(collision_threshold**2 - closest_approach**2)
+            
+            if 0 <= dist_to_intersection < min_dist:
+                min_dist = dist_to_intersection
+                min_time = dist_to_intersection / v if v > 0 else float("inf")
+                
+        return min_dist, min_time
+        
+    else:
+        # Circular arc motion - check entire circle
+        radius = abs(v / omega)
+        
+        if omega > 0:
+            center_x = x[0] - radius * math.sin(heading)
+            center_y = x[1] + radius * math.cos(heading)
+        else:
+            center_x = x[0] + radius * math.sin(heading)
+            center_y = x[1] - radius * math.cos(heading)
+            
+        arc_center = np.array([center_x, center_y])
+        
+        if omega > 0:
+            start_angle = heading - math.pi/2
+        else:
+            start_angle = heading + math.pi/2
+            
+        for i in range(len(ob)):
+            obstacle_center = np.array([ob[i, 0], ob[i, 1]])
+            obstacle_radius = config.obstacle_radius
+            
+            dist_between_centers = np.linalg.norm(arc_center - obstacle_center)
+            
+            if config.robot_type == RobotType.rectangle:
+                robot_diagonal = math.sqrt((config.robot_length/2)**2 + (config.robot_width/2)**2)
+                collision_radius = obstacle_radius + robot_diagonal
+            else:
+                collision_radius = obstacle_radius + config.robot_radius
+                
+            if dist_between_centers > radius + collision_radius or dist_between_centers < radius - collision_radius:
+                continue
+                
+            # Calculate intersection points without span checking
+            a = radius
+            b = dist_between_centers
+            c = collision_radius
+            
+            if b == 0:
+                continue
+                
+            d = (a*a + b*b - c*c) / (2*b)
+            
+            if abs(d) > radius:
+                continue
+                
+            h_squared = a*a - d*d
+            if h_squared < 0:
+                continue
+                
+            h = math.sqrt(h_squared)
+            
+            unit_vector = (obstacle_center - arc_center) / dist_between_centers
+            perp_vector = np.array([-unit_vector[1], unit_vector[0]])
+            
+            int_point1 = arc_center + d * unit_vector + h * perp_vector
+            int_point2 = arc_center + d * unit_vector - h * perp_vector
+            
+            angle1 = math.atan2(int_point1[1] - arc_center[1], int_point1[0] - arc_center[0]) % (2 * math.pi)
+            angle2 = math.atan2(int_point2[1] - arc_center[1], int_point2[0] - arc_center[0]) % (2 * math.pi)
+            
+            # Calculate angle differences without span limitation
+            if omega > 0:
+                angle_diff1 = (angle1 - start_angle) % (2 * math.pi)
+                angle_diff2 = (angle2 - start_angle) % (2 * math.pi)
+            else:
+                angle_diff1 = (start_angle - angle1) % (2 * math.pi)
+                angle_diff2 = (start_angle - angle2) % (2 * math.pi)
+            
+            # Check both intersection points (no span restriction)
+            for angle_diff in [angle_diff1, angle_diff2]:
+                dist = angle_diff * radius
+                time = dist / v if v > 0 else float("inf")
+                
+                if dist < min_dist:
+                    min_dist = dist
+                    min_time = time
+                    
+        return min_dist, min_time
 
 
 def calc_to_goal_cost(trajectory, goal):
@@ -736,6 +883,46 @@ def dwa(x, goal, ob, config):
             fig_path = os.path.join(fig_dir, 'frame_{}.png'.format(i_fig))
 
         plt.show()
+
+
+def check_collision_at_current_position_circle_approximation(x, ob, config):
+    """
+    Check if the robot at current position collides with any obstacles
+    using circle approximation (same as DWA distance calculations)
+    
+    Parameters:
+    x: current state [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
+    ob: obstacle positions [[x(m), y(m)], ...]
+    config: simulation configuration
+    
+    Returns:
+    collision: boolean indicating if collision occurred
+    obstacle_index: index of colliding obstacle (if any)
+    distance: distance to colliding obstacle
+    """
+    robot_pos = np.array([x[0], x[1]])
+    
+    # Always use circle-circle collision detection (same as DWA)
+    distances = np.linalg.norm(ob - robot_pos, axis=1)
+    
+    # Determine effective robot radius based on robot type
+    if config.robot_type == RobotType.rectangle:
+        # Use diagonal approximation (same as in DWA distance calculation)
+        effective_robot_radius = math.sqrt((config.robot_length/2)**2 + (config.robot_width/2)**2)
+    else:
+        # Use actual robot radius
+        effective_robot_radius = config.robot_radius
+    
+    collision_threshold = effective_robot_radius + config.obstacle_radius
+    
+    # Check for collisions
+    collision_mask = distances <= collision_threshold
+    if np.any(collision_mask):
+        collision_index = np.argmin(distances)
+        collision_distance = np.min(distances)
+        return True, collision_index, collision_distance
+    
+    return False, None, float('inf')
 
 
 if __name__ == '__main__':

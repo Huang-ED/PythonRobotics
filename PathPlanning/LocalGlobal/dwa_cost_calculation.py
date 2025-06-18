@@ -50,7 +50,9 @@ def calculate_all_costs(x, config, goal, ob):
             
             # Check admissibility
             dist, _ = closest_obstacle_on_curve(x.copy(), ob, v, omega, config)
-            if v > math.sqrt(2 * config.max_accel * dist):
+            # if v > math.sqrt(2*config.max_accel*dist):
+            # if v**2 + config.max_accel * v * config.dt > 2 * config.max_accel * dist:
+            if v**2 + 2 * config.max_accel * v * config.dt > 2 * config.max_accel * dist:
                 continue  # Skip inadmissible pairs
             
             # Calculate trajectory and costs for admissible pairs
@@ -70,7 +72,7 @@ def calculate_all_costs(x, config, goal, ob):
 
 
 def main():
-    log_file_path = "Logs/dwa_log_details_20250306_155027/log_details.csv"
+    log_file_path = "Logs/dwa_log_details_20250616_161339_v7.3.7-test6/log_details.csv"
 
     ## Config
     config = Config()
@@ -99,11 +101,17 @@ def main():
     ob_dwa[:, 1] = arr_dwa.shape[0] - ob_dwa[:, 1] - 1  # 翻转y轴坐标系
 
     # 在A*路径上添加的额外障碍物
+    # new_ob = np.array([
+    #     [25., 79.], [25., 80.], [26., 79.], [26., 80.],
+    #     [35., 55.], [36., 56],
+    #     [28., 46.], [27., 47.],
+    #     [10., 19.], [10., 20.], [11., 19.], [11., 20.]
+    # ])
     new_ob = np.array([
         [25., 79.], [25., 80.], [26., 79.], [26., 80.],
         [35., 55.], [36., 56],
-        [28., 46.], [27., 47.],
-        [10., 19.], [10., 20.], [11., 19.], [11., 20.]
+        [28., 46.], [27., 47.], [29., 45.],
+        [12., 19.], [12., 20.], [11., 19.], [11., 20.]
     ])
     ob_dwa = np.append(ob_dwa, new_ob, axis=0)  # 合并障碍物
 
@@ -111,7 +119,7 @@ def main():
     # x = np.array([0.0, 0.0, np.pi/4, 0.0, 0.0])  # [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
     # goal = np.array([10.0, 10.0])                 # Target position
     # iter_num = 227
-    iter_nums = [225, 226, 227, 228, 229, 230, 231, 232, 233, 234]
+    iter_nums = list(range(85, 95))
     for iter_num in iter_nums:
         df = pd.read_csv(log_file_path, index_col="iteration")
         # print(df.loc[iter_num])

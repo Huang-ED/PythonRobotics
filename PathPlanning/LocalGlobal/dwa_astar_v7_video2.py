@@ -126,8 +126,8 @@ if __name__ == '__main__':
 
     config = Config()
     config_plot = Config()
-    config_plot.robot_width *= 2
-    config_plot.robot_length *= 2
+    # config_plot.robot_width *= 2
+    # config_plot.robot_length *= 2
 
     # ----- Set up the map -----
     ## Load the map from image
@@ -179,7 +179,7 @@ if __name__ == '__main__':
         plt.figure(figsize=(10, 10))
         if save_animation_to_figs:
             cur_dir = os.path.dirname(__file__)
-            fig_dir = os.path.join(cur_dir, 'figs_v7_video2')
+            fig_dir = os.path.join(cur_dir, 'figs_v7.3.7-test6')
             os.makedirs(fig_dir, exist_ok=False)
             i_fig = 0
 
@@ -223,11 +223,17 @@ if __name__ == '__main__':
 
 
     # ----- Put new obstacles on the A* path -----
+    # new_ob = np.array([
+    #     [25., 79.], [25., 80.], [26., 79.], [26., 80.],
+    #     [35., 55.], [36., 56],
+    #     [28., 46.], [27., 47.],
+    #     [10., 19.], [10., 20.], [11., 19.], [11., 20.]
+    # ])
     new_ob = np.array([
         [25., 79.], [25., 80.], [26., 79.], [26., 80.],
         [35., 55.], [36., 56],
-        [28., 46.], [27., 47.],
-        [10., 19.], [10., 20.], [11., 19.], [11., 20.]
+        [28., 46.], [27., 47.], [29., 45.],
+        [12., 19.], [12., 20.], [11., 19.], [11., 20.]
     ])
     ob_dwa = np.append(ob_dwa, new_ob, axis=0)
     if show_animation:  # pragma: no cover
@@ -239,6 +245,9 @@ if __name__ == '__main__':
 
     # ----- Run DWA path planning -----
     x = np.array([sx, sy, - math.pi / 8.0, 0.0, 0.0])
+    x = np.array([39, 60, - math.pi*3/4, 0.5, -0.])
+    road_map = road_map[4:]    # roadmap remove the first few points
+
     # config = Config()
 
     print(__file__ + " start!!")
@@ -300,7 +309,11 @@ if __name__ == '__main__':
 
 
                 ## Execute DWA
-                u, predicted_trajectory, dw, admissible, inadmissible, to_goal_before, speed_before, ob_before, to_goal_after, speed_after, ob_after, final_cost = dwa.dwa_control(x, config, dwagoal, ob_dwa)
+                (u, predicted_trajectory, dw, admissible, inadmissible, 
+                 to_goal_before, speed_before, ob_before, to_goal_after, 
+                 speed_after, ob_after, final_cost) = dwa.dwa_control(
+                    x, config, dwagoal, ob_dwa
+                )
 
                 # Record data for this iteration
                 log_entry = {
@@ -325,6 +338,34 @@ if __name__ == '__main__':
 
                 x = dwa.motion(x, u, config.dt)  # simulate robot
                 trajectory = np.vstack((trajectory, x))  # store state history
+                
+                # ADD COLLISION DETECTION HERE (after motion, before animation)
+                collision_detected, obstacle_index, collision_distance = dwa.check_collision_at_current_position_circle_approximation(x, ob_dwa, config)
+
+                if collision_detected:
+                    # Calculate effective radius for error message
+                    if config.robot_type == dwa.RobotType.rectangle:
+                        effective_radius = math.sqrt((config.robot_length/2)**2 + (config.robot_width/2)**2)
+                        robot_shape_info = f"rectangle (effective radius: {effective_radius:.3f}m)"
+                    else:
+                        effective_radius = config.robot_radius
+                        robot_shape_info = f"circle (radius: {effective_radius:.3f}m)"
+                    
+                    # Print collision details and terminate
+                    error_message = f"""
+COLLISION DETECTED!
+- Iteration: {iteration-1}
+- Robot position: ({x[0]:.3f}, {x[1]:.3f})
+- Robot heading: {x[2]:.3f} rad ({math.degrees(x[2]):.1f}°)
+- Robot shape: {robot_shape_info}
+- Colliding obstacle index: {obstacle_index}
+- Distance to obstacle center: {collision_distance:.3f}m
+- Collision threshold: {effective_radius + config.obstacle_radius:.3f}m
+- Simulation terminated due to collision.
+                """
+                    
+                    # Terminate program with error
+                    sys.exit(error_message)
 
                 if show_animation:  # pragma: no cover
                     for ele in plt_elements:
