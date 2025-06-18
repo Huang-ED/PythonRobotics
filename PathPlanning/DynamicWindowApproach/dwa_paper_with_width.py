@@ -643,7 +643,47 @@ def closest_obstacle_on_curve(x, ob, v, omega, config):
     min_dist = float("inf")
     min_time = float("inf")
 
-    if abs(omega) < 1e-6:
+    # Special case: when velocity is zero or very small
+    if abs(v) < 1e-5:
+        # Check obstacles along the facing direction (straight line)
+        heading_vector = np.array([math.cos(heading), math.sin(heading)])
+        
+        # Define a reasonable search distance for stationary obstacle detection
+        search_distance = config.obstacle_radius * 10  # or another reasonable value
+        
+        for i in range(len(ob)):
+            obstacle = np.array([ob[i, 0], ob[i, 1]])
+            obstacle_radius = config.obstacle_radius
+            
+            to_center = obstacle - np.array(start_pos)
+            projection = np.dot(to_center, heading_vector)
+            
+            # Only consider obstacles in front of the robot within search distance
+            if projection < 0 or projection > search_distance:
+                continue
+                
+            closest_approach = np.linalg.norm(to_center - projection * heading_vector)
+            
+            collision_threshold = 0
+            if config.robot_type == RobotType.rectangle:
+                robot_diagonal = math.sqrt((config.robot_length/2)**2 + (config.robot_width/2)**2)
+                collision_threshold = obstacle_radius + robot_diagonal
+            else:
+                collision_threshold = obstacle_radius + config.robot_radius
+                
+            if closest_approach <= collision_threshold:
+                # Distance to the edge of collision zone
+                dist_to_intersection = max(0, projection - math.sqrt(
+                    max(0, collision_threshold**2 - closest_approach**2)))
+                
+                if dist_to_intersection < min_dist:
+                    min_dist = dist_to_intersection
+                    min_time = float("inf")  # Time is infinite since v=0
+                    
+        return min_dist, min_time
+    
+    # Original logic for v > 0 cases
+    elif abs(omega) < 1e-6:
         # Straight line motion - check entire line
         heading_vector = np.array([math.cos(heading), math.sin(heading)])
         

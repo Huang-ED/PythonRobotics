@@ -179,7 +179,7 @@ if __name__ == '__main__':
         plt.figure(figsize=(10, 10))
         if save_animation_to_figs:
             cur_dir = os.path.dirname(__file__)
-            fig_dir = os.path.join(cur_dir, 'figs_v7.3.7-test6')
+            fig_dir = os.path.join(cur_dir, 'figs_v7.3.8')
             os.makedirs(fig_dir, exist_ok=False)
             i_fig = 0
 
@@ -359,13 +359,15 @@ COLLISION DETECTED!
 - Robot heading: {x[2]:.3f} rad ({math.degrees(x[2]):.1f}°)
 - Robot shape: {robot_shape_info}
 - Colliding obstacle index: {obstacle_index}
+- Colliding obstacle position: ({ob_dwa[obstacle_index][0]:.3f}, {ob_dwa[obstacle_index][1]:.3f})
 - Distance to obstacle center: {collision_distance:.3f}m
 - Collision threshold: {effective_radius + config.obstacle_radius:.3f}m
 - Simulation terminated due to collision.
                 """
                     
                     # Terminate program with error
-                    sys.exit(error_message)
+                    # sys.exit(error_message)
+                    warnings.warn(error_message, UserWarning)
 
                 if show_animation:  # pragma: no cover
                     for ele in plt_elements:
