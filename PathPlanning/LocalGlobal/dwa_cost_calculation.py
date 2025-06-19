@@ -38,10 +38,13 @@ def calculate_all_costs(x, config, goal, ob):
     # Create meshgrid for all (v, ω) pairs
     V, Omega = np.meshgrid(v_samples, omega_samples, indexing='ij')
     
-    # Initialize cost matrices with -1 (inadmissible)
-    to_goal_cost = np.full_like(V, -1.0)
-    speed_cost = np.full_like(V, -1.0)
-    ob_cost = np.full_like(V, -1.0)
+    # Initialize cost matrices with nan (inadmissible)
+    # to_goal_cost = np.full_like(V, -1.0)
+    # speed_cost = np.full_like(V, -1.0)
+    # ob_cost = np.full_like(V, -1.0)
+    to_goal_cost = np.full(V.shape, np.nan)
+    speed_cost = np.full(V.shape, np.nan)
+    ob_cost = np.full(V.shape, np.nan)
     
     for i in range(V.shape[0]):
         for j in range(V.shape[1]):
@@ -72,13 +75,14 @@ def calculate_all_costs(x, config, goal, ob):
 
 
 def main():
-    log_file_path = "Logs/dwa_log_details_20250616_161339_v7.3.7-test6/log_details.csv"
+    log_file_path = "Logs/dwa_log_details_20250619_125137_v7.3.8-test3_vid1/log_details.csv"
 
     ## Config
     config = Config()
 
     ## Define the map
-    image_path = "EnvData/AISData_20240827/land_shapes_sf_crop.png"
+    # image_path = "EnvData/AISData_20240827/land_shapes_sf_crop.png"
+    image_path = "EnvData/AISData_20240827/land_shapes_ht_crop.png"
     arr = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     arr = cv2.resize(arr, (100, 100))
     _, arr = cv2.threshold(arr, 128, 1, cv2.THRESH_BINARY)
@@ -104,14 +108,14 @@ def main():
     # new_ob = np.array([
     #     [25., 79.], [25., 80.], [26., 79.], [26., 80.],
     #     [35., 55.], [36., 56],
-    #     [28., 46.], [27., 47.],
-    #     [10., 19.], [10., 20.], [11., 19.], [11., 20.]
+    #     [28., 46.], [27., 47.], [29., 45.],
+    #     [12., 19.], [12., 20.], [11., 19.], [11., 20.]
     # ])
     new_ob = np.array([
-        [25., 79.], [25., 80.], [26., 79.], [26., 80.],
-        [35., 55.], [36., 56],
-        [28., 46.], [27., 47.], [29., 45.],
-        [12., 19.], [12., 20.], [11., 19.], [11., 20.]
+        [67., 75.], [67., 74.], [66., 75.], [66., 74.],
+        [57., 65.], [57., 66.], [58., 65.], [58., 66.],
+        [43., 44.], [42., 43.], [43., 43.], [42., 44.],
+        [67., 23.], [67., 24.], [68., 23.], [68., 24.]
     ])
     ob_dwa = np.append(ob_dwa, new_ob, axis=0)  # 合并障碍物
 
@@ -119,7 +123,7 @@ def main():
     # x = np.array([0.0, 0.0, np.pi/4, 0.0, 0.0])  # [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
     # goal = np.array([10.0, 10.0])                 # Target position
     # iter_num = 227
-    iter_nums = list(range(85, 95))
+    iter_nums = list(range(1080, 1100))  # Specify the iterations you want to process
     for iter_num in iter_nums:
         df = pd.read_csv(log_file_path, index_col="iteration")
         # print(df.loc[iter_num])
@@ -195,7 +199,9 @@ def main():
         plt.subplots_adjust(wspace=0.3, hspace=0.3)
 
         def plot_cost(ax, cost, title):
-            im = ax.imshow(cost, origin='lower', cmap='jet', aspect='auto')
+            cmap = plt.get_cmap('jet')
+            cmap.set_bad(color='black')  # Set NaN values to black
+            im = ax.imshow(cost, origin='lower', cmap=cmap, aspect='auto')
             plt.colorbar(im, ax=ax, label='Cost')
             ax.set_xticks(x_ticks_indices)
             ax.set_xticklabels(omega_samples_rounded[::step], rotation=45)
