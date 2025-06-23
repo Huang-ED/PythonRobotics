@@ -49,7 +49,7 @@ class Config:
         self.yaw_rate_resolution = 0.1 * math.pi / 180.0  # [rad/s]
         self.dt = 0.1  # [s] Time tick for motion prediction
         self.predict_time = 1.0  # [s]
-        self.check_time = 100.0 # [s] Time to check for collision - a large number
+        # self.check_time = 100.0 # [s] Time to check for collision - a large number
         self.to_goal_cost_gain = 0.4
         self.speed_cost_gain = 1
         self.obstacle_cost_gain = 0.10
@@ -58,6 +58,8 @@ class Config:
         self.catch_goal_dist = 0.5  # [m] goal radius
         self.catch_turning_point_dist = 1.0  # [m] local goal radius
         self.obstacle_radius = 0.5  # [m] for collision check
+
+        self.max_obstacle_cost_dist = 5.0  # [m] max distance to obstacles for cost calculation
 
         # if robot_type == RobotType.circle
         # Also used to check if goal is reached in both types
@@ -179,7 +181,7 @@ if __name__ == '__main__':
         plt.figure(figsize=(10, 10))
         if save_animation_to_figs:
             cur_dir = os.path.dirname(__file__)
-            fig_dir = os.path.join(cur_dir, 'figs_v7.3.8-test3_vid1')
+            fig_dir = os.path.join(cur_dir, 'figs_v7.3.9-test2_vid1')
             os.makedirs(fig_dir, exist_ok=False)
             i_fig = 0
 
@@ -229,6 +231,12 @@ if __name__ == '__main__':
         [43., 44.], [42., 43.], [43., 43.], [42., 44.],
         [67., 23.], [67., 24.], [68., 23.], [68., 24.]
     ])
+    new_ob = np.array([
+        [80., 63.], [80., 64.], [81., 63.], [81., 64.],
+        [55., 68.], [55., 69.], [56., 68.], [56., 69.],
+        [43., 44.], [42., 43.], [43., 43.], [42., 44.],
+        [67., 23.], [67., 24.], [68., 23.], [68., 24.],
+    ])
     ob_dwa = np.append(ob_dwa, new_ob, axis=0)
     if show_animation:  # pragma: no cover
         # plt.plot(new_ob[:,0], new_ob[:,1], ".k")
@@ -239,7 +247,8 @@ if __name__ == '__main__':
 
     # ----- Run DWA path planning -----
     x = np.array([sx, sy, - math.pi / 8.0, 0.0, 0.0])
-    # config = Config()
+    x = np.array([47, 56, - math.pi*3/4, 0.5, 0.])
+    road_map = road_map[1:]    # roadmap remove the first few points
 
     print(__file__ + " start!!")
     trajectory = np.array(x)

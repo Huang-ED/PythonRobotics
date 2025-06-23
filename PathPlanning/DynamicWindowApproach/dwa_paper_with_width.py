@@ -245,7 +245,8 @@ def calc_control_and_trajectory(x, dw, config, goal, ob):
             # calc costs
             to_goal_cost = config.to_goal_cost_gain * calc_to_goal_cost(trajectory, goal)
             speed_cost = config.speed_cost_gain * (config.max_speed - trajectory[-1, 3])
-            ob_cost = float("inf") if dist == 0 else config.obstacle_cost_gain * (1 / dist)
+            # ob_cost = float("inf") if dist == 0 else config.obstacle_cost_gain * (1 / dist)
+            ob_cost = max(0., config.max_obstacle_cost_dist-dist)
             
             final_cost = to_goal_cost + speed_cost + ob_cost
             
@@ -648,8 +649,8 @@ def closest_obstacle_on_curve(x, ob, v, omega, config):
         # Check obstacles along the facing direction (straight line)
         heading_vector = np.array([math.cos(heading), math.sin(heading)])
         
-        # Define a reasonable search distance for stationary obstacle detection
-        search_distance = config.obstacle_radius * 10  # or another reasonable value
+        # # Define a reasonable search distance for stationary obstacle detection
+        # search_distance = config.obstacle_radius * 10  # or another reasonable value
         
         for i in range(len(ob)):
             obstacle = np.array([ob[i, 0], ob[i, 1]])
@@ -659,7 +660,7 @@ def closest_obstacle_on_curve(x, ob, v, omega, config):
             projection = np.dot(to_center, heading_vector)
             
             # Only consider obstacles in front of the robot within search distance
-            if projection < 0 or projection > search_distance:
+            if projection < 0:    #  or projection > search_distance:
                 continue
                 
             closest_approach = np.linalg.norm(to_center - projection * heading_vector)
