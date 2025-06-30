@@ -78,4 +78,5 @@ figs*
 *demo*
 EnvData
 **TrashBin**
-Logs/dwa_log_details_*
+Logs*/dwa_log_details_*
+Logs_LG/

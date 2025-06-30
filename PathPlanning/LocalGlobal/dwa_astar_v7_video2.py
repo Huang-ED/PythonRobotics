@@ -52,7 +52,7 @@ class Config:
         # self.check_time = 100.0 # [s] Time to check for collision - a large number
         self.to_goal_cost_gain = 0.4
         self.speed_cost_gain = 1
-        self.obstacle_cost_gain = 0.10
+        self.obstacle_cost_gain = 0.05
         self.robot_stuck_flag_cons = 0.001  # constant to prevent robot stucked
         self.robot_type = dwa.RobotType.rectangle
         self.catch_goal_dist = 0.5  # [m] goal radius
@@ -181,7 +181,7 @@ if __name__ == '__main__':
         plt.figure(figsize=(10, 10))
         if save_animation_to_figs:
             cur_dir = os.path.dirname(__file__)
-            fig_dir = os.path.join(cur_dir, 'figs_v7.3.9-test2-vid2')
+            fig_dir = os.path.join(cur_dir, 'figs_v7.3.9-test4-vid2')
             os.makedirs(fig_dir, exist_ok=False)
             i_fig = 0
 

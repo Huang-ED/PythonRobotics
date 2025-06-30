@@ -4,8 +4,9 @@ rpath = os.path.abspath(
 )
 sys.path.append(rpath)
 
-from PathPlanning.AStar import theta_star
-from PathPlanning.DynamicWindowApproach import dwa_paper_with_width as dwa
+import theta_star
+import dwa_paper_with_width as dwa
+from dwa_paper_with_width import Config, line_circle_intersection
 
 import math
 import numpy as np
@@ -33,95 +34,8 @@ v7: Replace A* with Theta*.
     Add boundary extraction for DWA map.
 """
 
-class Config:
-    """
-    simulation parameter class
-    """
 
-    def __init__(self):
-        # robot parameter
-        self.max_speed = 0.5  # [m/s]
-        self.min_speed = 0.0  # [m/s]
-        self.max_yaw_rate = 40.0 * math.pi / 180.0  # [rad/s]
-        self.max_accel = 0.2  # [m/ss]
-        self.max_delta_yaw_rate = 40.0 * math.pi / 180.0  # [rad/ss]
-        self.v_resolution = 0.01  # [m/s]
-        self.yaw_rate_resolution = 0.1 * math.pi / 180.0  # [rad/s]
-        self.dt = 0.1  # [s] Time tick for motion prediction
-        self.predict_time = 1.0  # [s]
-        # self.check_time = 100.0 # [s] Time to check for collision - a large number
-        self.to_goal_cost_gain = 0.4
-        self.speed_cost_gain = 1
-        self.obstacle_cost_gain = 0.05
-        self.robot_stuck_flag_cons = 0.001  # constant to prevent robot stucked
-        self.robot_type = dwa.RobotType.rectangle
-        self.catch_goal_dist = 0.5  # [m] goal radius
-        self.catch_turning_point_dist = 1.0  # [m] local goal radius
-        self.obstacle_radius = 0.5  # [m] for collision check
-
-        self.max_obstacle_cost_dist = 5.0  # [m] max distance to obstacles for cost calculation
-
-        # if robot_type == RobotType.circle
-        # Also used to check if goal is reached in both types
-        self.robot_radius = 0.5  # [m] for collision check
-
-        # if robot_type == RobotType.rectangle
-        self.robot_width = 0.5  # [m] for collision check
-        self.robot_length = 1.2  # [m] for collision check
-
-        self.dist_localgoal = 5.0  # [m] distance to local goal
-
-    @property
-    def robot_type(self):
-        return self._robot_type
-
-    @robot_type.setter
-    def robot_type(self, value):
-        if not isinstance(value, dwa.RobotType):
-            raise TypeError("robot_type must be an instance of RobotType")
-        self._robot_type = value
-
-
-def line_circle_intersection(line_endpoint_1, line_endpoint_2, center, r):
-    x1, y1 = line_endpoint_1
-    x2, y2 = line_endpoint_2
-    x0, y0 = center
-
-    # Vector representation of the line segment
-    dx, dy = x2 - x1, y2 - y1
-    fx, fy = x1 - x0, y1 - y0
-    
-    # Quadratic coefficients
-    a = dx**2 + dy**2
-    b = 2 * (fx * dx + fy * dy)
-    c = fx**2 + fy**2 - r**2
-
-    # Discriminant
-    discriminant = b**2 - 4 * a * c
-
-    # Check if the discriminant is effectively zero
-    if abs(discriminant) < 1e-9:
-        discriminant = 0
-
-    # No intersection if discriminant is negative
-    if discriminant < 0:
-        return []  # No intersections
-
-    # If discriminant is zero or positive, calculate the solutions
-    discriminant = np.sqrt(discriminant)
-    t1 = (-b + discriminant) / (2 * a)
-    t2 = (-b - discriminant) / (2 * a)
-
-    # Collect the intersection points that lie within the line segment
-    intersection_points = []
-    for t in [t1, t2]:
-        if 0 <= t <= 1:
-            # Point of intersection
-            ix = x1 + t * dx
-            iy = y1 + t * dy
-            intersection_points.append((ix, iy))
-
-    return intersection_points
+fig_folder = 'figs_v7.4.1-vid1'
 
 
 if __name__ == '__main__':
@@ -181,7 +95,7 @@ if __name__ == '__main__':
         plt.figure(figsize=(10, 10))
         if save_animation_to_figs:
             cur_dir = os.path.dirname(__file__)
-            fig_dir = os.path.join(cur_dir, 'figs_v7.3.9-test4_vid1')
+            fig_dir = os.path.join(cur_dir, fig_folder)
             os.makedirs(fig_dir, exist_ok=False)
             i_fig = 0
 
@@ -225,12 +139,12 @@ if __name__ == '__main__':
 
 
     # ----- Put new obstacles on the A* path -----
-    new_ob = np.array([
-        [67., 75.], [67., 74.], [66., 75.], [66., 74.],
-        [57., 65.], [57., 66.], [58., 65.], [58., 66.],
-        [43., 44.], [42., 43.], [43., 43.], [42., 44.],
-        [67., 23.], [67., 24.], [68., 23.], [68., 24.]
-    ])
+    # new_ob = np.array([
+    #     [67., 75.], [67., 74.], [66., 75.], [66., 74.],
+    #     [57., 65.], [57., 66.], [58., 65.], [58., 66.],
+    #     [43., 44.], [42., 43.], [43., 43.], [42., 44.],
+    #     [67., 23.], [67., 24.], [68., 23.], [68., 24.]
+    # ])
     new_ob = np.array([
         [80., 63.], [80., 64.], [81., 63.], [81., 64.],
         [55., 68.], [55., 69.], [56., 68.], [56., 69.],
@@ -410,7 +324,7 @@ COLLISION DETECTED!
         if log_data:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             # details_filename = f"dwa_log_details_{timestamp}.json"
-            details_filename = os.path.join("Logs", f"dwa_log_details_{timestamp}", "log_details.json")
+            details_filename = os.path.join("Logs", f"{fig_folder}_{timestamp}", "log_details.json")
             os.makedirs(os.path.dirname(details_filename), exist_ok=False)
             with open(details_filename, 'w') as f:
                 json.dump({
