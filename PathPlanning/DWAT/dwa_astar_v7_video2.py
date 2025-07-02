@@ -35,7 +35,7 @@ v7: Replace A* with Theta*.
 """
 
 
-fig_folder = 'figs_v7.4.1-vid2'
+fig_folder = 'figs_v7.4.5-vid2-temp'
 
 
 if __name__ == '__main__':
@@ -161,8 +161,10 @@ if __name__ == '__main__':
 
     # ----- Run DWA path planning -----
     x = np.array([sx, sy, - math.pi / 8.0, 0.0, 0.0])
-    x = np.array([39, 60, - math.pi*3/4, 0.5, -0.])
-    road_map = road_map[4:]    # roadmap remove the first few points
+    # x = np.array([39, 60, - math.pi*3/4, 0.5, -0.])
+    # road_map = road_map[4:]    # roadmap remove the first few points
+    x = np.array([3.39083423,8.02084971,-1.90310702,0.50000000,0.13089969])
+    road_map = road_map[8:]    # roadmap remove the first few points
 
     print(__file__ + " start!!")
     trajectory = np.array(x)
@@ -184,9 +186,6 @@ if __name__ == '__main__':
                 continue
 
             while True:
-                ## Movable obstacles
-                # new_ob = 
-
                 ## Determine the local goal
                 intersection_points = line_circle_intersection(
                     road_map[i_turning_point-1], road_map[i_turning_point], (x[0], x[1]), config.dist_localgoal
@@ -226,7 +225,7 @@ if __name__ == '__main__':
 
 
                 ## Execute DWA
-                (u, predicted_trajectory, dw, admissible, inadmissible, 
+                (u, predicted_trajectory, dw, # admissible, inadmissible, 
                  to_goal_before, speed_before, ob_before, to_goal_after, 
                  speed_after, ob_after, final_cost) = dwa.dwa_control(
                     x, config, dwagoal, ob_dwa
@@ -247,8 +246,8 @@ if __name__ == '__main__':
                     "speed_cost_after": float(speed_after),
                     "ob_cost_after": float(ob_after),
                     "dynamic_window": [float(dw[0]), float(dw[1]), float(dw[2]), float(dw[3])],
-                    "admissible": admissible,
-                    "inadmissible": inadmissible
+                    # "admissible": admissible,
+                    # "inadmissible": inadmissible
                 }
                 log_data.append(log_entry)
                 iteration += 1

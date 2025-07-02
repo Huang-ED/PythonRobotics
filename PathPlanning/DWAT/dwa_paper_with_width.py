@@ -59,7 +59,7 @@ class Config:
         self.robot_stuck_flag_cons = 0.001  # constant to prevent robot stucked
         self.robot_type = RobotType.rectangle
         self.catch_goal_dist = 0.5  # [m] goal radius
-        self.catch_turning_point_dist = 1.0  # [m] local goal radius
+        self.catch_turning_point_dist = 1.5  # [m] local goal radius
         self.obstacle_radius = 0.5  # [m] for collision check
 
         self.max_obstacle_cost_dist = 5.0  # [m] max distance to obstacles for cost calculation
@@ -129,11 +129,11 @@ def line_circle_intersection(line_endpoint_1, line_endpoint_2, center, r):
 
 def dwa_control(x, config, goal, ob):
     dw = calc_dynamic_window(x, config)
-    (u, trajectory, dw, admissible, inadmissible,
+    (u, trajectory, dw, # admissible, inadmissible,
      to_goal_before, speed_before, ob_before,
      to_goal_after, speed_after, ob_after,
      final_cost) = calc_control_and_trajectory(x, dw, config, goal, ob)
-    return (u, trajectory, dw, admissible, inadmissible,
+    return (u, trajectory, dw, # admissible, inadmissible,
             to_goal_before, speed_before, ob_before,
             to_goal_after, speed_after, ob_after,
             final_cost)
@@ -256,14 +256,14 @@ def calc_control_and_trajectory(x, dw, config, goal, ob):
     ob_costs = []
     trajectories = []
     controls = []
-    admissible = []
-    inadmissible = []
+    # admissible = []
+    # inadmissible = []
 
     # evaluate all trajectory with sampled input in dynamic window
     for v in np.arange(dw[0], dw[1] + 1e-6, config.v_resolution):
         for y in np.arange(dw[2], dw[3] + 1e-6, config.yaw_rate_resolution):
             # Track all control inputs as inadmissible initially
-            inadmissible.append([float(v), float(y)])
+            # inadmissible.append([float(v), float(y)])
             
             # admissible velocities check
             dist, _ = closest_obstacle_on_curve(x.copy(), ob, v, y, config)
@@ -273,8 +273,8 @@ def calc_control_and_trajectory(x, dw, config, goal, ob):
                 continue
                 
             # If we reach here, the control is admissible
-            inadmissible.pop()  # Remove the last inadmissible entry
-            admissible.append([float(v), float(y)])
+            # inadmissible.pop()  # Remove the last inadmissible entry
+            # admissible.append([float(v), float(y)])
             
             trajectory = predict_trajectory(x.copy(), v, y, config)
             
@@ -282,7 +282,7 @@ def calc_control_and_trajectory(x, dw, config, goal, ob):
             to_goal_cost = config.to_goal_cost_gain * calc_to_goal_cost(trajectory, goal)
             speed_cost = config.speed_cost_gain * (config.max_speed - trajectory[-1, 3])
             # ob_cost = float("inf") if dist == 0 else config.obstacle_cost_gain * (1 / dist)
-            ob_cost = max(0., config.max_obstacle_cost_dist-dist)
+            ob_cost = config.obstacle_cost_gain * max(0., config.max_obstacle_cost_dist-dist)
             
             final_cost = to_goal_cost + speed_cost + ob_cost
             
@@ -322,7 +322,7 @@ def calc_control_and_trajectory(x, dw, config, goal, ob):
         # to ensure the robot does not get stuck
         best_u[1] = -config.max_delta_yaw_rate
 
-    return (best_u, best_trajectory, dw, admissible, inadmissible,
+    return (best_u, best_trajectory, dw, # admissible, inadmissible,
             to_goal_before, speed_before, ob_before,
             to_goal_after, speed_after, ob_after,
             min_cost)
@@ -352,7 +352,7 @@ def closest_obstacle_on_curve(x, ob, v, omega, config):
     min_dist = float("inf")
     min_time = float("inf")
 
-    side_clearnce_factor = v / config.max_speed + 1.0
+    side_clearnce_factor = 0.1*v/config.max_speed + 1.0
 
     # Special case: when velocity is zero or very small
     if abs(v) < 1e-5:

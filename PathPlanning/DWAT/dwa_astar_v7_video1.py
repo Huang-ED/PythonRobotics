@@ -35,7 +35,7 @@ v7: Replace A* with Theta*.
 """
 
 
-fig_folder = 'figs_v7.4.1-vid1'
+fig_folder = 'figs_v7.4.5-vid1'
 
 
 if __name__ == '__main__':
@@ -223,7 +223,7 @@ if __name__ == '__main__':
 
 
                 ## Execute DWA
-                (u, predicted_trajectory, dw, admissible, inadmissible, 
+                (u, predicted_trajectory, dw, # admissible, inadmissible, 
                  to_goal_before, speed_before, ob_before, to_goal_after, 
                  speed_after, ob_after, final_cost) = dwa.dwa_control(
                     x, config, dwagoal, ob_dwa
@@ -244,8 +244,8 @@ if __name__ == '__main__':
                     "speed_cost_after": float(speed_after),
                     "ob_cost_after": float(ob_after),
                     "dynamic_window": [float(dw[0]), float(dw[1]), float(dw[2]), float(dw[3])],
-                    "admissible": admissible,
-                    "inadmissible": inadmissible
+                    # "admissible": admissible,
+                    # "inadmissible": inadmissible
                 }
                 log_data.append(log_entry)
                 iteration += 1
