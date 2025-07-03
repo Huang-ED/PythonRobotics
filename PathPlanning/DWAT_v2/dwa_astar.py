@@ -22,9 +22,9 @@ import traceback
 # plt.switch_backend('Agg')
 show_animation = True
 save_animation_to_figs = True
-# fig_folder = 'figs_v8.1-vid1'
+# fig_folder = 'figs_v8.2-vid1'
 # map_config_file = os.path.join("PathPlanning", "DWAT_v2", "map_config", "map_config_video1.json")
-fig_folder = 'figs_v8.1-vid2'
+fig_folder = 'figs_v8.2-vid2'
 map_config_file = os.path.join("PathPlanning", "DWAT_v2", "map_config", "map_config_video2.json")
 
 
