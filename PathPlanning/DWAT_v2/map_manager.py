@@ -6,10 +6,10 @@ from typing import Tuple, List, Dict, Any
 class MapManager:
     def __init__(self, config: Any):
         self.config = config
-        self.static_obstacles = None
-        self.dynamic_obstacles = None
-        self.astar_obstacles = None
-        self.boundary_obstacles = None
+        self.static_obstacles = np.empty((0, 2))  # Initialize as empty array
+        self.dynamic_obstacles = np.empty((0, 2))  # Initialize as empty array
+        self.astar_obstacles = np.empty((0, 2))
+        self.boundary_obstacles = np.empty((0, 2))
         self.road_map = None
         
     def load_map_from_image(self, image_path: str, map_size: Tuple[int, int] = (100, 100)) -> None:
@@ -56,10 +56,13 @@ class MapManager:
         
     def add_dynamic_obstacles(self, obstacles: List[Tuple[float, float]]) -> None:
         """Add dynamic obstacles to the map"""
-        if self.dynamic_obstacles is None:
-            self.dynamic_obstacles = np.array(obstacles)
-        else:
-            self.dynamic_obstacles = np.vstack((self.dynamic_obstacles, obstacles))
+        if not obstacles:  # Return early if empty
+            return
+            
+        obstacles_arr = np.array(obstacles)
+        if obstacles_arr.ndim == 1:  # Handle single obstacle
+            obstacles_arr = obstacles_arr.reshape(1, -1)
+        self.dynamic_obstacles = np.vstack((self.dynamic_obstacles, obstacles_arr))
             
     def get_current_obstacles(self) -> np.ndarray:
         """Get current obstacles including both static and dynamic"""
@@ -87,7 +90,20 @@ class MapManager:
         with open(file_path, 'r') as f:
             map_data = json.load(f)
             
-        self.static_obstacles = np.array(map_data['static_obstacles']) if map_data['static_obstacles'] else None
-        self.astar_obstacles = np.array(map_data['astar_obstacles']) if map_data['astar_obstacles'] else None
-        self.boundary_obstacles = np.array(map_data['dwa_obstacles']) if map_data['dwa_obstacles'] else None
+        # Ensure obstacles are 2D arrays (n, 2) or empty
+        self.static_obstacles = (
+            np.array(map_data['static_obstacles']).reshape(-1, 2) 
+            if map_data['static_obstacles'] 
+            else np.empty((0, 2))
+        )
+        self.astar_obstacles = (
+            np.array(map_data['astar_obstacles']).reshape(-1, 2) 
+            if map_data['astar_obstacles'] 
+            else np.empty((0, 2))
+        )
+        self.boundary_obstacles = (
+            np.array(map_data['dwa_obstacles']).reshape(-1, 2) 
+            if map_data['dwa_obstacles'] 
+            else np.empty((0, 2))
+        )
         self.road_map = np.array(map_data['road_map']) if map_data['road_map'] else None

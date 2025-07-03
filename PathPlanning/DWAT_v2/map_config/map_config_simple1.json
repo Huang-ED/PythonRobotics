@@ -1,0 +1,6 @@
+{
+    "image_path": "EnvData/simple1.png",
+    "dynamic_obstacles": null,
+    "start_position": [45.0, 50.0],
+    "goal_position": [55.0, 50.0]
+}

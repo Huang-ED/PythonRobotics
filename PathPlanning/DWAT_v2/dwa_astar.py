@@ -24,8 +24,10 @@ show_animation = True
 save_animation_to_figs = True
 # fig_folder = 'figs_v8.2-vid1'
 # map_config_file = os.path.join("PathPlanning", "DWAT_v2", "map_config", "map_config_video1.json")
-fig_folder = 'figs_v8.2-vid2'
-map_config_file = os.path.join("PathPlanning", "DWAT_v2", "map_config", "map_config_video2.json")
+# fig_folder = 'figs_v8.2-vid2'
+# map_config_file = os.path.join("PathPlanning", "DWAT_v2", "map_config", "map_config_video2.json")
+fig_folder = 'figs_v8.2-simple1'
+map_config_file = os.path.join("PathPlanning", "DWAT_v2", "map_config", "map_config_simple1.json")
 
 
 if __name__ == '__main__':
@@ -102,7 +104,6 @@ if __name__ == '__main__':
 
     # Get the obstacles for DWA
     if show_animation:  # pragma: no cover
-        # plt.plot(new_ob[:,0], new_ob[:,1], ".k")
         for (x, y) in map_manager.dynamic_obstacles:
             circle = plt.Circle((x, y), config.robot_radius, color="brown", zorder=10)
             plt.gca().add_patch(circle)
