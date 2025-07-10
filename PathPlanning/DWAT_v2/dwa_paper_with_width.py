@@ -59,7 +59,7 @@ class Config:
         self.robot_stuck_flag_cons = 0.001  # constant to prevent robot stucked
         self.robot_type = RobotType.rectangle
         self.catch_goal_dist = 0.5  # [m] goal radius
-        self.catch_turning_point_dist = 1.0  # [m] local goal radius
+        self.catch_turning_point_dist = 5.0  # [m] local goal radius
         self.obstacle_radius = 0.5  # [m] for collision check
 
         self.max_obstacle_cost_dist = 5.0  # [m] max distance to obstacles for cost calculation

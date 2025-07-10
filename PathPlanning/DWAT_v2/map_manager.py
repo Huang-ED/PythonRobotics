@@ -30,7 +30,8 @@ class MapManager:
         self._process_obstacle_coordinates(self.static_obstacles, arr.shape)
         
         # Process for A* and DWA
-        self._process_astar_map(arr)
+        # self._process_astar_map(arr)  # Add buffer for Global Planning
+        self.astar_obstacles = self.static_obstacles.copy()  # Do not add buffer for Global Planning
         self._process_boundary_map(arr)
         
     def _process_obstacle_coordinates(self, obstacles: np.ndarray, arr_shape: Tuple[int, int]) -> None:

@@ -22,12 +22,12 @@ import traceback
 # plt.switch_backend('Agg')
 show_animation = True
 save_animation_to_figs = True
-# fig_folder = 'figs_v8.2-vid1'
-# map_config_file = os.path.join("PathPlanning", "DWAT_v2", "map_config", "map_config_video1.json")
-# fig_folder = 'figs_v8.2-vid2'
+fig_folder = 'figs_v8.2.3-vid1'
+map_config_file = os.path.join("PathPlanning", "DWAT_v2", "map_config", "map_config_video1.json")
+# fig_folder = 'figs_v8.2.3-vid2'
 # map_config_file = os.path.join("PathPlanning", "DWAT_v2", "map_config", "map_config_video2.json")
-fig_folder = 'figs_v8.2-simple1'
-map_config_file = os.path.join("PathPlanning", "DWAT_v2", "map_config", "map_config_simple1.json")
+# fig_folder = 'figs_v8.2.3-simple2'
+# map_config_file = os.path.join("PathPlanning", "DWAT_v2", "map_config", "map_config_simple2.json")
 
 
 if __name__ == '__main__':
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     
     # Initialize map manager
     map_manager = MapManager(config)
-    map_manager.load_map_from_image(map_config['image_path'])
+    map_manager.load_map_from_image(map_config['image_path'], map_size=map_config['map_size'])
     map_manager.add_dynamic_obstacles(map_config['dynamic_obstacles'])
     
     # Get start and goal positions
