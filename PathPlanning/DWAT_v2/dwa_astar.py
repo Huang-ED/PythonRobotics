@@ -257,7 +257,10 @@ COLLISION DETECTED!
                     plt.pause(0.001)
 
                     if save_animation_to_figs:
-                        plt.savefig(os.path.join(fig_dir, 'frame_{}.png'.format(i_fig)))
+                        plt.savefig(
+                            os.path.join(fig_dir, 'frame_{}.png'.format(i_fig)),
+                            bbox_inches='tight', pad_inches=0.1
+                        )
                         i_fig += 1
 
                 
