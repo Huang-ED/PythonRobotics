@@ -127,12 +127,12 @@ def line_circle_intersection(line_endpoint_1, line_endpoint_2, center, r):
     return intersection_points
 
 
-def dwa_control(x, config, goal, ob):
+def dwa_control(x, config, goal, ob, ob_radii):
     dw = calc_dynamic_window(x, config)
     (u, trajectory, dw, # admissible, inadmissible,
      to_goal_before, speed_before, ob_before,
      to_goal_after, speed_after, ob_after,
-     final_cost) = calc_control_and_trajectory(x, dw, config, goal, ob)
+     final_cost) = calc_control_and_trajectory(x, dw, config, goal, ob, ob_radii)
     return (u, trajectory, dw, # admissible, inadmissible,
             to_goal_before, speed_before, ob_before,
             to_goal_after, speed_after, ob_after,
@@ -216,7 +216,7 @@ def predict_trajectory(x_init, v, y, config):
     return trajectory
 
 
-def calc_control_and_trajectory(x, dw, config, goal, ob):
+def calc_control_and_trajectory(x, dw, config, goal, ob, ob_radii):
     """
     calculation final input with dynamic window
     Parameters:
@@ -266,7 +266,7 @@ def calc_control_and_trajectory(x, dw, config, goal, ob):
             # inadmissible.append([float(v), float(y)])
             
             # admissible velocities check
-            dist, _ = closest_obstacle_on_curve(x.copy(), ob, v, y, config)
+            dist, _ = closest_obstacle_on_curve(x.copy(), ob, ob_radii, v, y, config)
             # if v > math.sqrt(2*config.max_accel*dist):
             # if v**2 + config.max_accel * v * config.dt > 2 * config.max_accel * dist:
             if v**2 + 2 * config.max_accel * v * config.dt > 2 * config.max_accel * dist:
@@ -329,7 +329,7 @@ def calc_control_and_trajectory(x, dw, config, goal, ob):
 
 
 
-def closest_obstacle_on_curve(x, ob, v, omega, config):
+def closest_obstacle_on_curve(x, ob, ob_radii, v, omega, config):
     """
     Calculate the distance to the closest obstacle that intersects with the curvature
     without time/span limitations - checks the entire trajectory
@@ -364,7 +364,7 @@ def closest_obstacle_on_curve(x, ob, v, omega, config):
         
         for i in range(len(ob)):
             obstacle = np.array([ob[i, 0], ob[i, 1]])
-            obstacle_radius = config.obstacle_radius
+            obstacle_radius = ob_radii[i]
             
             to_center = obstacle - np.array(start_pos)
             projection = np.dot(to_center, heading_vector)
@@ -571,7 +571,7 @@ def plot_robot(x, y, yaw, config):  # pragma: no cover
     return plt_elements
 
 
-def check_collision_at_current_position_circle_approximation(x, ob, config):
+def check_collision_at_current_position_circle_approximation(x, ob, ob_radii, config):
     """
     Check if the robot at current position collides with any obstacles
     using circle approximation (same as DWA distance calculations)
@@ -598,15 +598,10 @@ def check_collision_at_current_position_circle_approximation(x, ob, config):
     else:
         # Use actual robot radius
         effective_robot_radius = config.robot_radius
-    
-    collision_threshold = effective_robot_radius + config.obstacle_radius
-    
-    # Check for collisions
-    collision_mask = distances <= collision_threshold
-    if np.any(collision_mask):
-        collision_index = np.argmin(distances)
-        collision_distance = np.min(distances)
-        return True, collision_index, collision_distance
-    
+
+    for i in range(len(ob)):
+        collision_threshold = ob_radii[i] + effective_robot_radius
+        if distances[i] <= collision_threshold:
+            return True, i, distances[i]
     return False, None, float('inf')
 

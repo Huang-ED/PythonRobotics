@@ -22,8 +22,8 @@ import traceback
 # plt.switch_backend('Agg')
 show_animation = True
 save_animation_to_figs = True
-fig_folder = 'figs_v8.2.3-vid1'
-map_config_file = os.path.join("PathPlanning", "DWAT_v2", "map_config", "map_config_video1.json")
+fig_folder = 'figs_v8.4-vid1'
+map_config_file = os.path.join("PathPlanning", "DWAT_v3", "map_config", "map_config_video1.json")
 # fig_folder = 'figs_v8.2.3-vid2'
 # map_config_file = os.path.join("PathPlanning", "DWAT_v2", "map_config", "map_config_video2.json")
 # fig_folder = 'figs_v8.2.3-simple2'
@@ -44,12 +44,13 @@ if __name__ == '__main__':
     
     # Initialize map manager
     map_manager = MapManager(config)
-    map_manager.load_map_from_image(map_config['image_path'], map_size=map_config['map_size'])
-    map_manager.add_dynamic_obstacles(map_config['dynamic_obstacles'])
+    
+    # Load map configuration including dynamic obstacles
+    map_manager.load_map_config(map_config_file)
     
     # Get start and goal positions
-    sx, sy = map_config['start_position']
-    gx, gy = map_config['goal_position']
+    start = map_manager.start_position
+    goal = map_manager.goal_position
 
     # Plot the map
     if show_animation:  # pragma: no cover
@@ -70,8 +71,8 @@ if __name__ == '__main__':
         for (x, y) in map_manager.boundary_obstacles:
             circle = plt.Circle((x, y), config.robot_radius, color="k")
             plt.gca().add_patch(circle)
-        plt.plot(sx, sy, "or", zorder=10)
-        plt.plot(gx, gy, "sr", zorder=10)
+        plt.plot(start[0], start[1], "or", zorder=10)
+        plt.plot(goal[0], goal[1], "sr", zorder=10)
         plt.grid(True)
         plt.axis("equal")
 
@@ -80,14 +81,16 @@ if __name__ == '__main__':
         ob=map_manager.astar_obstacles,  # Use A* obstacles from MapManager
         resolution=1.0,
         rr=max(config.robot_width, config.robot_length),
-        min_x=min(map_manager.astar_obstacles[:, 0].min(), sx-2, gx-2),
-        min_y=min(map_manager.astar_obstacles[:, 1].min(), sy-2, gy-2),
-        max_x=max(map_manager.astar_obstacles[:, 0].max(), sx+2, gx+2),
-        max_y=max(map_manager.astar_obstacles[:, 1].max(), sy+2, gy+2),
+        min_x = min(map_manager.astar_obstacles[:, 0].min(), start[0]-2, goal[0]-2),
+        min_y = min(map_manager.astar_obstacles[:, 1].min(), start[1]-2, goal[1]-2),
+        max_x = max(map_manager.astar_obstacles[:, 0].max(), start[0]+2, goal[0]+2),
+        max_y = max(map_manager.astar_obstacles[:, 1].max(), start[1]+2, goal[1]+2),
         save_animation_to_figs=False,
         fig_dir=fig_dir
     )
-    rx, ry = theta_star_planner.planning(sx, sy, gx, gy, curr_i_fig=i_fig)  # full A* path (reversed)
+    rx, ry = theta_star_planner.planning(
+        start[0], start[1], goal[0], goal[1], curr_i_fig=i_fig
+    )  # full A* path (reversed)
     road_map = np.array([rx, ry]).transpose()[::-1]  # full A* path
     # print(road_map)
     map_manager.set_road_map(road_map)  # Set the road map in MapManager
@@ -107,17 +110,19 @@ if __name__ == '__main__':
 
     # Get the obstacles for DWA
     if show_animation:  # pragma: no cover
-        for (x, y) in map_manager.dynamic_obstacles:
-            circle = plt.Circle((x, y), config.robot_radius, color="brown", zorder=10)
+        plt_elements = []
+        for obstacle in map_manager.dynamic_obstacles:
+            circle = plt.Circle(obstacle.current_position, config.robot_radius, color="brown", zorder=10)
             plt.gca().add_patch(circle)
+            plt_elements.append(circle)
 
 
     # ----- Run DWA path planning -----
-    # x = np.array([sx, sy, - math.pi / 8.0, 0.0, 0.0])
+    # x = np.array([start[0], start[1], - math.pi / 8.0, 0.0, 0.0])
     # # x = np.array([47, 56, - math.pi*3/4, 0.5, 0.])
     # # road_map = road_map[1:]    # roadmap remove the first few points
 
-    x = np.array([sx, sy, - math.pi / 8.0, 0.0, 0.0])
+    x = np.array([start[0], start[1], - math.pi / 8.0, 0.0, 0.0])  # Initial state
     # x = np.array([39, 60, - math.pi*3/4, 0.5, -0.])
     # road_map = road_map[4:]    # roadmap remove the first few points
     # x = np.array([3.39083423,8.02084971,-1.90310702,0.50000000,0.13089969])
@@ -132,7 +137,6 @@ if __name__ == '__main__':
         plt.gcf().canvas.mpl_connect(
             'key_release_event',
             lambda event: [exit(0) if event.key == 'escape' else None])
-        plt_elements = []
 
     # Initialize data logging
     log_data = []
@@ -183,11 +187,18 @@ if __name__ == '__main__':
 
 
                 ## Execute DWA
-                (u, predicted_trajectory, dw, # admissible, inadmissible, 
-                 to_goal_before, speed_before, ob_before, to_goal_after, 
-                 speed_after, ob_after, final_cost) = dwa.dwa_control(
-                    x, config, dwagoal, map_manager.get_current_obstacles(),
-                )
+                # Update dynamic obstacles
+                map_manager.update_dynamic_obstacles(config.dt)
+                
+                # Get current obstacles and their radii
+                ob = map_manager.get_current_obstacles()
+                ob_radii = map_manager.get_obstacle_radii()
+                
+                # Modify DWA calls to include obstacle radii
+                (u, predicted_trajectory, dw, 
+                to_goal_before, speed_before, ob_before,
+                to_goal_after, speed_after, ob_after,
+                final_cost) = dwa.dwa_control(x, config, turning_point, ob, ob_radii)
 
                 # Record data for this iteration
                 log_entry = {
@@ -216,7 +227,7 @@ if __name__ == '__main__':
                 # ADD COLLISION DETECTION HERE (after motion, before animation)
                 collision_detected, obstacle_index, collision_distance = \
                     dwa.check_collision_at_current_position_circle_approximation(
-                        x, map_manager.get_current_obstacles(), config
+                        x, map_manager.get_current_obstacles(), ob_radii, config
                     )
 
                 if collision_detected:
@@ -250,6 +261,10 @@ COLLISION DETECTED!
                     for ele in plt_elements:
                         ele.remove()
                     plt_elements = []
+                    for obstacle in map_manager.dynamic_obstacles:
+                        circle = plt.Circle(obstacle.current_position, config.robot_radius, color="brown", zorder=10)
+                        plt.gca().add_patch(circle)
+                        plt_elements.append(circle)
                     plt_elements.append(plt.plot(predicted_trajectory[:, 0], predicted_trajectory[:, 1], "-g")[0])
                     plt_elements.append(plt.plot(x[0], x[1], "xr")[0])
                     plt_elements.extend(dwa.plot_robot(x[0], x[1], x[2], config_plot))
