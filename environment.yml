@@ -1,0 +1,28 @@
+name: mlda
+channels:
+  - defaults
+dependencies:
+  - anaconda::beautifulsoup4
+  - conda-forge::haversine
+  - conda-forge::urllib3
+  - datacompy
+  - geopandas
+  - ipykernel
+  - matplotlib
+  - moviepy
+  - opencv
+  - pandas
+  - pyproj
+  - pyqt
+  - pyshp
+  - python
+  - pytorch-cuda=12.1
+  - pytorch==2.3.0=py3.12_cuda12.1_cudnn8.9.2_0
+  - qt-main
+  - scikit-image
+  - scipy
+  - seaborn
+  - torchaudio
+  - torchvision
+  - tqdm==4.65.0
+prefix: /home/huanged/anaconda3/envs/mlda
