@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 show_animation = True
-save_animation_to_figs = False
+save_animation_to_figs = True
 
 
 def dwa_control(x, config, goal, ob):
@@ -341,7 +341,11 @@ def dwa(x, goal, ob, config):
 
     trajectory = np.array(x)
     while True:
-        u, predicted_trajectory = dwa_control(x, config, goal, ob)
+        temp_ob = [o for o in ob if np.hypot(o[0] - x[0], o[1] - x[1]) < 8]
+        temp_ob = np.array(temp_ob)
+        if len(temp_ob) == 0:
+            temp_ob = ob[np.argmin(np.linalg.norm(ob - x[:2], axis=1))].reshape(-1, 2)
+        u, predicted_trajectory = dwa_control(x, config, goal, temp_ob)
         x = motion(x, u, config.dt)  # simulate robot
         trajectory = np.vstack((trajectory, x))  # store state history
 
@@ -386,28 +390,60 @@ def dwa(x, goal, ob, config):
 
 
 if __name__ == '__main__':
-    # initial state [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
-    x = np.array([0.0, 0.0, math.pi / 8.0, 0.0, 0.0])
-    # goal position [x(m), y(m)]
-    goal = np.array([10.0, 10.0])
-    # obstacles [x(m) y(m), ....]
-    ob = np.array([
-        [-1, -1],
-        [0, 2],
-        [4.0, 2.0],
-        [5.0, 4.0],
-        [5.0, 5.0],
-        [5.0, 6.0],
-        [5.0, 9.0],
-        [8.0, 9.0],
-        [7.0, 9.0],
-        [8.0, 10.0],
-        [9.0, 11.0],
-        [12.0, 13.0],
-        [12.0, 12.0],
-        [15.0, 15.0],
-        [13.0, 13.0]
+    import cv2
+    # ----- Set up the map -----
+    ## Load the map from image
+    image_path = "EnvData/AISData_20240827/land_shapes_ht_crop.png"
+    arr = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    arr = cv2.resize(arr, (100, 100))
+    _, arr = cv2.threshold(arr, 128, 1, cv2.THRESH_BINARY)
+
+    ## add boundary obstacles
+    arr[0, :] = 0  # Top edge
+    arr[-1, :] = 0  # Bottom edge
+    arr[:, 0] = 0  # Left edge
+    arr[:, -1] = 0  # Right edge
+    # arr = cv2.erode(arr, kernel=np.ones((5, 5), np.uint8), iterations=1)
+    ob = np.argwhere(arr == 0)
+
+    ## imread direction and plot direction are different
+    ob[:, [0, 1]] = ob[:, [1, 0]]  # Swap columns to match (x, y)
+    ob[:, 1] = arr.shape[0] - ob[:, 1] - 1  # Flip y-axis
+    ox, oy = ob[:, 0], ob[:, 1]
+
+    # Map for A*
+    arr_astar = cv2.erode(arr, kernel=np.ones((3, 3), np.uint8), iterations=1)
+    # arr_astar = arr
+    ob_astar = np.argwhere(arr_astar == 0)
+    ob_astar[:, [0, 1]] = ob_astar[:, [1, 0]]  # Swap columns to match (x, y)
+    ob_astar[:, 1] = arr_astar.shape[0] - ob_astar[:, 1] - 1  # Flip y-axis
+    ox_astar, oy_astar = ob_astar[:, 0], ob_astar[:, 1]
+
+    # Map for DWA
+    arr = 1 - arr
+    eroded_arr = cv2.erode(arr, kernel=np.ones((3, 3), np.uint8), iterations=1)
+    arr_dwa = cv2.subtract(arr, eroded_arr)
+    arr_dwa = 1 - arr_dwa
+
+    ob_dwa = np.argwhere(arr_dwa == 0)
+    ob_dwa[:, [0, 1]] = ob_dwa[:, [1, 0]]  # Swap columns to match (x, y)
+    ob_dwa[:, 1] = arr_dwa.shape[0] - ob_dwa[:, 1] - 1  # Flip y-axis
+    # ox_dwa, oy_dwa = ob_dwa[:, 0], ob_dwa[:, 1]
+
+    new_ob = np.array([
+        [80., 63.], [80., 64.], [81., 63.], [81., 64.],
+        [55., 68.], [55., 69.], [56., 68.], [56., 69.],
+        [43., 44.], [42., 43.], [43., 43.], [42., 44.],
+        [67., 23.], [67., 24.], [68., 23.], [68., 24.],
     ])
+    ob_dwa = np.append(ob_dwa, new_ob, axis=0)
+    ob = ob_dwa
+
+    # initial state [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
+    x = np.array([70.0, 90.0, math.pi / 8.0, 0.0, 0.0])
+    # goal position [x(m), y(m)]
+    goal = np.array([48., 55.])
+    # obstacles [x(m) y(m), ....]
     config = Config()
 
     dwa(x, goal, ob, config)

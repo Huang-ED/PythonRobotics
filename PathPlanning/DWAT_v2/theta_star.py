@@ -34,7 +34,8 @@ class ThetaStarPlanner:
         rr: robot radius[m]
         """
 
-        self.ob = ob
+        self.ob = np.array(ob, dtype=float)
+        assert self.ob.ndim == 2 and self.ob.shape[1] == 2, "obstacles should be a 2D array with shape (N, 2)"
         self.resolution = resolution
         self.rr = rr
         self.min_x, self.min_y = min_x, min_y
@@ -284,6 +285,13 @@ class ThetaStarPlanner:
                     if d <= self.rr:
                         self.obstacle_map[ix][iy] = True
                         break
+        # for xi in range(self.x_width):
+        #     for yi in range(self.y_width):
+        #         ob_status = np.any(
+        #             np.linalg.norm(self.ob - np.array([xi, yi]), axis=1) < 1
+        #         )
+        #         if ob_status:
+        #             self.obstacle_map[xi][yi] = True
 
     @staticmethod
     def get_motion_model():

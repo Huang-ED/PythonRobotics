@@ -22,7 +22,7 @@ import traceback
 # plt.switch_backend('Agg')
 show_animation = True
 save_animation_to_figs = True
-fig_folder = 'figs_v8.2.3-vid1'
+fig_folder = 'figs_v8.3.2-video1-delete'
 map_config_file = os.path.join("PathPlanning", "DWAT_v2", "map_config", "map_config_video1.json")
 # fig_folder = 'figs_v8.2.3-vid2'
 # map_config_file = os.path.join("PathPlanning", "DWAT_v2", "map_config", "map_config_video2.json")
@@ -183,10 +183,18 @@ if __name__ == '__main__':
 
 
                 ## Execute DWA
+                temp_ob = map_manager.get_current_obstacles()
+                temp_ob = [o for o in temp_ob if np.linalg.norm(o - x[:2]) < 8]
+                temp_ob = np.array(temp_ob)
+                if len(temp_ob) == 0:
+                    temp_ob = map_manager.get_current_obstacles()[
+                        np.argmin(np.linalg.norm(map_manager.get_current_obstacles() - x[:2], axis=1))
+                    ].reshape(-1, 2)
+
                 (u, predicted_trajectory, dw, # admissible, inadmissible, 
                  to_goal_before, speed_before, ob_before, to_goal_after, 
                  speed_after, ob_after, final_cost) = dwa.dwa_control(
-                    x, config, dwagoal, map_manager.get_current_obstacles(),
+                    x, config, dwagoal, temp_ob,
                 )
 
                 # Record data for this iteration

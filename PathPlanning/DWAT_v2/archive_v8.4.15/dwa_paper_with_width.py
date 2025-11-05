@@ -51,12 +51,11 @@ class Config:
         self.v_resolution = 0.01  # [m/s]
         self.yaw_rate_resolution = 0.1 * math.pi / 180.0  # [rad/s]
         self.dt = 0.1  # [s] Time tick for motion prediction
-        self.predict_time = 1.0  # [s]
+        self.predict_time = 3.0  # [s]
         # self.check_time = 100.0 # [s] Time to check for collision - a large number
-        self.to_goal_cost_gain = 0.4
+        self.to_goal_cost_gain = 0.2
         self.speed_cost_gain = 1
-        self.obstacle_cost_gain = 0.05
-        self.side_cost_gain = 1
+        self.obstacle_cost_gain = 0.5
         self.robot_stuck_flag_cons = 0.001  # constant to prevent robot stucked
         self.robot_type = RobotType.rectangle
         self.catch_goal_dist = 0.5  # [m] goal radius
@@ -73,7 +72,7 @@ class Config:
         self.robot_width = 0.5  # [m] for collision check
         self.robot_length = 1.2  # [m] for collision check
 
-        self.dist_localgoal = 5.0  # [m] distance to local goal
+        self.dist_localgoal = 10.0  # [m] distance to local goal
 
     @property
     def robot_type(self):
@@ -128,12 +127,12 @@ def line_circle_intersection(line_endpoint_1, line_endpoint_2, center, r):
     return intersection_points
 
 
-def dwa_control(x, config, goal, ob, ob_radii):
+def dwa_control(x, config, goal, ob):
     dw = calc_dynamic_window(x, config)
     (u, trajectory, dw, # admissible, inadmissible,
      to_goal_before, speed_before, ob_before,
      to_goal_after, speed_after, ob_after,
-     final_cost) = calc_control_and_trajectory(x, dw, config, goal, ob, ob_radii)
+     final_cost) = calc_control_and_trajectory(x, dw, config, goal, ob)
     return (u, trajectory, dw, # admissible, inadmissible,
             to_goal_before, speed_before, ob_before,
             to_goal_after, speed_after, ob_after,
@@ -217,7 +216,7 @@ def predict_trajectory(x_init, v, y, config):
     return trajectory
 
 
-def calc_control_and_trajectory(x, dw, config, goal, ob, ob_radii):
+def calc_control_and_trajectory(x, dw, config, goal, ob):
     """
     calculation final input with dynamic window
     Parameters:
@@ -267,7 +266,7 @@ def calc_control_and_trajectory(x, dw, config, goal, ob, ob_radii):
             # inadmissible.append([float(v), float(y)])
             
             # admissible velocities check
-            dist, _ = closest_obstacle_on_curve(x.copy(), ob, ob_radii, v, y, config)
+            dist, _ = closest_obstacle_on_curve(x.copy(), ob, v, y, config)
             # if v > math.sqrt(2*config.max_accel*dist):
             # if v**2 + config.max_accel * v * config.dt > 2 * config.max_accel * dist:
             if v**2 + 2 * config.max_accel * v * config.dt > 2 * config.max_accel * dist:
@@ -282,16 +281,14 @@ def calc_control_and_trajectory(x, dw, config, goal, ob, ob_radii):
             # calc costs
             to_goal_cost = config.to_goal_cost_gain * calc_to_goal_cost(trajectory, goal)
             speed_cost = config.speed_cost_gain * (config.max_speed - trajectory[-1, 3])
-
             # ob_cost = float("inf") if dist == 0 else config.obstacle_cost_gain * (1 / dist)
-            ob_cost = config.obstacle_cost_gain * max(0., config.max_obstacle_cost_dist-dist)
-
-            clearance = closest_obstacle_on_side(trajectory, ob, ob_radii, config)
+            # ob_cost = config.obstacle_cost_gain * max(0., config.max_obstacle_cost_dist-dist)
+            clearance = closest_obstacle_on_side(trajectory, ob, config)
             # ob_cost = config.obstacle_cost_gain * 1 / clearance if clearance > 0 else float("inf")
-            side_cost = config.side_cost_gain * (- clearance) if clearance > 0 else 0
-
-            final_cost = to_goal_cost + speed_cost + ob_cost + side_cost
-
+            ob_cost = config.obstacle_cost_gain * (- clearance) if clearance > 0 else 0
+            
+            final_cost = to_goal_cost + speed_cost + ob_cost
+            
             # Store all costs and trajectories
             to_goal_costs.append(to_goal_cost)
             speed_costs.append(speed_cost)
@@ -335,7 +332,7 @@ def calc_control_and_trajectory(x, dw, config, goal, ob, ob_radii):
 
 
 
-def closest_obstacle_on_curve(x, ob, ob_radii, v, omega, config):
+def closest_obstacle_on_curve(x, ob, v, omega, config):
     """
     Calculate the distance to the closest obstacle that intersects with the curvature
     without time/span limitations - checks the entire trajectory
@@ -370,7 +367,7 @@ def closest_obstacle_on_curve(x, ob, ob_radii, v, omega, config):
         
         for i in range(len(ob)):
             obstacle = np.array([ob[i, 0], ob[i, 1]])
-            obstacle_radius = ob_radii[i]
+            obstacle_radius = config.obstacle_radius
             
             to_center = obstacle - np.array(start_pos)
             projection = np.dot(to_center, heading_vector)
@@ -515,7 +512,7 @@ def closest_obstacle_on_curve(x, ob, ob_radii, v, omega, config):
         return min_dist, min_time
 
 
-def closest_obstacle_on_side(trajectory, ob, ob_radii, config):
+def closest_obstacle_on_side(trajectory, ob, config):
     """
     Find the closest obstacle on the left or right side of the trajectory.
     Parameters:
@@ -529,7 +526,7 @@ def closest_obstacle_on_side(trajectory, ob, ob_radii, config):
     """
     ox = ob[:, 0]
     oy = ob[:, 1]
-    ob_radii = np.array(ob_radii)
+    # ob_radii = np.array(ob_radii)
     dx = trajectory[:, 0] - ox[:, None]
     dy = trajectory[:, 1] - oy[:, None]
     clearance = np.hypot(dx, dy)
@@ -554,9 +551,9 @@ def closest_obstacle_on_side(trajectory, ob, ob_radii, config):
             return 0
     
     if config.robot_type == RobotType.circle:
-        clearance = clearance - (config.robot_radius + ob_radii[:, None])
+        clearance = clearance - (config.robot_radius + config.obstacle_radius)
     else:
-        clearance = clearance - ob_radii[:, None]
+        clearance = clearance - config.obstacle_radius
 
     return np.min(clearance)
 
@@ -623,7 +620,7 @@ def plot_robot(x, y, yaw, config):  # pragma: no cover
     return plt_elements
 
 
-def check_collision_at_current_position_circle_approximation(x, ob, ob_radii, config):
+def check_collision_at_current_position_circle_approximation(x, ob, config):
     """
     Check if the robot at current position collides with any obstacles
     using circle approximation (same as DWA distance calculations)
@@ -650,10 +647,15 @@ def check_collision_at_current_position_circle_approximation(x, ob, ob_radii, co
     else:
         # Use actual robot radius
         effective_robot_radius = config.robot_radius
-
-    for i in range(len(ob)):
-        collision_threshold = ob_radii[i] + effective_robot_radius
-        if distances[i] <= collision_threshold:
-            return True, i, distances[i]
+    
+    collision_threshold = effective_robot_radius + config.obstacle_radius
+    
+    # Check for collisions
+    collision_mask = distances <= collision_threshold
+    if np.any(collision_mask):
+        collision_index = np.argmin(distances)
+        collision_distance = np.min(distances)
+        return True, collision_index, collision_distance
+    
     return False, None, float('inf')
 

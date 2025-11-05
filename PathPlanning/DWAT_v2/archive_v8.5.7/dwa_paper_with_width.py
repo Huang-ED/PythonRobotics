@@ -128,12 +128,12 @@ def line_circle_intersection(line_endpoint_1, line_endpoint_2, center, r):
     return intersection_points
 
 
-def dwa_control(x, config, goal, ob, ob_radii):
+def dwa_control(x, config, goal, ob):
     dw = calc_dynamic_window(x, config)
     (u, trajectory, dw, # admissible, inadmissible,
      to_goal_before, speed_before, ob_before,
      to_goal_after, speed_after, ob_after,
-     final_cost) = calc_control_and_trajectory(x, dw, config, goal, ob, ob_radii)
+     final_cost) = calc_control_and_trajectory(x, dw, config, goal, ob)
     return (u, trajectory, dw, # admissible, inadmissible,
             to_goal_before, speed_before, ob_before,
             to_goal_after, speed_after, ob_after,
@@ -217,7 +217,7 @@ def predict_trajectory(x_init, v, y, config):
     return trajectory
 
 
-def calc_control_and_trajectory(x, dw, config, goal, ob, ob_radii):
+def calc_control_and_trajectory(x, dw, config, goal, ob):
     """
     calculation final input with dynamic window
     Parameters:
@@ -267,7 +267,7 @@ def calc_control_and_trajectory(x, dw, config, goal, ob, ob_radii):
             # inadmissible.append([float(v), float(y)])
             
             # admissible velocities check
-            dist, _ = closest_obstacle_on_curve(x.copy(), ob, ob_radii, v, y, config)
+            dist, _ = closest_obstacle_on_curve(x.copy(), ob, v, y, config)
             # if v > math.sqrt(2*config.max_accel*dist):
             # if v**2 + config.max_accel * v * config.dt > 2 * config.max_accel * dist:
             if v**2 + 2 * config.max_accel * v * config.dt > 2 * config.max_accel * dist:
@@ -286,7 +286,7 @@ def calc_control_and_trajectory(x, dw, config, goal, ob, ob_radii):
             # ob_cost = float("inf") if dist == 0 else config.obstacle_cost_gain * (1 / dist)
             ob_cost = config.obstacle_cost_gain * max(0., config.max_obstacle_cost_dist-dist)
 
-            clearance = closest_obstacle_on_side(trajectory, ob, ob_radii, config)
+            clearance = closest_obstacle_on_side(trajectory, ob, config)
             # ob_cost = config.obstacle_cost_gain * 1 / clearance if clearance > 0 else float("inf")
             side_cost = config.side_cost_gain * (- clearance) if clearance > 0 else 0
 
@@ -334,8 +334,167 @@ def calc_control_and_trajectory(x, dw, config, goal, ob, ob_radii):
             min_cost)
 
 
+def calc_control_and_trajectory_side_norm(x, dw, config, goal, ob):
+    """
+    calculation final input with dynamic window
+    Parameters:
+        x: current state
+            [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
+        dw: dynamic window
+            [v_min, v_max, yaw_rate_min, yaw_rate_max]
+        config: simulation configuration
+        goal: goal position
+            [x(m), y(m)]
+        ob: obstacle positions 
+            [[x(m), y(m)], ...]
+    Returns:
+        best_u: selected control input
+            [v(m/s), omega(rad/s)]
+        best_trajectory: predicted trajectory with selected input
+            [[x, y, yaw, v, omega], ...]
+        dw: dynamic window
+        to_goal_before: raw to-goal cost
+        speed_before: raw speed cost
+        ob_before: raw obstacle cost
+        to_goal_after: to-goal cost (same as before since no normalization)
+        speed_after: speed cost (same as before since no normalization)
+        ob_after: obstacle cost (same as before since no normalization)
+        min_cost: minimum cost value
+    """
+    min_cost = float("inf")
+    best_u = [0.0, 0.0]
+    best_trajectory = np.array([x])
+    best_index = -1
 
-def closest_obstacle_on_curve(x, ob, ob_radii, v, omega, config):
+    # --- First Pass: Collection ---
+    # Lists to store raw data for all admissible controls
+    all_to_goal_costs = []
+    all_speed_costs = []
+    all_ob_costs = []
+    all_side_costs = []  # Store raw side costs for normalization
+    all_trajectories = []
+    all_controls = []    # Store [v, y] for each entry
+    all_vs = []          # Store v for each entry (for grouping)
+
+    # Dictionary to group side costs by v for later normalization
+    # Key: v (rounded to handle floating point), Value: list of side_cost indices or values
+    side_costs_by_v = {}
+
+    # evaluate all trajectory with sampled input in dynamic window
+    for v in np.arange(dw[0], dw[1] + 1e-6, config.v_resolution):
+        for y in np.arange(dw[2], dw[3] + 1e-6, config.yaw_rate_resolution):
+            # admissible velocities check
+            dist, _ = closest_obstacle_on_curve(x.copy(), ob, v, y, config)
+            if v**2 + 2 * config.max_accel * v * config.dt > 2 * config.max_accel * dist:
+                continue
+
+            trajectory = predict_trajectory(x.copy(), v, y, config)
+
+            # calc raw costs (side_cost is calculated here but not used in final_cost yet)
+            to_goal_cost = config.to_goal_cost_gain * calc_to_goal_cost(trajectory, goal)
+            speed_cost = config.speed_cost_gain * (config.max_speed - trajectory[-1, 3])
+            ob_cost = config.obstacle_cost_gain * max(0., config.max_obstacle_cost_dist - dist)
+            side_cost = 0  # Initialize
+            clearance = closest_obstacle_on_side(trajectory, ob, config)
+            if clearance > 0:
+                side_cost = config.side_cost_gain * (- clearance) # Note: Negative for cost
+            else:
+                side_cost = 0 # or potentially a large penalty if collision is detected, but function returns 0 on collision
+
+            # Store all raw costs and data
+            current_index = len(all_controls) # Index of this entry in the lists
+            all_to_goal_costs.append(to_goal_cost)
+            all_speed_costs.append(speed_cost)
+            all_ob_costs.append(ob_cost)
+            all_side_costs.append(side_cost) # Store RAW side cost
+            all_trajectories.append(trajectory)
+            all_controls.append([v, y])
+            all_vs.append(v)
+
+            # Group side_cost by v for normalization
+            # Use rounding to handle floating point precision issues when using v as a key
+            v_key = round(v, int(-math.log10(config.v_resolution)) + 2) # Adjust precision based on resolution
+            if v_key not in side_costs_by_v:
+                side_costs_by_v[v_key] = []
+            side_costs_by_v[v_key].append(current_index) # Store the index
+
+    if len(all_controls) == 0:
+        raise ValueError("No admissible (v, ω) pairs found in dynamic window")
+
+    # --- Normalization: Normalize side_cost within each v group ---
+    normalized_side_costs = [0.0] * len(all_side_costs) # Initialize list for normalized values
+
+    for v_key, indices in side_costs_by_v.items():
+        if len(indices) == 0:
+            continue
+        # Extract the raw side costs for this v group
+        group_side_costs = [all_side_costs[i] for i in indices]
+        min_side = min(group_side_costs)
+        max_side = max(group_side_costs)
+
+        # Avoid division by zero if all side costs in the group are the same
+        if abs(max_side - min_side) < 1e-9:
+            # If all costs are identical, normalized cost can be 0.0, 0.5, or 1.0.
+            # Setting to 0.0 might be reasonable if they are all "good" (less negative),
+            # but since side_cost is usually negative (penalty for being close),
+            # setting normalized value to 0.0 implies "best" in the group.
+            # Alternatively, you could set it to the raw value if you don't want to alter it.
+            # Here, we set normalized cost to 0.0 for identical values.
+            norm_value = 0.0
+            for idx in indices:
+                normalized_side_costs[idx] = norm_value
+        else:
+            # Apply Min-Max normalization: (value - min) / (max - min)
+            # This scales to [0, 1], where 0 is the least penalty (best) and 1 is the highest penalty (worst) in the group.
+            for idx in indices:
+                raw_sc = all_side_costs[idx]
+                norm_sc = (raw_sc - min_side) / (max_side - min_side)
+                normalized_side_costs[idx] = norm_sc
+
+    # --- Second Pass: Calculate Final Cost and Find Minimum ---
+    for i in range(len(all_controls)):
+        to_goal_cost = all_to_goal_costs[i]
+        speed_cost = all_speed_costs[i]
+        ob_cost = all_ob_costs[i]
+        norm_side_cost = config.side_cost_gain * normalized_side_costs[i] # Use the normalized side cost
+
+        # Calculate final cost using normalized side cost
+        final_cost = to_goal_cost + speed_cost + ob_cost + norm_side_cost
+
+        # search minimum trajectory
+        if final_cost < min_cost:
+            min_cost = final_cost
+            best_index = i
+            best_u = all_controls[i]
+            best_trajectory = all_trajectories[i]
+
+    # --- Prepare Return Values ---
+    if best_index != -1:
+        to_goal_before = all_to_goal_costs[best_index]
+        speed_before = all_speed_costs[best_index]
+        ob_before = all_ob_costs[best_index]
+        # Since no normalization for these, after costs are the same as before
+        to_goal_after = to_goal_before
+        speed_after = speed_before
+        ob_after = ob_before
+    else:
+        # This should not happen if we have admissible controls, but keep for safety
+        raise ValueError("No admissible (v, ω) pairs found in dynamic window")
+        to_goal_before = speed_before = ob_before = 0.0
+        to_goal_after = speed_after = ob_after = 0.0
+
+    # Handle the robot stuck scenario
+    if abs(best_u[0]) < config.robot_stuck_flag_cons \
+            and abs(x[3]) < config.robot_stuck_flag_cons:
+        best_u[1] = -config.max_delta_yaw_rate
+
+    return (best_u, best_trajectory, dw,
+            to_goal_before, speed_before, ob_before,
+            to_goal_after, speed_after, ob_after,
+            min_cost)
+
+
+def closest_obstacle_on_curve(x, ob, v, omega, config):
     """
     Calculate the distance to the closest obstacle that intersects with the curvature
     without time/span limitations - checks the entire trajectory
@@ -370,7 +529,7 @@ def closest_obstacle_on_curve(x, ob, ob_radii, v, omega, config):
         
         for i in range(len(ob)):
             obstacle = np.array([ob[i, 0], ob[i, 1]])
-            obstacle_radius = ob_radii[i]
+            obstacle_radius = config.obstacle_radius
             
             to_center = obstacle - np.array(start_pos)
             projection = np.dot(to_center, heading_vector)
@@ -515,7 +674,7 @@ def closest_obstacle_on_curve(x, ob, ob_radii, v, omega, config):
         return min_dist, min_time
 
 
-def closest_obstacle_on_side(trajectory, ob, ob_radii, config):
+def closest_obstacle_on_side(trajectory, ob, config):
     """
     Find the closest obstacle on the left or right side of the trajectory.
     Parameters:
@@ -529,7 +688,7 @@ def closest_obstacle_on_side(trajectory, ob, ob_radii, config):
     """
     ox = ob[:, 0]
     oy = ob[:, 1]
-    ob_radii = np.array(ob_radii)
+    # ob_radii = np.array(ob_radii)
     dx = trajectory[:, 0] - ox[:, None]
     dy = trajectory[:, 1] - oy[:, None]
     clearance = np.hypot(dx, dy)
@@ -554,9 +713,9 @@ def closest_obstacle_on_side(trajectory, ob, ob_radii, config):
             return 0
     
     if config.robot_type == RobotType.circle:
-        clearance = clearance - (config.robot_radius + ob_radii[:, None])
+        clearance = clearance - (config.robot_radius + config.obstacle_radius)
     else:
-        clearance = clearance - ob_radii[:, None]
+        clearance = clearance - config.obstacle_radius
 
     return np.min(clearance)
 
@@ -623,7 +782,7 @@ def plot_robot(x, y, yaw, config):  # pragma: no cover
     return plt_elements
 
 
-def check_collision_at_current_position_circle_approximation(x, ob, ob_radii, config):
+def check_collision_at_current_position_circle_approximation(x, ob, config):
     """
     Check if the robot at current position collides with any obstacles
     using circle approximation (same as DWA distance calculations)
@@ -650,10 +809,15 @@ def check_collision_at_current_position_circle_approximation(x, ob, ob_radii, co
     else:
         # Use actual robot radius
         effective_robot_radius = config.robot_radius
-
-    for i in range(len(ob)):
-        collision_threshold = ob_radii[i] + effective_robot_radius
-        if distances[i] <= collision_threshold:
-            return True, i, distances[i]
+    
+    collision_threshold = effective_robot_radius + config.obstacle_radius
+    
+    # Check for collisions
+    collision_mask = distances <= collision_threshold
+    if np.any(collision_mask):
+        collision_index = np.argmin(distances)
+        collision_distance = np.min(distances)
+        return True, collision_index, collision_distance
+    
     return False, None, float('inf')
 
