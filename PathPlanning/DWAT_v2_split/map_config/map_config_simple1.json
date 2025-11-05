@@ -1,0 +1,7 @@
+{
+    "image_path": "EnvData/simple1.png",
+    "map_size": [100, 100],
+    "dynamic_obstacles": null,
+    "start_position": [45.0, 50.0],
+    "goal_position": [55.0, 50.0]
+}
