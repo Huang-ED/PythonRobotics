@@ -15,9 +15,9 @@ except ImportError:
     sys.exit(1)
     
 # Import the new MERGED logic files
-import PathPlanning.DWAT_v3_split.dwa_paper as dwa
-from PathPlanning.DWAT_v3_split.dwa_paper import Config, line_circle_intersection
-from PathPlanning.DWAT_v3_split.map_manager import MapManager
+import dwa as dwa
+from dwa import Config, line_circle_intersection
+from map_manager import MapManager
 
 import math
 import numpy as np
@@ -32,7 +32,7 @@ import traceback
 # plt.switch_backend('Agg')
 show_animation = True
 save_animation_to_figs = True
-fig_folder = 'figs_v9.2.3.2-video1-split' # New folder for merged results
+fig_folder = 'figs_v9.2.5.9-video1' # New folder for merged results
 map_config_file = os.path.join("PathPlanning", "DWAT_v3_split", "map_config", "map_config_video1.json")
 
 
@@ -66,7 +66,7 @@ if __name__ == '__main__':
         if save_animation_to_figs:
             cur_dir = os.path.dirname(__file__)
             fig_dir = os.path.join(cur_dir, fig_folder)
-            os.makedirs(fig_dir, exist_ok=True) # Use exist_ok=True
+            os.makedirs(fig_dir, exist_ok=False) # Use exist_ok=True
             i_fig = 0
 
         else:
@@ -322,7 +322,7 @@ COLLISION DETECTED!
         if log_data:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             log_dir = os.path.join("Logs", f"{fig_folder}_{timestamp}")
-            os.makedirs(log_dir, exist_ok=True)
+            os.makedirs(log_dir, exist_ok=False)
             details_filename = os.path.join(log_dir, "log_details.json")
             
             with open(details_filename, 'w') as f:

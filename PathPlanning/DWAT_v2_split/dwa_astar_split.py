@@ -23,8 +23,8 @@ import traceback
 # plt.switch_backend('Agg')
 show_animation = True
 save_animation_to_figs = True
-fig_folder = 'figs_v8.2.3-video1-split' # Changed fig folder
-map_config_file = os.path.join("PathPlanning", "DWAT_v2", "map_config", "map_config_video1.json")
+fig_folder = 'figs_v8.2.3.4-video1-split' # Changed fig folder
+map_config_file = os.path.join("PathPlanning", "DWAT_v2_split", "map_config", "map_config_video1.json")
 # fig_folder = 'figs_v8.2.3-vid2'
 # map_config_file = os.path.join("PathPlanning", "DWAT_v2", "map_config", "map_config_video2.json")
 # fig_folder = 'figs_v8.2.3-simple2'

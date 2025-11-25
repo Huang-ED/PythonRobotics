@@ -37,29 +37,34 @@ class DynamicObstacle:
             
         distance_to_move = self.speed * dt
         
-        while distance_to_move > 0 and len(self.waypoints) > 1:
+        while distance_to_move > 0:
+            # Get current and next waypoint (using modulo for cyclic path)
             current_wp = self.waypoints[self.current_waypoint_index]
-            next_wp = self.waypoints[self.current_waypoint_index + 1]
+            next_index = (self.current_waypoint_index + 1) % len(self.waypoints)
+            next_wp = self.waypoints[next_index]
             
             segment_vector = next_wp - current_wp
             segment_length = np.linalg.norm(segment_vector)
-            segment_direction = segment_vector / (segment_length + 1e-6)  # Avoid division by zero
             
+            # Handle zero-length segments
+            if segment_length < 1e-6:
+                self.current_waypoint_index = next_index
+                self.distance_to_next = 0
+                continue
+                
+            segment_direction = segment_vector / segment_length
             remaining_in_segment = segment_length - self.distance_to_next
             
             if distance_to_move <= remaining_in_segment:
+                # Move within current segment
                 self.distance_to_next += distance_to_move
                 self.current_position = current_wp + segment_direction * self.distance_to_next
                 distance_to_move = 0
             else:
+                # Move to next segment
                 distance_to_move -= remaining_in_segment
-                self.current_waypoint_index += 1
+                self.current_waypoint_index = next_index
                 self.distance_to_next = 0
-                
-                if self.current_waypoint_index >= len(self.waypoints) - 1:
-                    # Loop back to the start
-                    self.current_waypoint_index = 0
-                    self.current_position = self.waypoints[0].copy()
 
 
 

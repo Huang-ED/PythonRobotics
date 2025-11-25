@@ -60,14 +60,14 @@ class Config:
         self.to_goal_cost_gain = 0.4
         self.speed_cost_gain = 1.0
         self.obstacle_cost_gain = 0.05  # Gain for static obstacles (direct dist)
-        self.side_cost_gain = 3.0      # Gain for dynamic obstacles (side dist)
+        self.side_cost_gain = 1.0      # Gain for dynamic obstacles (side dist)
         self.robot_stuck_flag_cons = 0.001  # constant to prevent robot stucked
         self.robot_type = RobotType.rectangle
         self.catch_goal_dist = 0.5  # [m] goal radius
         self.catch_turning_point_dist = 5.0  # [m] local goal radius
         self.obstacle_radius = 0.5  # [m] default radius for static obstacles
 
-        self.max_obstacle_cost_dist = 5.0  # [m] max distance for static obstacle cost calculation
+        self.max_obstacle_cost_dist = 8.0  # [m] max distance for static obstacle cost calculation
 
         # if robot_type == RobotType.circle
         # Also used to check if goal is reached in both types
@@ -296,7 +296,9 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
                     dynamic_ob_cost = float("inf")
                 else:
                     # Use inverse of clearance, so smaller clearance = higher cost
-                    dynamic_ob_cost = config.side_cost_gain * (1.0 / clearance_dynamic)
+                    # dynamic_ob_cost = config.side_cost_gain * (1.0 / clearance_dynamic)
+                    # dynamic_ob_cost = config.side_cost_gain * max(0., config.max_obstacle_cost_dist - clearance_dynamic)
+                    dynamic_ob_cost = config.side_cost_gain * (-clearance_dynamic)
 
             final_cost = to_goal_cost + speed_cost + static_ob_cost + dynamic_ob_cost
 

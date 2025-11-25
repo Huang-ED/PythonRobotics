@@ -61,7 +61,7 @@ class Config:
         self.to_goal_cost_gain = 0.4
         self.speed_cost_gain = 1.0
         self.obstacle_cost_gain = 0.05  # Gain for static obstacles (direct dist)
-        self.side_cost_gain = 1.0      # Gain for dynamic obstacles (side dist)
+        self.side_cost_gain = 4.0      # Gain for dynamic obstacles (side dist)
         self.robot_stuck_flag_cons = 0.001  # constant to prevent robot stucked
         self.robot_type = RobotType.rectangle
         self.catch_goal_dist = 0.5  # [m] goal radius
