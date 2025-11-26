@@ -56,7 +56,8 @@ class Config:
         self.v_resolution = 0.01  # [m/s]
         self.yaw_rate_resolution = 0.1 * math.pi / 180.0  # [rad/s]
         self.dt = 0.1  # [s] Time tick for motion prediction
-        self.predict_time = 1.0  # [s]
+        self.predict_time_to_goal = 1.0  # [s]
+        self.predict_time_obstacle = 3.0  # [s]
         self.to_goal_cost_gain = 0.4
         self.speed_cost_gain = 1.0
         self.obstacle_cost_gain = 0.05  # Gain for static obstacles (direct dist)
@@ -189,18 +190,30 @@ def calc_dynamic_window(x, config):
     return dw
 
 
-def predict_trajectory(x_init, v, y, config):
+def predict_trajectory_to_goal(x_init, v, y, config):
     """
     predict trajectory with an input
     """
     x = np.array(x_init)
     trajectory = np.array(x)
     time = 0
-    while time <= config.predict_time:
+    while time <= config.predict_time_to_goal:
         x = motion(x, [v, y], config.dt)
         trajectory = np.vstack((trajectory, x))
         time += config.dt
+    return trajectory
 
+def predict_trajectory_obstacle(x_init, v, y, config):
+    """
+    predict trajectory with an input for obstacle distance calculation
+    """
+    x = np.array(x_init)
+    trajectory = np.array(x)
+    time = 0
+    while time <= config.predict_time_obstacle:
+        x = motion(x, [v, y], config.dt)
+        trajectory = np.vstack((trajectory, x))
+        time += config.dt
     return trajectory
 
 
@@ -272,12 +285,12 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
             if v**2 + 2 * config.max_accel * v * config.dt > 2 * config.max_accel * dist_all:
                 continue
                 
-            trajectory = predict_trajectory(x.copy(), v, y, config)
+            trajectory_to_goal = predict_trajectory_to_goal(x.copy(), v, y, config)
+            trajectory_for_obstacle = predict_trajectory_obstacle(x.copy(), v, y, config)
             
             # --- Calculate costs ---
-            to_goal_cost = config.to_goal_cost_gain * calc_to_goal_cost(trajectory, goal)
-            speed_cost = config.speed_cost_gain * (config.max_speed - trajectory[-1, 3])
-
+            to_goal_cost = config.to_goal_cost_gain * calc_to_goal_cost(trajectory_to_goal, goal)
+            speed_cost = config.speed_cost_gain * (config.max_speed - trajectory_to_goal[-1, 3])
             # Static obstacle cost (direct distance)
             static_ob_cost = 0.0
             if has_static:
@@ -290,15 +303,15 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
             dynamic_ob_cost = 0.0
             if has_dynamic:
                 clearance_dynamic = closest_obstacle_on_side(
-                    trajectory, dynamic_ob_pos, np.array(dynamic_ob_radii), config
+                    trajectory_for_obstacle, dynamic_ob_pos, np.array(dynamic_ob_radii), config
                 )
                 if clearance_dynamic <= 0:  # Collision or on boundary
                     dynamic_ob_cost = float("inf")
                 else:
                     # Use inverse of clearance, so smaller clearance = higher cost
                     # dynamic_ob_cost = config.side_cost_gain * (1.0 / clearance_dynamic)
-                    # dynamic_ob_cost = config.side_cost_gain * max(0., config.max_obstacle_cost_dist - clearance_dynamic)
-                    dynamic_ob_cost = config.side_cost_gain * (-clearance_dynamic)
+                    dynamic_ob_cost = config.side_cost_gain * max(0., config.max_obstacle_cost_dist - clearance_dynamic)
+                    # dynamic_ob_cost = config.side_cost_gain * (-clearance_dynamic)
 
             final_cost = to_goal_cost + speed_cost + static_ob_cost + dynamic_ob_cost
 
@@ -307,7 +320,7 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
             speed_costs.append(speed_cost)
             static_ob_costs.append(static_ob_cost)
             dynamic_ob_costs.append(dynamic_ob_cost)
-            trajectories.append(trajectory)
+            trajectories.append(trajectory_for_obstacle)
             controls.append([v, y])
             
             # search minimum trajectory
