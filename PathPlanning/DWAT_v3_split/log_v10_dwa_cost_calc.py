@@ -35,8 +35,7 @@ def calculate_all_costs_merged(x, config, goal,
                              static_ob, static_ob_radii, 
                              dynamic_ob_pos, dynamic_ob_radii):
     """
-    Calculate cost matrices for all (v, ω) pairs in the dynamic window,
-    splitting dynamic costs into Side and Direct components.
+    Calculate cost matrices AND physical distance matrices for all (v, ω) pairs.
     """
     # Calculate dynamic window
     dw = calc_dynamic_window(x, config)
@@ -53,10 +52,14 @@ def calculate_all_costs_merged(x, config, goal,
     speed_cost = np.full(V.shape, np.nan)
     static_ob_cost = np.full(V.shape, np.nan)
     
-    # Dynamic obstacle cost matrices
+    # Dynamic obstacle COST matrices
     dynamic_ob_cost_total = np.full(V.shape, np.nan)
     dynamic_ob_cost_side = np.full(V.shape, np.nan)
     dynamic_ob_cost_direct = np.full(V.shape, np.nan)
+
+    # NEW: Dynamic obstacle DISTANCE matrices (Physical meters)
+    dist_side_matrix = np.full(V.shape, np.nan)
+    dist_direct_matrix = np.full(V.shape, np.nan)
     
     # --- Prepare combined obstacle list for admissibility check ---
     has_static = static_ob is not None and static_ob.shape[0] > 0
@@ -101,9 +104,7 @@ def calculate_all_costs_merged(x, config, goal,
                 continue  # Skip inadmissible pairs
             
             # --- Generate Trajectories ---
-            # 1. Short horizon for Goal and Speed
             traj_goal = predict_trajectory_to_goal(x.copy(), v, omega, config)
-            # 2. Long horizon for Obstacles
             traj_obs = predict_trajectory_obstacle(x.copy(), v, omega, config)
             
             # --- 1. To Goal Cost ---
@@ -125,6 +126,10 @@ def calculate_all_costs_merged(x, config, goal,
             dyn_total = 0.0
             dyn_side_val = 0.0
             dyn_direct_val = 0.0
+            
+            # Placeholders for physical distances
+            dist_side_val = np.nan
+            dist_direct_val = np.nan
 
             if has_dynamic:
                 d_side_arr, indices_arr, is_collision = closest_obstacle_on_side(
@@ -135,6 +140,8 @@ def calculate_all_costs_merged(x, config, goal,
                     dyn_total = np.inf
                     dyn_side_val = np.inf
                     dyn_direct_val = np.inf
+                    dist_side_val = 0.0 # Collision means distance is effectively 0
+                    dist_direct_val = 0.0
                 else:
                     # Calculate D_side Cost Term
                     cost_side = config.max_side_weight_dist - d_side_arr
@@ -145,8 +152,6 @@ def calculate_all_costs_merged(x, config, goal,
                     segment_diffs = traj_points[1:] - traj_points[:-1]
                     segment_dists = np.linalg.norm(segment_diffs, axis=1)
                     cumulative_dists = np.concatenate(([0], np.cumsum(segment_dists)))
-                    
-                    # Map indices to distance along curve
                     d_direct_arr = cumulative_dists[indices_arr]
                     
                     cost_direct = config.max_obstacle_cost_dist - d_direct_arr
@@ -160,16 +165,25 @@ def calculate_all_costs_merged(x, config, goal,
                         max_idx = np.argmax(compound_costs)
                         dyn_total = compound_costs[max_idx]
                         
-                        # Extract components of the critical obstacle
+                        # Extract COST components
                         dyn_side_val = cost_side[max_idx]
                         dyn_direct_val = cost_direct[max_idx]
+                        
+                        # NEW: Extract PHYSICAL DISTANCE components
+                        dist_side_val = d_side_arr[max_idx]
+                        dist_direct_val = d_direct_arr[max_idx]
 
             dynamic_ob_cost_total[i, j] = dyn_total
             dynamic_ob_cost_side[i, j] = dyn_side_val
             dynamic_ob_cost_direct[i, j] = dyn_direct_val
+            
+            # Store physical distances
+            dist_side_matrix[i, j] = dist_side_val
+            dist_direct_matrix[i, j] = dist_direct_val
     
     return (to_goal_cost, speed_cost, static_ob_cost, 
-            dynamic_ob_cost_total, dynamic_ob_cost_side, dynamic_ob_cost_direct, 
+            dynamic_ob_cost_total, dynamic_ob_cost_side, dynamic_ob_cost_direct,
+            dist_side_matrix, dist_direct_matrix, # NEW RETURNS
             v_samples, omega_samples)
 
 
@@ -189,7 +203,6 @@ def main():
 
     json_log_path = log_file_path.replace('.csv', '.json')
     if not os.path.exists(json_log_path):
-        # Try generic name
         json_log_path = os.path.join(os.path.dirname(log_file_path), "log_details.json")
         if not os.path.exists(json_log_path):
             print("Error: Log JSON file required for full trajectory.")
@@ -225,13 +238,6 @@ def main():
         static_ob_radii = map_manager.get_static_obstacle_radii()
 
         ## 2. Sync Dynamic Obstacles
-        # In dwa_astar.py loop:
-        #   1. map_manager.update_dynamic_obstacles(dt)
-        #   2. dwa_control(...) -> calculates cost
-        #   3. log entry saved
-        #
-        # Therefore, for iteration `i`, update has been called `i + 1` times 
-        # (once for i=0, once for i=1, etc.)
         for _ in range(iter_num + 1):
             map_manager.update_dynamic_obstacles(config.dt)
 
@@ -239,16 +245,13 @@ def main():
         dynamic_ob_radii = map_manager.get_dynamic_obstacle_radii()
 
         ## 3. Get Robot State
-        # trajectory_full[0] is start. 
-        # trajectory_full[1] is state after iter 0.
-        # But DWA calculates control for state *at* iter 0.
-        # So we use trajectory_full[iter_num].
         x = trajectory_full[iter_num] 
         goal = np.array(df.loc[iter_num, ['local_goal_x', 'local_goal_y']])
 
-        ## 4. Calculate Costs
+        ## 4. Calculate Costs (Unpacking new return values)
         (tg_cost, sp_cost, static_cost, 
          dyn_total, dyn_side, dyn_direct, 
+         dist_side, dist_direct, # NEW UNPACKING
          v_samples, omega_samples) = calculate_all_costs_merged(
             x, config, goal, 
             static_ob, static_ob_radii, 
@@ -259,7 +262,7 @@ def main():
         tg_weighted = config.to_goal_cost_gain * tg_cost
         sp_weighted = config.speed_cost_gain * sp_cost
         static_weighted = config.obstacle_cost_gain * static_cost
-        dyn_weighted = config.side_cost_gain * dyn_total # Gain applied to compound result
+        dyn_weighted = config.side_cost_gain * dyn_total
         
         # Final Sum
         final_cost = (
@@ -278,36 +281,49 @@ def main():
         curr_cost_dir = os.path.join(log_dir, f"cost_matrices_{iter_num}")
         os.makedirs(curr_cost_dir, exist_ok=True)
         
+        # Save Costs
         np.savetxt(os.path.join(curr_cost_dir, "to_goal_cost.txt"), tg_cost, fmt='%.3f')
         np.savetxt(os.path.join(curr_cost_dir, "speed_cost.txt"), sp_cost, fmt='%.3f')
         np.savetxt(os.path.join(curr_cost_dir, "static_cost.txt"), static_cost, fmt='%.3f')
         np.savetxt(os.path.join(curr_cost_dir, "dyn_total.txt"), dyn_total, fmt='%.3f')
         np.savetxt(os.path.join(curr_cost_dir, "dyn_side.txt"), dyn_side, fmt='%.3f')
         np.savetxt(os.path.join(curr_cost_dir, "dyn_direct.txt"), dyn_direct, fmt='%.3f')
+        
+        # NEW: Save Physical Distances
+        np.savetxt(os.path.join(curr_cost_dir, "dist_side.txt"), dist_side, fmt='%.3f')
+        np.savetxt(os.path.join(curr_cost_dir, "dist_direct.txt"), dist_direct, fmt='%.3f')
+        
         np.savetxt(os.path.join(curr_cost_dir, "final_cost.txt"), final_cost, fmt='%.3f')
 
         # --- Plotting ---
         step = max(1, len(omega_samples) // 10)
         x_ticks = np.arange(0, len(omega_samples), step)
-        
         v_step = max(1, len(v_samples) // 10)
         y_ticks = np.arange(0, len(v_samples), v_step)
 
-        # 7 Subplots: Goal, Speed, Static, Dyn Side, Dyn Direct, Dyn Total, Final
-        fig, axs = plt.subplots(1, 7, figsize=(35, 5))
+        # Updated to 9 Subplots
+        fig, axs = plt.subplots(1, 9, figsize=(45, 5))
         plt.subplots_adjust(wspace=0.3)
 
-        def plot_cost(ax, cost, title, is_final=False, is_component=False):
+        def plot_cost(ax, cost, title, is_final=False, is_component=False, is_distance=False):
             cmap = plt.get_cmap('jet')
             cmap.set_bad(color='black')
             
             display_cost = cost.copy()
-            if not is_final:
+            if not is_final and not is_distance:
                 # Cap infinities for better color range
-                display_cost[display_cost == np.inf] = np.nanmax(display_cost[display_cost != np.inf]) * 1.2 if np.any(display_cost != np.inf) else 10.0
+                valid_vals = display_cost[display_cost != np.inf]
+                if len(valid_vals) > 0:
+                     cap_val = np.nanmax(valid_vals) * 1.2
+                     display_cost[display_cost == np.inf] = cap_val
+                else:
+                    display_cost[:] = 10.0 # arbitrary fallback if all inf
             
             im = ax.imshow(display_cost, origin='lower', cmap=cmap, aspect='auto')
-            plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+            
+            # Label
+            label_text = 'Distance (m)' if is_distance else 'Cost'
+            plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04, label=label_text)
             
             ax.set_xticks(x_ticks)
             ax.set_xticklabels(np.round(omega_samples[x_ticks], 2), rotation=90)
@@ -322,20 +338,22 @@ def main():
                 w_idx = np.argmin(np.abs(omega_samples - chosen_omega))
                 ax.plot(w_idx, v_idx, 'ro', mfc='none', markersize=8, markeredgewidth=2)
 
-        # Plotting
+        # 1-3. Basic Costs
         plot_cost(axs[0], tg_weighted, f"To Goal (Weighted)\nGain: {config.to_goal_cost_gain}")
         plot_cost(axs[1], sp_weighted, f"Speed (Weighted)\nGain: {config.speed_cost_gain}")
         plot_cost(axs[2], static_weighted, f"Static (Weighted)\nGain: {config.obstacle_cost_gain}")
         
-        # Split Dynamics (Raw Components)
-        plot_cost(axs[3], dyn_side, "Dyn Side (Raw)\nClearance Comp.", is_component=True)
-        plot_cost(axs[4], dyn_direct, "Dyn Direct (Raw)\nLong. Dist Comp.", is_component=True)
+        # 4-5. Dyn Component Costs (Calculated from Distances)
+        plot_cost(axs[3], dyn_side, "Dyn Side COST\n(Derived from Clearance)", is_component=True)
+        plot_cost(axs[4], dyn_direct, "Dyn Direct COST\n(Derived from Long. Dist)", is_component=True)
         
-        # Dyn Total (Weighted)
-        plot_cost(axs[5], dyn_weighted, f"Dyn Total (Weighted)\nGain: {config.side_cost_gain}")
-        
-        # Final
-        plot_cost(axs[6], final_cost, "Final Cost", is_final=True)
+        # 6-7. NEW: Physical Distances
+        plot_cost(axs[5], dist_side, "Side Distance (m)\n(Actual Lateral Clearance)", is_distance=True)
+        plot_cost(axs[6], dist_direct, "Direct Distance (m)\n(Actual Long. Dist)", is_distance=True)
+
+        # 8-9. Totals
+        plot_cost(axs[7], dyn_weighted, f"Dyn Total (Weighted)\nGain: {config.side_cost_gain}")
+        plot_cost(axs[8], final_cost, "Final Cost", is_final=True)
 
         fig_path = os.path.join(log_dir, "cost_images", f"cost_matrices_{iter_num}.png")
         os.makedirs(os.path.dirname(fig_path), exist_ok=True)
