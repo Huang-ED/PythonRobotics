@@ -32,7 +32,7 @@ import traceback
 # plt.switch_backend('Agg')
 show_animation = True
 save_animation_to_figs = True
-fig_folder = 'figs_v10.5-video1' # New folder for merged results
+fig_folder = 'figs_v10.6-video1-newlog' # New folder for merged results
 map_config_file = os.path.join("PathPlanning", "DWAT_v3_split", "map_config", "map_config_video1.json")
 
 
@@ -193,6 +193,7 @@ if __name__ == '__main__':
                 # Call the new MERGED DWA control function
                 (u, predicted_trajectory, dw, 
                  to_goal_before, speed_before, static_ob_before, dynamic_ob_before,
+                 dyn_side_val, dyn_direct_val, 
                  to_goal_after, speed_after, static_ob_after, dynamic_ob_after, 
                  final_cost) = dwa.dwa_control_merged(
                     x, config, dwagoal, 
@@ -208,15 +209,27 @@ if __name__ == '__main__':
                     "local_goal_x": float(dwagoal[0]),
                     "local_goal_y": float(dwagoal[1]),
                     "final_cost": float(final_cost),
+                    
+                    # Basic Costs
                     "to_goal_cost_before": float(to_goal_before),
                     "speed_cost_before": float(speed_before),
                     "static_ob_cost_before": float(static_ob_before),
                     "dynamic_ob_cost_before": float(dynamic_ob_before),
+                    
+                    # Added in v10: Split Dynamic Components
+                    "dynamic_ob_side_cost": float(dyn_side_val),
+                    "dynamic_ob_direct_cost": float(dyn_direct_val),
+
+                    # Weighted Costs
                     "to_goal_cost_after": float(to_goal_after),
                     "speed_cost_after": float(speed_after),
                     "static_ob_after": float(static_ob_after),
                     "dynamic_ob_after": float(dynamic_ob_after),
+                    
                     "dynamic_window": [float(dw[0]), float(dw[1]), float(dw[2]), float(dw[3])],
+                    
+                    # Added in v10: Context
+                    "dynamic_obstacles_pos": dynamic_ob_pos.tolist() if len(dynamic_ob_pos) > 0 else []
                 }
                 log_data.append(log_entry)
                 iteration += 1

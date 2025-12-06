@@ -58,7 +58,7 @@ class Config:
         self.dt = 0.1  # [s] Time tick for motion prediction
         self.predict_time_to_goal = 1.0  # [s]
         self.predict_time_obstacle = 10.0  # [s]
-        self.to_goal_cost_gain = 1.0
+        self.to_goal_cost_gain = 1.2
         self.speed_cost_gain = 1.0
         self.obstacle_cost_gain = 0.05  # Gain for static obstacles (direct dist)
         self.side_cost_gain = 1.0      # Gain for dynamic obstacles (side dist)
@@ -144,6 +144,7 @@ def dwa_control_merged(x, config, goal,
     dw = calc_dynamic_window(x, config)
     (u, trajectory, dw,
      to_goal_before, speed_before, ob_before, dynamic_ob_before,
+     dyn_side_component, dyn_direct_component, 
      to_goal_after, speed_after, ob_after, dynamic_ob_after,
      final_cost) = calc_control_and_trajectory_merged(
          x, dw, config, goal, 
@@ -153,6 +154,7 @@ def dwa_control_merged(x, config, goal,
     
     return (u, trajectory, dw,
             to_goal_before, speed_before, ob_before, dynamic_ob_before,
+            dyn_side_component, dyn_direct_component,
             to_goal_after, speed_after, ob_after, dynamic_ob_after,
             final_cost)
 
@@ -235,6 +237,11 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
     speed_costs = []
     static_ob_costs = []   
     dynamic_ob_costs = [] 
+    
+    # NEW: Lists to store the specific components of the dynamic cost
+    side_cost_components = []
+    direct_cost_components = []
+
     trajectories = []
     controls = []
 
@@ -288,6 +295,11 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
 
             # Dynamic obstacle cost (Compound Cost: Side x Direct Curve Length)
             dynamic_ob_cost = 0.0
+            
+            # NEW: temporary variables for components
+            current_side_comp = 0.0
+            current_direct_comp = 0.0
+
             if has_dynamic:
                 d_side_arr, indices_arr, is_collision = closest_obstacle_on_side(
                     trajectory_for_obstacle, dynamic_ob_pos, np.array(dynamic_ob_radii), config
@@ -295,22 +307,19 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
 
                 if is_collision:
                     dynamic_ob_cost = float("inf")
+                    # Components irrelevant on collision, but keep 0.0 or inf
+                    current_side_comp = float("inf")
+                    current_direct_comp = float("inf")
                 else:
                     # 1. Calculate D_side Cost Term
                     cost_side = config.max_side_weight_dist - d_side_arr
                     cost_side = np.maximum(0.0, cost_side)
 
                     # 2. Calculate D_direct Cost Term (Length on Curve)
-                    # Compute segment lengths along the trajectory
                     traj_points = trajectory_for_obstacle[:, 0:2]
                     segment_diffs = traj_points[1:] - traj_points[:-1]
                     segment_dists = np.linalg.norm(segment_diffs, axis=1)
-                    
-                    # Compute cumulative distance (prepend 0 for the start point)
-                    # cumulative_dists[i] is the path length from start to point i
                     cumulative_dists = np.concatenate(([0], np.cumsum(segment_dists)))
-                    
-                    # Map the indices (where closest approach occurs) to the cumulative distance
                     d_direct_arr = cumulative_dists[indices_arr]
                     
                     cost_direct = config.max_obstacle_cost_dist - d_direct_arr
@@ -320,7 +329,14 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
                     compound_costs = cost_side * cost_direct
                     
                     # 4. Final Cost is the Maximum of individual obstacle costs
-                    dynamic_ob_cost = np.max(compound_costs)
+                    if len(compound_costs) > 0:
+                        max_idx = np.argmax(compound_costs)
+                        dynamic_ob_cost = compound_costs[max_idx]
+                        
+                        # Extract the specific components for the critical obstacle
+                        current_side_comp = cost_side[max_idx]
+                        current_direct_comp = cost_direct[max_idx]
+                    
                     dynamic_ob_cost = config.side_cost_gain * dynamic_ob_cost
 
             final_cost = to_goal_cost + speed_cost + static_ob_cost + dynamic_ob_cost
@@ -330,6 +346,10 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
             speed_costs.append(speed_cost)
             static_ob_costs.append(static_ob_cost)
             dynamic_ob_costs.append(dynamic_ob_cost)
+            
+            side_cost_components.append(current_side_comp)
+            direct_cost_components.append(current_direct_comp)
+
             trajectories.append(trajectory_for_obstacle)
             controls.append([v, y])
             
@@ -348,6 +368,10 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
         speed_before = speed_costs[best_index]
         static_ob_before = static_ob_costs[best_index]
         dynamic_ob_before = dynamic_ob_costs[best_index]
+        
+        best_side_component = side_cost_components[best_index]
+        best_direct_component = direct_cost_components[best_index]
+
         to_goal_after = to_goal_before
         speed_after = speed_before
         static_ob_after = static_ob_before
@@ -362,6 +386,7 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
 
     return (best_u, best_trajectory, dw,
             to_goal_before, speed_before, static_ob_before, dynamic_ob_before,
+            best_side_component, best_direct_component,
             to_goal_after, speed_after, static_ob_after, dynamic_ob_after,
             min_cost)
 
