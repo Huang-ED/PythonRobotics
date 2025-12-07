@@ -32,7 +32,7 @@ import traceback
 # plt.switch_backend('Agg')
 show_animation = True
 save_animation_to_figs = True
-fig_folder = 'figs_v10.6-video1-newlog' # New folder for merged results
+fig_folder = 'figs_v10.4.5-video1-newlog' # New folder for merged results
 map_config_file = os.path.join("PathPlanning", "DWAT_v3_split", "map_config", "map_config_video1.json")
 
 

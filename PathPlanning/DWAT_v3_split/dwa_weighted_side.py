@@ -56,18 +56,23 @@ class Config:
         self.v_resolution = 0.01  # [m/s]
         self.yaw_rate_resolution = 0.1 * math.pi / 180.0  # [rad/s]
         self.dt = 0.1  # [s] Time tick for motion prediction
+
         self.predict_time_to_goal = 1.0  # [s]
         self.predict_time_obstacle = 10.0  # [s]
-        self.to_goal_cost_gain = 1.2
+
+        self.to_goal_cost_gain = 0.8
         self.speed_cost_gain = 1.0
         self.obstacle_cost_gain = 0.05  # Gain for static obstacles (direct dist)
         self.side_cost_gain = 1.0      # Gain for dynamic obstacles (side dist)
+
         self.robot_stuck_flag_cons = 0.001  # constant to prevent robot stucked
         self.robot_type = RobotType.rectangle
+
         self.catch_goal_dist = 0.5  # [m] goal radius
         self.catch_turning_point_dist = 5.0  # [m] local goal radius
         self.obstacle_radius = 0.5  # [m] default radius for static obstacles
 
+        self.obstacle_max_angle = np.pi / 180 * 90  # [rad] max angle to consider obstacles in front
         self.max_obstacle_cost_dist = 8.0  # [m] max distance for static obstacle cost calculation
         self.max_side_weight_dist = 3.0      # [m] max distance for dynamic obstacle side cost calculation
 
@@ -142,6 +147,10 @@ def dwa_control_merged(x, config, goal,
     and accepts individual radii for each obstacle.
     """
     dw = calc_dynamic_window(x, config)
+    dynamic_ob_pos_filtered, dynamic_ob_radii_filtered = filter_obstacles_by_direction(
+        x, dynamic_ob_pos, dynamic_ob_radii, max_angle=config.obstacle_max_angle
+    )
+
     (u, trajectory, dw,
      to_goal_before, speed_before, ob_before, dynamic_ob_before,
      dyn_side_component, dyn_direct_component, 
@@ -149,7 +158,7 @@ def dwa_control_merged(x, config, goal,
      final_cost) = calc_control_and_trajectory_merged(
          x, dw, config, goal, 
          static_ob, static_ob_radii, 
-         dynamic_ob_pos, dynamic_ob_radii
+         dynamic_ob_pos_filtered, dynamic_ob_radii_filtered
      )
     
     return (u, trajectory, dw,
@@ -157,6 +166,34 @@ def dwa_control_merged(x, config, goal,
             dyn_side_component, dyn_direct_component,
             to_goal_after, speed_after, ob_after, dynamic_ob_after,
             final_cost)
+
+
+def filter_obstacles_by_direction(current_state, obstacles, obstacle_radii, max_angle=np.pi/2):
+    """Filter obstacles to only consider those in front of the robot"""
+    x, y, yaw = current_state[0], current_state[1], current_state[2]
+    filtered_obstacles = []
+    filtered_radii = []
+    
+    for i, (obs_x, obs_y) in enumerate(obstacles):
+        # Vector from robot to obstacle
+        dx = obs_x - x
+        dy = obs_y - y
+        dist = math.sqrt(dx**2 + dy**2)
+        
+        if dist == 0:
+            continue
+            
+        # Angle relative to robot heading
+        obstacle_angle = math.atan2(dy, dx)
+        relative_angle = obstacle_angle - yaw
+        relative_angle = math.atan2(math.sin(relative_angle), math.cos(relative_angle))
+        
+        # Only consider obstacles in front (±max_angle)
+        if abs(relative_angle) <= max_angle:
+            filtered_obstacles.append([obs_x, obs_y])
+            filtered_radii.append(obstacle_radii[i])
+    
+    return np.array(filtered_obstacles), filtered_radii
 
 
 def motion(x, u, dt):
