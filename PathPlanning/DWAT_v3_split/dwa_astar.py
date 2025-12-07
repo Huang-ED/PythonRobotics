@@ -15,8 +15,8 @@ except ImportError:
     sys.exit(1)
     
 # Import the new MERGED logic files
-import dwa_weighted_side as dwa
-from dwa_weighted_side import Config, line_circle_intersection
+import dwa_average_weighted_side as dwa
+from dwa_average_weighted_side import Config, line_circle_intersection
 from map_manager import MapManager
 
 import math
@@ -32,7 +32,7 @@ import traceback
 # plt.switch_backend('Agg')
 show_animation = True
 save_animation_to_figs = True
-fig_folder = 'figs_v10.4.5-video1-newlog' # New folder for merged results
+fig_folder = 'figs_v11.3-video1' # New folder for merged results
 map_config_file = os.path.join("PathPlanning", "DWAT_v3_split", "map_config", "map_config_video1.json")
 
 
