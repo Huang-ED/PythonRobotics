@@ -70,9 +70,9 @@ class Config:
 
         self.obstacle_max_angle = np.pi / 180 * 90  # [rad] max angle to consider obstacles in front
 
-        self.catch_turning_point_dist = 5.0  # [m] local goal radius
+        self.dist_localgoal = 5.0  # [m] distance to local goal
         self.catch_goal_dist = 0.5  # [m] goal radius
-        self.dist_localgoal = self.catch_turning_point_dist  # [m] distance to local goal
+        self.catch_turning_point_dist = self.dist_localgoal  # [m] local goal radius
 
         self.robot_stuck_flag_cons = 0.001  # constant to prevent robot stucked
         self.robot_type = RobotType.rectangle
