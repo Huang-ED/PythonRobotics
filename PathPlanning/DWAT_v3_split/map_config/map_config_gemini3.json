@@ -1,0 +1,13 @@
+{
+    "image_path": "EnvData/simple_gate.png",
+    "map_size": [50, 50],
+    "start_position": [5.0, 25.0],
+    "goal_position": [45.0, 25.0],
+    "dynamic_obstacles": [
+        {
+            "waypoints": [[15.0, 34.0], [15.0, 16.0]],
+            "speed": 0.5,
+            "radius": 1.0
+        }
+    ]
+}

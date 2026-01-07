@@ -57,7 +57,7 @@ class Config:
         self.yaw_rate_resolution = 0.1 * math.pi / 180.0  # [rad/s]
         self.dt = 0.1  # [s] Time tick for motion prediction
 
-        self.to_goal_cost_gain = 0.8
+        self.to_goal_cost_gain = 0.4
         self.speed_cost_gain = 1.0
         self.obstacle_cost_gain = 0.05  # Gain for static obstacles (direct dist)
         self.side_cost_gain = 1.0      # Gain for dynamic obstacles (side dist)
@@ -65,7 +65,7 @@ class Config:
         self.max_obstacle_cost_dist = 8.0  # [m] max distance for static obstacle cost calculation
         self.max_side_weight_dist = 3.0      # [m] max distance for dynamic obstacle side cost calculation
 
-        self.predict_time_to_goal = 1.0  # [s]
+        self.predict_time_to_goal = 2.0  # [s]
         self.predict_time_obstacle = 10.0  # [s]
 
         self.obstacle_max_angle = np.pi / 180 * 90  # [rad] max angle to consider obstacles in front
@@ -372,6 +372,7 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
                         current_side_comp = np.mean(cost_side_vec)
                         current_direct_comp = np.mean(cost_direct_vec)
                         
+                        # # Alternative: Max-based
                         # dynamic_ob_cost = np.max(compound_costs)
                         # current_side_comp = cost_side_vec[np.argmax(compound_costs)]
                         # current_direct_comp = cost_direct_vec[np.argmax(compound_costs)]
