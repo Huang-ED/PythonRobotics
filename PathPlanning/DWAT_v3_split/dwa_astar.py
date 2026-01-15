@@ -32,8 +32,8 @@ import traceback
 # plt.switch_backend('Agg')
 show_animation = True
 save_animation_to_figs = True
-fig_folder = 'figs_v11.4.1-gemini3' # New folder for merged results
-map_config_file = os.path.join("PathPlanning", "DWAT_v3_split", "map_config", "map_config_gemini3.json")
+fig_folder = 'figs_v11.10.1-video1.1' # New folder for merged results
+map_config_file = os.path.join("PathPlanning", "DWAT_v3_split", "map_config", "map_config_video1.1.json")
 
 
 if __name__ == '__main__':

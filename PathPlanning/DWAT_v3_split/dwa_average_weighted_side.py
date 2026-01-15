@@ -57,20 +57,20 @@ class Config:
         self.yaw_rate_resolution = 0.1 * math.pi / 180.0  # [rad/s]
         self.dt = 0.1  # [s] Time tick for motion prediction
 
-        self.to_goal_cost_gain = 0.4
+        self.to_goal_cost_gain = 0.8
         self.speed_cost_gain = 1.0
         self.obstacle_cost_gain = 0.05  # Gain for static obstacles (direct dist)
-        self.side_cost_gain = 1.0      # Gain for dynamic obstacles (side dist)
+        self.side_cost_gain = 0.6      # Gain for dynamic obstacles (side dist)
 
         self.max_obstacle_cost_dist = 8.0  # [m] max distance for static obstacle cost calculation
         self.max_side_weight_dist = 3.0      # [m] max distance for dynamic obstacle side cost calculation
 
-        self.predict_time_to_goal = 2.0  # [s]
+        self.predict_time_to_goal = 1.0  # [s]
         self.predict_time_obstacle = 10.0  # [s]
 
-        self.obstacle_max_angle = np.pi / 180 * 90  # [rad] max angle to consider obstacles in front
+        self.obstacle_max_angle = np.pi / 180 * 180  # [rad] max angle to consider obstacles in front
 
-        self.dist_localgoal = 5.0  # [m] distance to local goal
+        self.dist_localgoal = 7.0  # [m] distance to local goal
         self.catch_goal_dist = 0.5  # [m] goal radius
         self.catch_turning_point_dist = self.dist_localgoal  # [m] local goal radius
 
