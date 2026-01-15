@@ -21,14 +21,39 @@ class DynamicObstacle:
         self.current_position = self.waypoints[0].copy()
         self.current_waypoint_index = 0
         self.distance_to_next = 0
+        
+        # Calculate total length (helper method defined below)
         self.total_distance = self._calculate_total_path_length()
         
+        # --- NEW: Initialize Velocity ---
+        self.velocity = np.array([0.0, 0.0])
+        self._update_velocity_vector()
+
     def _calculate_total_path_length(self) -> float:
         """Calculate total path length of all waypoints"""
         if len(self.waypoints) < 2:
             return 0.0
         return sum(np.linalg.norm(self.waypoints[i+1] - self.waypoints[i]) 
                   for i in range(len(self.waypoints)-1))
+    
+    def _update_velocity_vector(self) -> None:
+        """Helper to calculate current velocity vector based on target waypoint"""
+        if len(self.waypoints) < 2:
+            self.velocity = np.array([0.0, 0.0])
+            return
+
+        current_wp = self.waypoints[self.current_waypoint_index]
+        next_index = (self.current_waypoint_index + 1) % len(self.waypoints)
+        next_wp = self.waypoints[next_index]
+
+        segment_vector = next_wp - current_wp
+        segment_length = np.linalg.norm(segment_vector)
+
+        if segment_length < 1e-6:
+            self.velocity = np.array([0.0, 0.0])
+        else:
+            # Velocity = Direction * Speed
+            self.velocity = (segment_vector / segment_length) * self.speed
     
     def update_position(self, dt: float) -> None:
         """Update obstacle position based on elapsed time"""
@@ -38,7 +63,7 @@ class DynamicObstacle:
         distance_to_move = self.speed * dt
         
         while distance_to_move > 0:
-            # Get current and next waypoint (using modulo for cyclic path)
+            # Get current and next waypoint
             current_wp = self.waypoints[self.current_waypoint_index]
             next_index = (self.current_waypoint_index + 1) % len(self.waypoints)
             next_wp = self.waypoints[next_index]
@@ -50,6 +75,7 @@ class DynamicObstacle:
             if segment_length < 1e-6:
                 self.current_waypoint_index = next_index
                 self.distance_to_next = 0
+                self._update_velocity_vector() 
                 continue
                 
             segment_direction = segment_vector / segment_length
@@ -60,12 +86,17 @@ class DynamicObstacle:
                 self.distance_to_next += distance_to_move
                 self.current_position = current_wp + segment_direction * self.distance_to_next
                 distance_to_move = 0
+                
+                # --- NEW: Ensure velocity is current ---
+                self.velocity = segment_direction * self.speed
             else:
                 # Move to next segment
                 distance_to_move -= remaining_in_segment
                 self.current_waypoint_index = next_index
                 self.distance_to_next = 0
-
+                
+                # --- NEW: Update Velocity for the new segment ---
+                self._update_velocity_vector()
 
 
 class MapManager:
@@ -151,6 +182,17 @@ class MapManager:
     def get_dynamic_obstacle_radii(self) -> List[float]:
         """Returns the individual radii of dynamic obstacles."""
         return [obs.radius for obs in self.dynamic_obstacles]
+    
+    def get_dynamic_obstacles_vel(self) -> np.ndarray:
+        """
+        Returns only the current velocity vectors (vx, vy) of dynamic obstacles.
+        Simulates reading SOG/COG from AIS data.
+        """
+        if not self.dynamic_obstacles:
+            return np.empty((0, 2))
+        
+        # Directly retrieve the pre-calculated velocity from each obstacle object
+        return np.array([obs.velocity for obs in self.dynamic_obstacles])
 
     # --- Methods for Final Collision Check (Combined) ---
             

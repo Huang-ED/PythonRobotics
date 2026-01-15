@@ -22,7 +22,6 @@ try:
         calc_to_goal_cost, 
         closest_obstacle_on_curve,
         calc_trajectory_clearance_and_collision,
-        # --- FIX: Import the filter function ---
         filter_obstacles_by_direction 
     )
     from map_manager import MapManager
@@ -33,7 +32,8 @@ except ImportError as e:
 
 def calculate_all_costs_merged(x, config, goal, 
                              static_ob, static_ob_radii, 
-                             dynamic_ob_pos, dynamic_ob_radii):
+                             dynamic_ob_pos, dynamic_ob_radii,
+                             dynamic_ob_vel): # <--- NEW ARGUMENT
     """
     Calculate cost matrices AND physical distance matrices for all (v, ω) pairs.
     """
@@ -42,8 +42,9 @@ def calculate_all_costs_merged(x, config, goal,
     # The runtime planner filters obstacles based on direction (FOV).
     # We must do the same here, or costs will mismatch.
     if dynamic_ob_pos is not None and len(dynamic_ob_pos) > 0:
-        dynamic_ob_pos, dynamic_ob_radii = filter_obstacles_by_direction(
-            x, dynamic_ob_pos, dynamic_ob_radii, max_angle=config.obstacle_max_angle
+        # --- NEW: Filter Velocity as well ---
+        dynamic_ob_pos, dynamic_ob_radii, dynamic_ob_vel = filter_obstacles_by_direction(
+            x, dynamic_ob_pos, dynamic_ob_radii, dynamic_ob_vel, max_angle=config.obstacle_max_angle
         )
     
     # Calculate dynamic window
@@ -104,6 +105,10 @@ def calculate_all_costs_merged(x, config, goal,
             # --- Admissible velocities check (using ALL obstacles) ---
             dist_all = float("inf")
             if has_all_ob:
+                # Note: Static check remains same, but dynamic check logic inside 
+                # closest_obstacle_on_curve might need updating in future. 
+                # For now, we assume simple static-snapshot admissibility check for safety
+                # or rely on the trajectory clearance check below.
                 dist_all, _ = closest_obstacle_on_curve(
                     x.copy(), all_ob, all_ob_radii_np, v, omega, config
                 )
@@ -131,7 +136,7 @@ def calculate_all_costs_merged(x, config, goal,
                 static_val = max(0., config.max_obstacle_cost_dist - dist_static)
             static_ob_cost[i, j] = static_val
 
-            # --- 4. Dynamic Obstacle Cost (Split Logic) ---
+            # --- 4. Dynamic Obstacle Cost (Spatiotemporal Logic) ---
             dyn_total = 0.0
             dyn_side_val = 0.0
             dyn_direct_val = 0.0
@@ -141,10 +146,10 @@ def calculate_all_costs_merged(x, config, goal,
             dist_direct_val = np.nan
 
             if has_dynamic:
-                # 2. USE CORRECT FUNCTION CALL
-                # Note: calc_trajectory_clearance_and_collision returns (d_side_arr, is_collision)
+                # --- NEW: Pass Velocity for Prediction ---
+                # d_side_arr is the "Dynamic Clearance" for each time step
                 d_side_arr, is_collision = calc_trajectory_clearance_and_collision(
-                    traj_obs, dynamic_ob_pos, dynamic_ob_radii_np, config
+                    traj_obs, dynamic_ob_pos, dynamic_ob_radii_np, dynamic_ob_vel, config
                 )
 
                 if is_collision:
@@ -172,15 +177,14 @@ def calculate_all_costs_merged(x, config, goal,
                     compound_costs = cost_side * cost_direct
                     
                     if len(compound_costs) > 0:
-                        # 3. CORRECT AGGREGATION LOGIC (MEAN vs MAX)
-                        # Match logic in dwa_average_weighted_side.py line 348
+                        # Standard Mean (Until we upgrade to Time-Decayed Max)
                         dyn_total = np.mean(compound_costs)
                         
-                        # For logging components, we also take the mean to match
+                        # For logging components
                         dyn_side_val = np.mean(cost_side)
                         dyn_direct_val = np.mean(cost_direct)
                         
-                        # For physical distances, mean is a fair representation for the "average" path logic
+                        # For physical distances
                         dist_side_val = np.mean(d_side_arr)
                         dist_direct_val = np.mean(d_direct_arr)
 
@@ -194,18 +198,17 @@ def calculate_all_costs_merged(x, config, goal,
     
     return (to_goal_cost, speed_cost, static_ob_cost, 
             dynamic_ob_cost_total, dynamic_ob_cost_side, dynamic_ob_cost_direct,
-            dist_side_matrix, dist_direct_matrix, # NEW RETURNS
+            dist_side_matrix, dist_direct_matrix,
             v_samples, omega_samples)
-
 
 
 def main():
     # --- Configuration ---
     # !! IMPORTANT: Update these paths !!
-    log_file_path = "Logs/figs_v11.7-video1-corrected_20251210_182350/log_details.csv" 
-    map_config_file = "PathPlanning/DWAT_v3_split/map_config/map_config_video1.json"
+    log_file_path = "Logs/figs_v20.2-video1.1-test_20260115_161550/log_details.csv" 
+    map_config_file = "PathPlanning/DWAT_v3_split/map_config/map_config_video1.1.json"
     
-    iter_nums = list(range(1155, 1165))  # Specify iterations
+    iter_nums = list(range(65, 75))  # Specify iterations
     # ---------------------
 
     if not os.path.exists(log_file_path):
@@ -254,6 +257,9 @@ def main():
 
         dynamic_ob_pos = map_manager.get_dynamic_obstacles_pos()
         dynamic_ob_radii = map_manager.get_dynamic_obstacle_radii()
+        
+        # --- NEW: Get Velocity ---
+        dynamic_ob_vel = map_manager.get_dynamic_obstacles_vel()
 
         ## 3. Get Robot State
         x = trajectory_full[iter_num] 
@@ -262,11 +268,12 @@ def main():
         ## 4. Calculate Costs (Unpacking new return values)
         (tg_cost, sp_cost, static_cost, 
          dyn_total, dyn_side, dyn_direct, 
-         dist_side, dist_direct, # NEW UNPACKING
+         dist_side, dist_direct, 
          v_samples, omega_samples) = calculate_all_costs_merged(
             x, config, goal, 
             static_ob, static_ob_radii, 
-            dynamic_ob_pos, dynamic_ob_radii
+            dynamic_ob_pos, dynamic_ob_radii,
+            dynamic_ob_vel # <--- Pass velocity here
          )
         
         ## 5. Apply Gains (Weighted Costs)
@@ -300,7 +307,7 @@ def main():
         np.savetxt(os.path.join(curr_cost_dir, "dyn_side.txt"), dyn_side, fmt='%.3f')
         np.savetxt(os.path.join(curr_cost_dir, "dyn_direct.txt"), dyn_direct, fmt='%.3f')
         
-        # NEW: Save Physical Distances
+        # Save Physical Distances
         np.savetxt(os.path.join(curr_cost_dir, "dist_side.txt"), dist_side, fmt='%.3f')
         np.savetxt(os.path.join(curr_cost_dir, "dist_direct.txt"), dist_direct, fmt='%.3f')
         

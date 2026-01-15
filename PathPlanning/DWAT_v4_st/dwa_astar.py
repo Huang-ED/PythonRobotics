@@ -32,8 +32,8 @@ import traceback
 # plt.switch_backend('Agg')
 show_animation = True
 save_animation_to_figs = True
-fig_folder = 'figs_v11.4.1-gemini2' # New folder for merged results
-map_config_file = os.path.join("PathPlanning", "DWAT_v3_split", "map_config", "map_config_gemini2.json")
+fig_folder = 'figs_v20.2-video1.1-test' # New folder for merged results
+map_config_file = os.path.join("PathPlanning", "DWAT_v3_split", "map_config", "map_config_video1.1.json")
 
 
 if __name__ == '__main__':
@@ -189,6 +189,9 @@ if __name__ == '__main__':
                 dynamic_ob_pos = map_manager.get_dynamic_obstacles_pos()
                 dynamic_ob_radii = map_manager.get_dynamic_obstacle_radii()
 
+                # --- NEW: Get Dynamic Obstacle Velocities ---
+                dynamic_ob_vel = map_manager.get_dynamic_obstacles_vel() 
+
                 
                 # Call the new MERGED DWA control function
                 (u, predicted_trajectory, dw, 
@@ -198,7 +201,8 @@ if __name__ == '__main__':
                  final_cost) = dwa.dwa_control_merged(
                     x, config, dwagoal, 
                     static_ob, static_ob_radii,
-                    dynamic_ob_pos, dynamic_ob_radii
+                    dynamic_ob_pos, dynamic_ob_radii,
+                    dynamic_ob_vel  # <--- PASS VELOCITY HERE
                 )
 
                 # Record data for this iteration

@@ -57,20 +57,20 @@ class Config:
         self.yaw_rate_resolution = 0.1 * math.pi / 180.0  # [rad/s]
         self.dt = 0.1  # [s] Time tick for motion prediction
 
-        self.to_goal_cost_gain = 0.4
+        self.to_goal_cost_gain = 0.8
         self.speed_cost_gain = 1.0
         self.obstacle_cost_gain = 0.05  # Gain for static obstacles (direct dist)
-        self.side_cost_gain = 1.0      # Gain for dynamic obstacles (side dist)
+        self.side_cost_gain = 0.6      # Gain for dynamic obstacles (side dist)
 
         self.max_obstacle_cost_dist = 8.0  # [m] max distance for static obstacle cost calculation
         self.max_side_weight_dist = 3.0      # [m] max distance for dynamic obstacle side cost calculation
 
-        self.predict_time_to_goal = 2.0  # [s]
+        self.predict_time_to_goal = 1.0  # [s]
         self.predict_time_obstacle = 10.0  # [s]
 
-        self.obstacle_max_angle = np.pi / 180 * 90  # [rad] max angle to consider obstacles in front
+        self.obstacle_max_angle = np.pi / 180 * 180  # [rad] max angle to consider obstacles in front
 
-        self.dist_localgoal = 5.0  # [m] distance to local goal
+        self.dist_localgoal = 7.0  # [m] distance to local goal
         self.catch_goal_dist = 0.5  # [m] goal radius
         self.catch_turning_point_dist = self.dist_localgoal  # [m] local goal radius
 
@@ -141,14 +141,16 @@ def line_circle_intersection(line_endpoint_1, line_endpoint_2, center, r):
 
 def dwa_control_merged(x, config, goal, 
                        static_ob, static_ob_radii, 
-                       dynamic_ob_pos, dynamic_ob_radii):
+                       dynamic_ob_pos, dynamic_ob_radii,
+                       dynamic_ob_vel): # <--- New Argument
     """
-    DWA control function that splits static and dynamic obstacles,
-    and accepts individual radii for each obstacle.
+    DWA control function with spatiotemporal dynamic obstacle handling.
     """
     dw = calc_dynamic_window(x, config)
-    dynamic_ob_pos_filtered, dynamic_ob_radii_filtered = filter_obstacles_by_direction(
-        x, dynamic_ob_pos, dynamic_ob_radii, max_angle=config.obstacle_max_angle
+    
+    # Filter positions, radii, AND velocities
+    dyn_ob_pos_filt, dyn_ob_radii_filt, dyn_ob_vel_filt = filter_obstacles_by_direction(
+        x, dynamic_ob_pos, dynamic_ob_radii, dynamic_ob_vel, max_angle=config.obstacle_max_angle
     )
 
     (u, trajectory, dw,
@@ -158,7 +160,8 @@ def dwa_control_merged(x, config, goal,
      final_cost) = calc_control_and_trajectory_merged(
          x, dw, config, goal, 
          static_ob, static_ob_radii, 
-         dynamic_ob_pos_filtered, dynamic_ob_radii_filtered
+         dyn_ob_pos_filt, dyn_ob_radii_filt,
+         dyn_ob_vel_filt # <--- Pass filtered velocities
      )
     
     return (u, trajectory, dw,
@@ -168,32 +171,69 @@ def dwa_control_merged(x, config, goal,
             final_cost)
 
 
-def filter_obstacles_by_direction(current_state, obstacles, obstacle_radii, max_angle=np.pi/2):
-    """Filter obstacles to only consider those in front of the robot"""
+def filter_obstacles_by_direction(current_state, obstacles, obstacle_radii, obstacle_vel, max_angle=np.pi/2):
+    """
+    Filter obstacles to remove only those that are safely behind and moving away.
+    """
     x, y, yaw = current_state[0], current_state[1], current_state[2]
     filtered_obstacles = []
     filtered_radii = []
+    filtered_vel = [] 
+    
+    # Robot velocity vector (approximate direction)
+    # Note: We don't strictly need robot speed here, just heading for the angle check,
+    # but strictly speaking, we should know if we are faster than the guy behind us.
+    # For simplicity, we keep the angle check but add a velocity check.
     
     for i, (obs_x, obs_y) in enumerate(obstacles):
-        # Vector from robot to obstacle
         dx = obs_x - x
         dy = obs_y - y
-        dist = math.sqrt(dx**2 + dy**2)
         
-        if dist == 0:
-            continue
-            
-        # Angle relative to robot heading
-        obstacle_angle = math.atan2(dy, dx)
-        relative_angle = obstacle_angle - yaw
-        relative_angle = math.atan2(math.sin(relative_angle), math.cos(relative_angle))
+        # 1. Calculate Relative Position
+        # Transform obstacle position to robot frame
+        local_x = dx * math.cos(yaw) + dy * math.sin(yaw)
+        local_y = -dx * math.sin(yaw) + dy * math.cos(yaw)
         
-        # Only consider obstacles in front (±max_angle)
-        if abs(relative_angle) <= max_angle:
+        # 2. Check if strictly in front (local_x > 0)
+        is_in_front = local_x > -1.0 # Allow a small buffer (1m) behind center
+        
+        if is_in_front:
+            # If in front, always keep it
             filtered_obstacles.append([obs_x, obs_y])
             filtered_radii.append(obstacle_radii[i])
-    
-    return np.array(filtered_obstacles), filtered_radii
+            filtered_vel.append(obstacle_vel[i])
+        else:
+            # 3. If BEHIND, check if it's a threat (Overtaking)
+            # We project the relative velocity onto the line connecting them
+            obs_vx, obs_vy = obstacle_vel[i]
+            
+            # Simple check: Is the obstacle moving in the same general direction 
+            # as the robot but faster? Or simply moving TOWARDS the robot?
+            
+            # Vector from Obs to Robot
+            vec_to_robot = np.array([-dx, -dy])
+            dist = np.linalg.norm(vec_to_robot)
+            if dist > 0:
+                vec_to_robot /= dist
+                
+            # Obstacle velocity vector
+            vec_obs_vel = np.array([obs_vx, obs_vy])
+            
+            # Speed towards robot = dot product
+            speed_towards_robot = np.dot(vec_obs_vel, vec_to_robot)
+            
+            # If speed_towards_robot > 0, it is closing the distance (Threat!)
+            # We also check if it's close enough to worry about (e.g. < 10m)
+            if speed_towards_robot > 0 and dist < 15.0:
+                filtered_obstacles.append([obs_x, obs_y])
+                filtered_radii.append(obstacle_radii[i])
+                filtered_vel.append(obstacle_vel[i])
+
+    # Return empty arrays if no obstacles found
+    if not filtered_obstacles:
+        return np.empty((0, 2)), [], np.empty((0, 2))
+
+    return np.array(filtered_obstacles), filtered_radii, np.array(filtered_vel)
 
 
 def motion(x, u, dt):
@@ -259,7 +299,8 @@ def predict_trajectory_obstacle(x_init, v, y, config):
 
 def calc_control_and_trajectory_merged(x, dw, config, goal, 
                                      static_ob, static_ob_radii, 
-                                     dynamic_ob_pos, dynamic_ob_radii):
+                                     dynamic_ob_pos, dynamic_ob_radii,
+                                     dynamic_ob_vel): # <--- New Argument
     """
     Calculation final input with dynamic window, splitting cost functions
     for static and dynamic obstacles.
@@ -335,9 +376,13 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
             current_direct_comp = 0.0
 
             if has_dynamic:
-                # Get clearance for EVERY point on trajectory
+                # CALL NEW SPATIOTEMPORAL CHECKER
                 d_side_arr, is_collision = calc_trajectory_clearance_and_collision(
-                    trajectory_for_obstacle, dynamic_ob_pos, np.array(dynamic_ob_radii), config
+                    trajectory_for_obstacle, 
+                    dynamic_ob_pos, 
+                    np.array(dynamic_ob_radii), 
+                    dynamic_ob_vel, # <--- Pass Velocity
+                    config
                 )
 
                 if is_collision:
@@ -612,79 +657,93 @@ def closest_obstacle_on_curve(x, ob, ob_radii, v, omega, config):
         return min_dist, min_time
 
 
-def calc_trajectory_clearance_and_collision(trajectory, ob, ob_radii, config):
+def calc_trajectory_clearance_and_collision(trajectory, ob_pos, ob_radii, ob_vel, config):
     """
-    Calculates clearance for every point on the trajectory and checks for collisions.
-    
-    Returns:
-    min_clearance_per_step: np.array of shape (T,) 
-                            Distance to the closest obstacle at each time step.
-    is_collision: bool
+    Calculates the minimum clearance distance at each time step along a robot trajectory
+    with respect to moving obstacles, and determines if a collision occurs.
+    This function predicts obstacle positions over time based on their velocities and
+    computes the distance from the robot to each obstacle at each trajectory point.
+    Clearance is defined as the distance between the robot and obstacles minus their
+    combined radii. A negative or zero clearance indicates a collision.
+    Parameters
+    ----------
+    trajectory : np.ndarray
+        Shape (T, >= 2), where T is the number of time steps.
+        Each row contains at least [x, y] position of the robot at that time step.
+        Additional columns (e.g., velocity, theta) are ignored.
+    ob_pos : np.ndarray or None
+        Shape (N, 2), where N is the number of obstacles.
+        Each row contains [x, y] position of an obstacle at t=0.
+        If None or empty, function returns no collision and infinite clearance.
+    ob_radii : array-like
+        Shape (N,), where N is the number of obstacles.
+        Radius of each obstacle.
+    ob_vel : np.ndarray
+        Shape (N, 2), where N is the number of obstacles.
+        Each row contains [vx, vy] velocity of an obstacle.
+    config : Config
+        Configuration object containing:
+        - dt (float): Time step interval in seconds
+        - robot_type (RobotType): Type of robot ('circle' or 'rectangle')
+        - robot_radius (float): Radius of the robot (if circular)
+        - robot_length (float): Length of the robot (if rectangular)
+        - robot_width (float): Width of the robot (if rectangular)
+    Returns
+    -------
+    min_clearance_per_step : np.ndarray
+        Shape (T,), minimum clearance distance at each time step.
+        Positive values indicate safe distance; zero or negative indicates collision.
+        Returns full infinity array if no obstacles exist.
+    is_collision : bool
+        True if any point on the trajectory results in collision (clearance <= 0).
+        False if the entire trajectory maintains safe distance or no obstacles exist.
     """
-    if ob is None or ob.shape[0] == 0:
-        # If no obstacles, return infinite clearance for all trajectory points
+
+    if ob_pos is None or ob_pos.shape[0] == 0:
         return np.full(trajectory.shape[0], float("inf")), False
 
-    # ox shape: (N, 1), trajectory shape: (T, 2)
-    ox = ob[:, 0][:, None]
-    oy = ob[:, 1][:, None]
-    ob_radii_np = np.array(ob_radii)[:, None]
-
-    traj_x = trajectory[:, 0]
-    traj_y = trajectory[:, 1]
+    num_steps = trajectory.shape[0]
     
-    dx = traj_x - ox
-    dy = traj_y - oy
+    # 1. Time Vector: [0, dt, 2dt, ... T*dt]
+    # Shape: (1, T, 1) for broadcasting
+    times = np.arange(num_steps).reshape(1, -1, 1) * config.dt
     
-    # Distance matrix (N, T) - Distance from every obstacle to every point
-    dist_matrix = np.hypot(dx, dy)
+    # 2. Predicted Obstacle Positions: Pos(t) = Pos(0) + Vel * t
+    # Expand dims for broadcasting: (N, 1, 2)
+    ob_pos_expanded = ob_pos[:, np.newaxis, :]
+    ob_vel_expanded = ob_vel[:, np.newaxis, :]
     
-    # --- STRICT COLLISION CHECK ---
-    is_collision = False
+    # Result Shape: (N, T, 2) -> (Num_Obs, Num_TimeSteps, XY)
+    predicted_ob_pos = ob_pos_expanded + (ob_vel_expanded * times)
+    
+    # 3. Robot Trajectory Positions
+    # Shape: (1, T, 2)
+    robot_pos = trajectory[:, 0:2][np.newaxis, :, :]
+    
+    # 4. Calculate Distance Matrix (N, T)
+    diff = robot_pos - predicted_ob_pos
+    dist_matrix = np.hypot(diff[:, :, 0], diff[:, :, 1])
+    
+    # 5. Check Collision & Clearance
+    ob_radii_expanded = np.array(ob_radii)[:, np.newaxis] # (N, 1)
     
     if config.robot_type == RobotType.rectangle:
-        yaw = trajectory[:, 2]
-        # Approximate check first using diagonal radius
-        robot_diagonal = math.sqrt(config.robot_length**2 + config.robot_width**2) / 2.0
-        potential_collisions = (dist_matrix - ob_radii_np) < robot_diagonal
-        
-        if np.any(potential_collisions):
-            # Detailed check for rectangle
-            local_ox = ox - traj_x 
-            local_oy = oy - traj_y 
-            
-            cos_yaw = np.cos(yaw) 
-            sin_yaw = np.sin(yaw) 
-            
-            local_x = local_ox * cos_yaw + local_oy * sin_yaw
-            local_y = -local_ox * sin_yaw + local_oy * cos_yaw
-            
-            upper_check = local_x <= config.robot_length / 2
-            bottom_check = local_x >= -config.robot_length / 2
-            right_check = local_y <= config.robot_width / 2
-            left_check = local_y >= -config.robot_width / 2
-            
-            collisions = upper_check & bottom_check & right_check & left_check
-            if np.any(collisions):
-                is_collision = True
-
-    elif config.robot_type == RobotType.circle:
-        collision_thresholds = config.robot_radius + ob_radii_np
-        if np.any(dist_matrix <= collision_thresholds):
-            is_collision = True
-
-    # --- COST CALCULATION VALUES ---
-    # Calculate clearance (distance - radii)
-    if config.robot_type == RobotType.circle:
-        clearance_matrix = dist_matrix - (config.robot_radius + ob_radii_np)
+        # Diagonal approximation
+        robot_radius = math.sqrt(config.robot_length**2 + config.robot_width**2) / 2.0
+        clearance_matrix = dist_matrix - (ob_radii_expanded + robot_radius)
     else:
-        clearance_matrix = dist_matrix - ob_radii_np
-
-    # Reduce over obstacles (axis 0) to get the closest obstacle for every time step
-    # Result shape: (T,)
+        clearance_matrix = dist_matrix - (ob_radii_expanded + config.robot_radius)
+        
+    # Check if any point in time results in collision (clearance <= 0)
+    is_collision = np.any(clearance_matrix <= 0)
+    
+    # Reduce over obstacles to find the closest danger at each time step
+    # Shape: (T,)
     min_clearance_per_step = np.min(clearance_matrix, axis=0)
 
     return min_clearance_per_step, is_collision
+
+
 def calc_to_goal_cost(trajectory, goal):
     """
     calc to goal cost with angle difference
