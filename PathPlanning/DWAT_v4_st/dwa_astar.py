@@ -32,8 +32,8 @@ import traceback
 # plt.switch_backend('Agg')
 show_animation = True
 save_animation_to_figs = True
-fig_folder = 'figs_v20.2-video1.1-test' # New folder for merged results
-map_config_file = os.path.join("PathPlanning", "DWAT_v3_split", "map_config", "map_config_video1.1.json")
+fig_folder = 'figs_v20.5-video3' # New folder for merged results
+map_config_file = os.path.join("PathPlanning", "DWAT_v4_st", "map_config", "map_config_video3.json")
 
 
 if __name__ == '__main__':
@@ -82,21 +82,34 @@ if __name__ == '__main__':
             for (x_b, y_b) in map_manager.boundary_obstacles:
                 circle = plt.Circle((x_b, y_b), config.robot_radius, color="k")
                 plt.gca().add_patch(circle)
-        
         plt.plot(start[0], start[1], "or", zorder=10)
         plt.plot(goal[0], goal[1], "sr", zorder=10)
         plt.grid(True)
         plt.axis("equal")
+        plt.xlim(-1, map_manager.map_size[0])
+        plt.ylim(-1, map_manager.map_size[1])
 
     # ----- Run A* path planning -----
+    # Compute grid bounds, guarding against an empty obstacle array
+    if map_manager.astar_obstacles.shape[0] > 0:
+        _ob_min_x = map_manager.astar_obstacles[:, 0].min()
+        _ob_min_y = map_manager.astar_obstacles[:, 1].min()
+        _ob_max_x = map_manager.astar_obstacles[:, 0].max()
+        _ob_max_y = map_manager.astar_obstacles[:, 1].max()
+    else:
+        _ob_min_x = _ob_min_y = 0.0
+        _ob_max_x = float(map_manager.map_size[0] - 1)
+        _ob_max_y = float(map_manager.map_size[1] - 1)
+    astar_ob = map_manager.astar_obstacles if map_manager.astar_obstacles.shape[0] > 0 \
+        else np.array([[-999.0, -999.0]])  # dummy point far outside map
     theta_star_planner = theta_star.ThetaStarPlanner(
-        ob=map_manager.astar_obstacles,  # Use A* obstacles from MapManager
+        ob=astar_ob,
         resolution=1.0,
         rr=max(config.robot_width, config.robot_length),
-        min_x = min(map_manager.astar_obstacles[:, 0].min(), start[0]-2, goal[0]-2),
-        min_y = min(map_manager.astar_obstacles[:, 1].min(), start[1]-2, goal[1]-2),
-        max_x = max(map_manager.astar_obstacles[:, 0].max(), start[0]+2, goal[0]+2),
-        max_y = max(map_manager.astar_obstacles[:, 1].max(), start[1]+2, goal[1]+2),
+        min_x = min(_ob_min_x, start[0]-2, goal[0]-2),
+        min_y = min(_ob_min_y, start[1]-2, goal[1]-2),
+        max_x = max(_ob_max_x, start[0]+2, goal[0]+2),
+        max_y = max(_ob_max_y, start[1]+2, goal[1]+2),
         save_animation_to_figs=False,
         fig_dir=fig_dir
     )

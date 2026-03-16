@@ -6,28 +6,80 @@ import os
 
 
 class DynamicObstacle:
-    def __init__(self, waypoints: List[List[float]], speed: float, radius: float = 0.5):
+    def __init__(self,
+                 waypoints: List[List[float]] = None,
+                 speed: float = 0.5,
+                 radius: float = 0.5,
+                 motion_type: str = "waypoint",
+                 center: List[float] = None,
+                 circle_radius: float = None,
+                 initial_angle: float = 0.0,
+                 direction: int = 1):
         """
-        Initialize a dynamic obstacle
-        
+        Initialize a dynamic obstacle.
+
         Args:
-            waypoints: List of [x,y] coordinates the obstacle will follow
-            speed: Speed at which the obstacle moves (m/s)
-            radius: Collision radius of the obstacle
+            waypoints:     (waypoint mode) List of [x,y] coordinates to follow.
+            speed:         Tangential / linear speed (m/s).
+            radius:        Collision radius of the obstacle.
+            motion_type:   "waypoint" (default) or "circle".
+            center:        (circle mode) [cx, cy] – centre of the circular orbit.
+            circle_radius: (circle mode) Radius of the circular orbit (m).
+            initial_angle: (circle mode) Starting angle in radians (default 0).
+            direction:     (circle mode) +1 for CCW, -1 for CW (default +1).
         """
-        self.waypoints = np.array(waypoints, dtype=float)
+        self.motion_type = motion_type
         self.speed = float(speed)
         self.radius = float(radius)
-        self.current_position = self.waypoints[0].copy()
-        self.current_waypoint_index = 0
-        self.distance_to_next = 0
-        
-        # Calculate total length (helper method defined below)
-        self.total_distance = self._calculate_total_path_length()
-        
-        # --- NEW: Initialize Velocity ---
         self.velocity = np.array([0.0, 0.0])
-        self._update_velocity_vector()
+
+        if self.motion_type == "circle":
+            if center is None or circle_radius is None:
+                raise ValueError("'center' and 'circle_radius' are required for circle motion.")
+            self.center = np.array(center, dtype=float)
+            self.circle_radius = float(circle_radius)
+            self.angle = float(initial_angle)
+            self.direction = int(direction)
+            # Derived angular speed (rad/s)
+            self.angular_speed = self.speed / self.circle_radius
+            # Set initial position and velocity
+            self.current_position = self._circle_position()
+            self._update_circle_velocity()
+            # Unused in circle mode but kept for API consistency
+            self.waypoints = np.empty((0, 2))
+            self.total_distance = 0.0
+            self.current_waypoint_index = 0
+            self.distance_to_next = 0.0
+        else:  # waypoint mode
+            self.waypoints = np.array(waypoints, dtype=float)
+            self.current_position = self.waypoints[0].copy()
+            self.current_waypoint_index = 0
+            self.distance_to_next = 0
+            self.total_distance = self._calculate_total_path_length()
+            self._update_velocity_vector()
+
+    # ------------------------------------------------------------------
+    # Circle-mode helpers
+    # ------------------------------------------------------------------
+
+    def _circle_position(self) -> np.ndarray:
+        """Return position on the circle for the current angle."""
+        return np.array([
+            self.center[0] + self.circle_radius * np.cos(self.angle),
+            self.center[1] + self.circle_radius * np.sin(self.angle)
+        ])
+
+    def _update_circle_velocity(self) -> None:
+        """Set velocity tangent to the circle at the current angle."""
+        # Tangent direction for CCW: (-sin θ, cos θ); CW: (sin θ, -cos θ)
+        self.velocity = np.array([
+            -np.sin(self.angle) * self.speed * self.direction,
+             np.cos(self.angle) * self.speed * self.direction
+        ])
+
+    # ------------------------------------------------------------------
+    # Waypoint-mode helpers
+    # ------------------------------------------------------------------
 
     def _calculate_total_path_length(self) -> float:
         """Calculate total path length of all waypoints"""
@@ -56,12 +108,27 @@ class DynamicObstacle:
             self.velocity = (segment_vector / segment_length) * self.speed
     
     def update_position(self, dt: float) -> None:
-        """Update obstacle position based on elapsed time"""
+        """Update obstacle position based on elapsed time."""
+        if self.motion_type == "circle":
+            self._update_circle_position(dt)
+            return
+        self._update_waypoint_position(dt)
+
+    def _update_circle_position(self, dt: float) -> None:
+        """Advance angle smoothly and recompute position + velocity."""
+        self.angle += self.angular_speed * dt * self.direction
+        # Keep angle in [-π, π] to avoid float drift over long runs
+        self.angle = (self.angle + np.pi) % (2 * np.pi) - np.pi
+        self.current_position = self._circle_position()
+        self._update_circle_velocity()
+
+    def _update_waypoint_position(self, dt: float) -> None:
+        """Original waypoint-following logic."""
         if len(self.waypoints) < 2:
             return
-            
+
         distance_to_move = self.speed * dt
-        
+
         while distance_to_move > 0:
             # Get current and next waypoint
             current_wp = self.waypoints[self.current_waypoint_index]
@@ -106,6 +173,7 @@ class MapManager:
         self.dynamic_obstacles = []  # Now a list of DynamicObstacle objects
         self.astar_obstacles = np.empty((0, 2))  # Obstacles for A*
         self.boundary_obstacles = np.empty((0, 2)) # Static obstacles for DWA (e.g., walls)
+        self.map_size = None  # (width, height) of the map in pixels / coordinate units
         self.road_map = None
         self.start_position = None
         self.goal_position = None
@@ -116,21 +184,23 @@ class MapManager:
         arr = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
         arr = cv2.resize(arr, map_size)
         _, arr = cv2.threshold(arr, 128, 1, cv2.THRESH_BINARY)
-        
-        # Add boundary obstacles
-        arr[0, :] = 0  # Top edge
-        arr[-1, :] = 0  # Bottom edge
-        arr[:, 0] = 0  # Left edge
-        arr[:, -1] = 0  # Right edge
+        self.map_size = map_size  # store (width, height) for downstream use
+
+        arr_for_planning = arr.copy()
+        if self.config.enable_map_boundary_obstacles:
+            arr_for_planning[0, :] = 0  # Top edge
+            arr_for_planning[-1, :] = 0  # Bottom edge
+            arr_for_planning[:, 0] = 0  # Left edge
+            arr_for_planning[:, -1] = 0  # Right edge
         
         # Extract obstacles
-        self.static_obstacles = np.argwhere(arr == 0)
-        self._process_obstacle_coordinates(self.static_obstacles, arr.shape)
+        self.static_obstacles = np.argwhere(arr_for_planning == 0)
+        self._process_obstacle_coordinates(self.static_obstacles, arr_for_planning.shape)
         
         # Process for A* and DWA
         # self._process_astar_map(arr)  # Add buffer for Global Planning
         self.astar_obstacles = self.static_obstacles.copy()  # Do not add buffer for Global Planning
-        self._process_boundary_map(arr)
+        self._process_boundary_map(arr_for_planning)
         
     def _process_obstacle_coordinates(self, obstacles: np.ndarray, arr_shape: Tuple[int, int]) -> None:
         """Process obstacle coordinates to match plot orientation"""
@@ -153,9 +223,26 @@ class MapManager:
         self.boundary_obstacles = np.argwhere(arr_dwa == 0)
         self._process_obstacle_coordinates(self.boundary_obstacles, arr_dwa.shape)
         
-    def add_dynamic_obstacle(self, waypoints: List[Tuple[float, float]], speed: float, radius: float = 0.5) -> None:
-        """Add a dynamic obstacle with waypoints and speed"""
-        self.dynamic_obstacles.append(DynamicObstacle(waypoints, speed, radius))
+    def add_dynamic_obstacle(self,
+                              waypoints: List[Tuple[float, float]] = None,
+                              speed: float = 0.5,
+                              radius: float = 0.5,
+                              motion_type: str = "waypoint",
+                              center: List[float] = None,
+                              circle_radius: float = None,
+                              initial_angle: float = 0.0,
+                              direction: int = 1) -> None:
+        """Add a dynamic obstacle (waypoint or circle motion)."""
+        self.dynamic_obstacles.append(DynamicObstacle(
+            waypoints=waypoints,
+            speed=speed,
+            radius=radius,
+            motion_type=motion_type,
+            center=center,
+            circle_radius=circle_radius,
+            initial_angle=initial_angle,
+            direction=direction
+        ))
         
     def update_dynamic_obstacles(self, dt: float) -> None:
         """Update positions of all dynamic obstacles"""
@@ -229,6 +316,11 @@ class MapManager:
         """Load map configuration from file including dynamic obstacles"""
         with open(file_path, 'r') as f:
             map_data = json.load(f)
+
+        self.config.enable_map_boundary_obstacles = map_data.get(
+            'enable_map_boundary_obstacles',
+            self.config.enable_map_boundary_obstacles
+        )
         
         # Load basic map data
         self.load_map_from_image(map_data['image_path'], tuple(map_data['map_size']))
@@ -243,25 +335,52 @@ class MapManager:
         # Load dynamic obstacles if they exist
         if 'dynamic_obstacles' in map_data:
             for obs_data in map_data['dynamic_obstacles']:
-                self.add_dynamic_obstacle(
-                    waypoints=obs_data['waypoints'],
-                    speed=obs_data['speed'],
-                    radius=obs_data.get('radius', self.config.obstacle_radius)
-                )
+                motion_type = obs_data.get('motion_type', 'waypoint')
+                if motion_type == 'circle':
+                    self.add_dynamic_obstacle(
+                        speed=obs_data['speed'],
+                        radius=obs_data.get('radius', self.config.obstacle_radius),
+                        motion_type='circle',
+                        center=obs_data['center'],
+                        circle_radius=obs_data['circle_radius'],
+                        initial_angle=obs_data.get('initial_angle', 0.0),
+                        direction=obs_data.get('direction', 1)
+                    )
+                else:
+                    self.add_dynamic_obstacle(
+                        waypoints=obs_data['waypoints'],
+                        speed=obs_data['speed'],
+                        radius=obs_data.get('radius', self.config.obstacle_radius)
+                    )
  
     def save_map_config(self, file_path: str) -> None:
         """Save map configuration including dynamic obstacles"""
         map_data = {
             'image_path': 'relative/path/to/image.png', # Placeholder
             'map_size': [100, 100], # Placeholder
+            'enable_map_boundary_obstacles': self.config.enable_map_boundary_obstacles,
             'start_position': self.start_position.tolist() if self.start_position is not None else None,
             'goal_position': self.goal_position.tolist() if self.goal_position is not None else None,
             'dynamic_obstacles': [
-                {
-                    'waypoints': obstacle.waypoints.tolist(),
-                    'speed': obstacle.speed,
-                    'radius': obstacle.radius
-                }
+                (
+                    {
+                        'motion_type': 'circle',
+                        'center': obstacle.center.tolist(),
+                        'circle_radius': obstacle.circle_radius,
+                        'initial_angle': obstacle.angle,
+                        'direction': obstacle.direction,
+                        'speed': obstacle.speed,
+                        'radius': obstacle.radius
+                    }
+                    if obstacle.motion_type == 'circle'
+                    else
+                    {
+                        'motion_type': 'waypoint',
+                        'waypoints': obstacle.waypoints.tolist(),
+                        'speed': obstacle.speed,
+                        'radius': obstacle.radius
+                    }
+                )
                 for obstacle in self.dynamic_obstacles
             ] if self.dynamic_obstacles else []
         }

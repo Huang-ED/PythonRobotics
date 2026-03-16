@@ -6,7 +6,7 @@
     "goal_position": [45.0, 25.0],
     "dynamic_obstacles": [
         {
-            "waypoints": [[15.0, 34.0], [15.0, 16.0]],
+            "waypoints": [[35.0, 16.0], [35.0, 34.0]],
             "speed": 0.5,
             "radius": 1.0
         }

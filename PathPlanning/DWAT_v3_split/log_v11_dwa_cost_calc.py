@@ -194,10 +194,10 @@ def calculate_all_costs_merged(x, config, goal,
 def main():
     # --- Configuration ---
     # !! IMPORTANT: Update these paths !!
-    log_file_path = "Logs/figs_v11.7-video1-corrected_20251210_182350/log_details.csv" 
-    map_config_file = "PathPlanning/DWAT_v3_split/map_config/map_config_video1.json"
+    log_file_path = "Logs/figs_v11.10.3-video1_20260204_181101/log_details.csv" 
+    map_config_file = "PathPlanning/DWAT_v4_st/map_config/map_config_video1.json"
     
-    iter_nums = list(range(1155, 1165))  # Specify iterations
+    iter_nums = list(range(835, 845))  # Specify iterations
     # ---------------------
 
     if not os.path.exists(log_file_path):

@@ -75,6 +75,7 @@ class MapManager:
         self.dynamic_obstacles = []  # Now a list of DynamicObstacle objects
         self.astar_obstacles = np.empty((0, 2))  # Obstacles for A*
         self.boundary_obstacles = np.empty((0, 2)) # Static obstacles for DWA (e.g., walls)
+        self.map_size = None  # (width, height) of the map in pixels / coordinate units
         self.road_map = None
         self.start_position = None
         self.goal_position = None
@@ -85,21 +86,23 @@ class MapManager:
         arr = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
         arr = cv2.resize(arr, map_size)
         _, arr = cv2.threshold(arr, 128, 1, cv2.THRESH_BINARY)
-        
-        # Add boundary obstacles
-        arr[0, :] = 0  # Top edge
-        arr[-1, :] = 0  # Bottom edge
-        arr[:, 0] = 0  # Left edge
-        arr[:, -1] = 0  # Right edge
-        
+        self.map_size = map_size  # store (width, height) for downstream use
+
+        arr_for_planning = arr.copy()
+        if self.config.enable_map_boundary_obstacles:
+            arr_for_planning[0, :] = 0  # Top edge
+            arr_for_planning[-1, :] = 0  # Bottom edge
+            arr_for_planning[:, 0] = 0  # Left edge
+            arr_for_planning[:, -1] = 0  # Right edge
+
         # Extract obstacles
-        self.static_obstacles = np.argwhere(arr == 0)
-        self._process_obstacle_coordinates(self.static_obstacles, arr.shape)
+        self.static_obstacles = np.argwhere(arr_for_planning == 0)
+        self._process_obstacle_coordinates(self.static_obstacles, arr_for_planning.shape)
         
         # Process for A* and DWA
         # self._process_astar_map(arr)  # Add buffer for Global Planning
         self.astar_obstacles = self.static_obstacles.copy()  # Do not add buffer for Global Planning
-        self._process_boundary_map(arr)
+        self._process_boundary_map(arr_for_planning)
         
     def _process_obstacle_coordinates(self, obstacles: np.ndarray, arr_shape: Tuple[int, int]) -> None:
         """Process obstacle coordinates to match plot orientation"""
@@ -187,6 +190,11 @@ class MapManager:
         """Load map configuration from file including dynamic obstacles"""
         with open(file_path, 'r') as f:
             map_data = json.load(f)
+
+        self.config.enable_map_boundary_obstacles = map_data.get(
+            'enable_map_boundary_obstacles',
+            self.config.enable_map_boundary_obstacles
+        )
         
         # Load basic map data
         self.load_map_from_image(map_data['image_path'], tuple(map_data['map_size']))
@@ -212,6 +220,7 @@ class MapManager:
         map_data = {
             'image_path': 'relative/path/to/image.png', # Placeholder
             'map_size': [100, 100], # Placeholder
+            'enable_map_boundary_obstacles': self.config.enable_map_boundary_obstacles,
             'start_position': self.start_position.tolist() if self.start_position is not None else None,
             'goal_position': self.goal_position.tolist() if self.goal_position is not None else None,
             'dynamic_obstacles': [

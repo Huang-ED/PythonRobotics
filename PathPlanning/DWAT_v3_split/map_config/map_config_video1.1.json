@@ -1,6 +1,7 @@
 {
     "image_path": "EnvData/AISData_20240827/land_shapes_ht_crop.png",
     "map_size": [100, 100],
+    "enable_map_boundary_obstacles": true,
     "dynamic_obstacles": [
         {
             "waypoints": [[55.0, 68.0], [55.0, 69.0], [56.0, 68.0], [56.0, 69.0]],
