@@ -67,6 +67,7 @@ class Config:
 
         self.predict_time_to_goal = 1.0  # [s]
         self.predict_time_obstacle = 10.0  # [s]
+        self.max_direct_weight_time = self.predict_time_obstacle    # [s] max time window for dynamic obstacle direct weighting
 
         self.obstacle_max_angle = np.pi / 180 * 180  # [rad] max angle to consider obstacles in front
 
@@ -398,15 +399,11 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
                     cost_side_vec = np.maximum(0.0, cost_side_vec)
 
                     # 2. Calculate Direct Cost Vector (one per trajectory point)
-                    # Calculate cumulative distance for every point on the trajectory
-                    traj_points = trajectory_for_obstacle[:, 0:2]
-                    segment_diffs = traj_points[1:] - traj_points[:-1]
-                    segment_dists = np.linalg.norm(segment_diffs, axis=1)
-                    # Cumulative distance: [0, d1, d1+d2, ...]
-                    d_direct_arr = np.concatenate(([0], np.cumsum(segment_dists)))
-                    
-                    # Cost decreases as we go further along the path
-                    cost_direct_vec = config.max_obstacle_cost_dist - d_direct_arr
+                    # Time-based weighting: [0, dt, 2dt, ...]
+                    time_arr = np.arange(trajectory_for_obstacle.shape[0]) * config.dt
+
+                    # Cost decreases as prediction time goes further into the future
+                    cost_direct_vec = config.max_direct_weight_time - time_arr
                     cost_direct_vec = np.maximum(0.0, cost_direct_vec)
 
                     # 3. Compound Cost Vector
