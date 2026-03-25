@@ -67,7 +67,6 @@ class Config:
 
         self.predict_time_to_goal = 1.0  # [s]
         self.predict_time_obstacle = 10.0  # [s]
-        self.max_direct_weight_time = self.predict_time_obstacle    # [s] max time window for dynamic obstacle direct weighting
 
         self.obstacle_max_angle = np.pi / 180 * 180  # [rad] max angle to consider obstacles in front
 
@@ -394,17 +393,19 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
                     current_direct_comp = float("inf")
                 else:
                     # 1. Calculate Side Cost Vector (one per trajectory point)
-                    # Cost increases as clearance decreases
-                    cost_side_vec = config.max_side_weight_dist - d_side_arr
-                    cost_side_vec = np.maximum(0.0, cost_side_vec)
+                    # 2nd-order polynomial barrier on normalized clearance closeness.
+                    # This emphasizes very small clearances more strongly than linear weighting.
+                    side_norm = np.maximum(config.max_side_weight_dist, 1e-6)
+                    side_closeness = np.maximum(0.0, 1.0 - (d_side_arr / side_norm))
+                    cost_side_vec = config.max_side_weight_dist * (side_closeness ** 2)
 
                     # 2. Calculate Direct Cost Vector (one per trajectory point)
                     # Time-based weighting: [0, dt, 2dt, ...]
                     time_arr = np.arange(trajectory_for_obstacle.shape[0]) * config.dt
 
-                    # Cost decreases as prediction time goes further into the future
-                    cost_direct_vec = config.max_direct_weight_time - time_arr
-                    cost_direct_vec = np.maximum(0.0, cost_direct_vec)
+                    # Exponential discount in time with factor = 1 / predict_time_obstacle
+                    discount_factor = 1.0 / max(config.predict_time_obstacle, 1e-6)
+                    cost_direct_vec = np.exp(-discount_factor * time_arr)
 
                     # 3. Compound Cost Vector
                     compound_costs = cost_side_vec * cost_direct_vec
