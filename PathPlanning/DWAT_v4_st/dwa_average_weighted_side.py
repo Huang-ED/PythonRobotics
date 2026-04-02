@@ -400,12 +400,8 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
                     cost_side_vec = config.max_side_weight_dist * (side_closeness ** 2)
 
                     # 2. Calculate Direct Cost Vector (one per trajectory point)
-                    # Time-based weighting: [0, dt, 2dt, ...]
-                    time_arr = np.arange(trajectory_for_obstacle.shape[0]) * config.dt
-
-                    # Exponential discount in time with factor = 1 / predict_time_obstacle
-                    discount_factor = 1.0 / max(config.predict_time_obstacle, 1e-6)
-                    cost_direct_vec = np.exp(-discount_factor * time_arr)
+                    # No time weighting: every future step has equal importance.
+                    cost_direct_vec = np.ones(trajectory_for_obstacle.shape[0])
 
                     # 3. Compound Cost Vector
                     compound_costs = cost_side_vec * cost_direct_vec
