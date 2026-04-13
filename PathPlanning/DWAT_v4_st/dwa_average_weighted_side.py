@@ -141,10 +141,13 @@ def line_circle_intersection(line_endpoint_1, line_endpoint_2, center, r):
     return intersection_points
 
 
-def dwa_control_merged(x, config, goal, 
-                       static_ob, static_ob_radii, 
+def dwa_control_merged(x, config, goal,
+                       static_ob, static_ob_radii,
                        dynamic_ob_pos, dynamic_ob_radii,
-                       dynamic_ob_vel): # <--- New Argument
+                       dynamic_ob_vel,
+                       return_candidates=False,
+                       candidate_stride=1,
+                       candidate_max_count=None): # <--- New Argument
     """
     DWA control function with spatiotemporal dynamic obstacle handling.
     """
@@ -155,17 +158,35 @@ def dwa_control_merged(x, config, goal,
         x, dynamic_ob_pos, dynamic_ob_radii, dynamic_ob_vel, max_angle=config.obstacle_max_angle
     )
 
+    result = calc_control_and_trajectory_merged(
+        x, dw, config, goal,
+        static_ob, static_ob_radii,
+        dyn_ob_pos_filt, dyn_ob_radii_filt,
+        dyn_ob_vel_filt,  # <--- Pass filtered velocities
+        return_candidates=return_candidates,
+        candidate_stride=candidate_stride,
+        candidate_max_count=candidate_max_count,
+    )
+
+    if return_candidates:
+        (u, trajectory, dw,
+         to_goal_before, speed_before, ob_before, dynamic_ob_before,
+         dyn_side_component, dyn_direct_component,
+         to_goal_after, speed_after, ob_after, dynamic_ob_after,
+         final_cost, candidate_trajectories) = result
+
+        return (u, trajectory, dw,
+                to_goal_before, speed_before, ob_before, dynamic_ob_before,
+                dyn_side_component, dyn_direct_component,
+                to_goal_after, speed_after, ob_after, dynamic_ob_after,
+                final_cost, candidate_trajectories)
+
     (u, trajectory, dw,
      to_goal_before, speed_before, ob_before, dynamic_ob_before,
-     dyn_side_component, dyn_direct_component, 
+     dyn_side_component, dyn_direct_component,
      to_goal_after, speed_after, ob_after, dynamic_ob_after,
-     final_cost) = calc_control_and_trajectory_merged(
-         x, dw, config, goal, 
-         static_ob, static_ob_radii, 
-         dyn_ob_pos_filt, dyn_ob_radii_filt,
-         dyn_ob_vel_filt # <--- Pass filtered velocities
-     )
-    
+     final_cost) = result
+
     return (u, trajectory, dw,
             to_goal_before, speed_before, ob_before, dynamic_ob_before,
             dyn_side_component, dyn_direct_component,
@@ -299,10 +320,13 @@ def predict_trajectory_obstacle(x_init, v, y, config):
     return trajectory
 
 
-def calc_control_and_trajectory_merged(x, dw, config, goal, 
-                                     static_ob, static_ob_radii, 
+def calc_control_and_trajectory_merged(x, dw, config, goal,
+                                     static_ob, static_ob_radii,
                                      dynamic_ob_pos, dynamic_ob_radii,
-                                     dynamic_ob_vel): # <--- New Argument
+                                     dynamic_ob_vel,
+                                     return_candidates=False,
+                                     candidate_stride=1,
+                                     candidate_max_count=None): # <--- New Argument
     """
     Calculation final input with dynamic window, splitting cost functions
     for static and dynamic obstacles.
@@ -463,6 +487,20 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
     if abs(best_u[0]) < config.robot_stuck_flag_cons \
             and abs(x[3]) < config.robot_stuck_flag_cons:
         best_u[1] = -config.max_delta_yaw_rate
+
+    if return_candidates:
+        stride = max(1, int(candidate_stride))
+        candidate_trajectories = trajectories[::stride]
+
+        if candidate_max_count is not None and candidate_max_count > 0 and len(candidate_trajectories) > candidate_max_count:
+            idx = np.linspace(0, len(candidate_trajectories) - 1, candidate_max_count, dtype=int)
+            candidate_trajectories = [candidate_trajectories[i] for i in idx]
+
+        return (best_u, best_trajectory, dw,
+                to_goal_before, speed_before, static_ob_before, dynamic_ob_before,
+                best_side_component, best_direct_component,
+                to_goal_after, speed_after, static_ob_after, dynamic_ob_after,
+                min_cost, candidate_trajectories)
 
     return (best_u, best_trajectory, dw,
             to_goal_before, speed_before, static_ob_before, dynamic_ob_before,

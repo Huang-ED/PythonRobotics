@@ -32,8 +32,12 @@ import traceback
 # plt.switch_backend('Agg')
 show_animation = True
 save_animation_to_figs = True
-fig_folder = 'figs_v20.7.3-scenario4' # New folder for merged results
-map_config_file = os.path.join("PathPlanning", "DWAT_v4_st", "map_config", "scenario_4.json")
+plot_predicted_dynamic_obstacles = True
+plot_candidate_trajectories = True
+candidate_plot_stride = 20
+candidate_plot_max_count = 120
+fig_folder = 'figs_v20.7.3-scenario3-delete' # New folder for merged results
+map_config_file = os.path.join("PathPlanning", "DWAT_v4_st", "map_config", "scenario_3.json")
 # fig_folder = 'figs_v20.7.3-video1'
 # map_config_file = os.path.join("PathPlanning", "DWAT_v4_st", "map_config", "map_config_video1.json")
 
@@ -208,16 +212,32 @@ if __name__ == '__main__':
 
                 
                 # Call the new MERGED DWA control function
-                (u, predicted_trajectory, dw, 
-                 to_goal_before, speed_before, static_ob_before, dynamic_ob_before,
-                 dyn_side_val, dyn_direct_val, 
-                 to_goal_after, speed_after, static_ob_after, dynamic_ob_after, 
-                 final_cost) = dwa.dwa_control_merged(
-                    x, config, dwagoal, 
-                    static_ob, static_ob_radii,
-                    dynamic_ob_pos, dynamic_ob_radii,
-                    dynamic_ob_vel  # <--- PASS VELOCITY HERE
-                )
+                if plot_candidate_trajectories:
+                    (u, predicted_trajectory, dw,
+                     to_goal_before, speed_before, static_ob_before, dynamic_ob_before,
+                     dyn_side_val, dyn_direct_val,
+                     to_goal_after, speed_after, static_ob_after, dynamic_ob_after,
+                     final_cost, candidate_trajectories) = dwa.dwa_control_merged(
+                        x, config, dwagoal,
+                        static_ob, static_ob_radii,
+                        dynamic_ob_pos, dynamic_ob_radii,
+                        dynamic_ob_vel,  # <--- PASS VELOCITY HERE
+                        return_candidates=True,
+                        candidate_stride=candidate_plot_stride,
+                        candidate_max_count=candidate_plot_max_count,
+                    )
+                else:
+                    (u, predicted_trajectory, dw,
+                     to_goal_before, speed_before, static_ob_before, dynamic_ob_before,
+                     dyn_side_val, dyn_direct_val,
+                     to_goal_after, speed_after, static_ob_after, dynamic_ob_after,
+                     final_cost) = dwa.dwa_control_merged(
+                        x, config, dwagoal,
+                        static_ob, static_ob_radii,
+                        dynamic_ob_pos, dynamic_ob_radii,
+                        dynamic_ob_vel,  # <--- PASS VELOCITY HERE
+                    )
+                    candidate_trajectories = []
 
                 # Record data for this iteration
                 log_entry = {
@@ -305,9 +325,24 @@ COLLISION DETECTED!
                         circle = plt.Circle(obstacle.current_position, obstacle.radius, color="brown", zorder=10)
                         plt.gca().add_patch(circle)
                         plt_elements.append(circle)
+
+                    if plot_predicted_dynamic_obstacles and len(dynamic_ob_pos) > 0:
+                        pred_time = np.arange(0.0, config.predict_time_obstacle + config.dt, config.dt)
+                        for ob_i in range(len(dynamic_ob_pos)):
+                            ob_pred_x = dynamic_ob_pos[ob_i, 0] + dynamic_ob_vel[ob_i, 0] * pred_time
+                            ob_pred_y = dynamic_ob_pos[ob_i, 1] + dynamic_ob_vel[ob_i, 1] * pred_time
+                            plt_elements.append(
+                                plt.plot(ob_pred_x, ob_pred_y, "--", color="peru", linewidth=1.0, alpha=0.8)[0]
+                            )
+
+                    if plot_candidate_trajectories:
+                        for cand_traj in candidate_trajectories:
+                            plt_elements.append(
+                                plt.plot(cand_traj[:, 0], cand_traj[:, 1], "-", color="deepskyblue", linewidth=0.8, alpha=0.25)[0]
+                            )
                         
                     # Add robot elements
-                    plt_elements.append(plt.plot(predicted_trajectory[:, 0], predicted_trajectory[:, 1], "-g")[0])
+                    plt_elements.append(plt.plot(predicted_trajectory[:, 0], predicted_trajectory[:, 1], "-g", linewidth=2.0)[0])
                     plt_elements.append(plt.plot(x[0], x[1], "xr")[0])
                     plt_elements.extend(dwa.plot_robot(x[0], x[1], x[2], config_plot))
                     plt_elements.extend(dwa.plot_arrow(x[0], x[1], x[2]))
