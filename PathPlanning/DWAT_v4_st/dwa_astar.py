@@ -36,10 +36,10 @@ plot_predicted_dynamic_obstacles = True
 plot_candidate_trajectories = True
 candidate_plot_stride = 20
 candidate_plot_max_count = 120
-fig_folder = 'figs_v20.7.3-scenario3-delete' # New folder for merged results
-map_config_file = os.path.join("PathPlanning", "DWAT_v4_st", "map_config", "scenario_3.json")
-# fig_folder = 'figs_v20.7.3-video1'
-# map_config_file = os.path.join("PathPlanning", "DWAT_v4_st", "map_config", "map_config_video1.json")
+# fig_folder = 'figs_v20.7.5-scenario4' # New folder for merged results
+# map_config_file = os.path.join("PathPlanning", "DWAT_v4_st", "map_config", "scenario_4.json")
+fig_folder = 'figs_v20.7.5-video3'
+map_config_file = os.path.join("PathPlanning", "DWAT_v4_st", "map_config", "map_config_video3.json")
 
 if __name__ == '__main__':
 

@@ -64,9 +64,10 @@ class Config:
 
         self.max_obstacle_cost_dist = 8.0  # [m] max distance for static obstacle cost calculation
         self.max_side_weight_dist = 3.0      # [m] max distance for dynamic obstacle side cost calculation
+        self.time_decay_lambda = 0.1  # [1/s] exponential time-discount for dynamic obstacle cost
 
         self.predict_time_to_goal = 1.0  # [s]
-        self.predict_time_obstacle = 10.0  # [s]
+        self.predict_time_obstacle = 30.0  # [s]
 
         self.obstacle_max_angle = np.pi / 180 * 180  # [rad] max angle to consider obstacles in front
 
@@ -424,17 +425,25 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
                     cost_side_vec = config.max_side_weight_dist * (side_closeness ** 2)
 
                     # 2. Calculate Direct Cost Vector (one per trajectory point)
-                    # No time weighting: every future step has equal importance.
-                    cost_direct_vec = np.ones(trajectory_for_obstacle.shape[0])
+                    # Exponential time discount: near-future points matter more.
+                    # w(t) = exp(-lambda * t)
+                    times = np.arange(trajectory_for_obstacle.shape[0]) * config.dt
+                    cost_direct_vec = np.exp(-max(config.time_decay_lambda, 0.0) * times)
 
                     # 3. Compound Cost Vector
                     compound_costs = cost_side_vec * cost_direct_vec
                     
-                    # 4. Final Cost is the AVERAGE of the compound costs along the path
+                    # 4. Final Cost is a TIME-WEIGHTED average of compound costs
                     if len(compound_costs) > 0:
-                        dynamic_ob_cost = np.mean(compound_costs)
+                        weight_sum = np.sum(cost_direct_vec)
+                        if weight_sum > 1e-12:
+                            dynamic_ob_cost = np.sum(compound_costs) / weight_sum
+                            current_side_comp = np.sum(cost_side_vec * cost_direct_vec) / weight_sum
+                        else:
+                            dynamic_ob_cost = np.mean(compound_costs)
+                            current_side_comp = np.mean(cost_side_vec)
+
                         # For logging: calculate average components
-                        current_side_comp = np.mean(cost_side_vec)
                         current_direct_comp = np.mean(cost_direct_vec)
                         
                         # # Alternative: Max-based
