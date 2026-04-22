@@ -1,0 +1,10 @@
+{
+  "show_animation": true,
+  "save_animation_to_figs": true,
+  "show_global_planner_search": true,
+  "plot_predicted_dynamic_obstacles": true,
+  "plot_candidate_trajectories": true,
+  "candidate_plot_stride": 20,
+  "candidate_plot_max_count": 120,
+  "output_tag": "figs_v20.7.5-modular-video3"
+}
