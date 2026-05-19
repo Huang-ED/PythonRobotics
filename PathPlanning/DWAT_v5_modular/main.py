@@ -61,6 +61,12 @@ def load_runtime_options(overrides: Dict[str, Any]) -> Any:
     return runtime
 
 
+def _build_output_tag(algorithm_config_path: Path, scenario_path: Path) -> str:
+    algo_name = algorithm_config_path.stem
+    scenario_name = scenario_path.stem
+    return f"figs_{algo_name}-modular-{scenario_name}"
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Modular DWA + Theta* runner")
     parser.add_argument(
@@ -106,11 +112,19 @@ def main() -> int:
     args = build_parser().parse_args()
 
     scenario_path = resolve_scenario_path(args.scenario)
-    algorithm_config = _load_json(_resolve_config_path(args.algorithm_config))
+    algorithm_config_path = _resolve_config_path(args.algorithm_config)
+    algorithm_config = _load_json(algorithm_config_path)
     run_config = _load_json(_resolve_config_path(args.run_config))
 
     config = apply_algorithm_overrides(Config(), algorithm_config)
     runtime = load_runtime_options(run_config)
+    if not runtime.output_tag or not str(runtime.output_tag).strip():
+        print("No output tag specified in runtime options, generating one based on config file names.")
+        runtime.output_tag = _build_output_tag(
+            algorithm_config_path=algorithm_config_path,
+            scenario_path=scenario_path,
+        )
+        print(f"Generated output tag: {runtime.output_tag}")
 
     if args.no_animation:
         runtime.show_animation = False

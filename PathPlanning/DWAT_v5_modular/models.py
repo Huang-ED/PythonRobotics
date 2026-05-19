@@ -14,7 +14,7 @@ class RuntimeOptions:
     plot_candidate_trajectories: bool = True
     candidate_plot_stride: int = 20
     candidate_plot_max_count: int = 120
-    output_tag: str = "figs_v20.7.5-modular"
+    output_tag: str = ""
 
 
 @dataclass

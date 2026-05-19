@@ -35,8 +35,7 @@ From repository root:
 
 Use scenario_3.json for a lightweight super simple test.
 ```bash
-python -m PathPlanning.DWAT_v5_modular.main \
-  --scenario PathPlanning/DWAT_v5_modular/configs/scenarios/scenario_3.json
+python -m PathPlanning.DWAT_v5_modular.main --scenario PathPlanning/DWAT_v5_modular/configs/scenarios/scenario_3.json --algorithm-config PathPlanning/DWAT_v5_modular/configs/algorithm/v20.7.5.json
 ```
 
 Example for video3 scenario:
