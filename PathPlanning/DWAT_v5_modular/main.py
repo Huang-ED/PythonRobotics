@@ -116,6 +116,10 @@ def main() -> int:
     algorithm_config = _load_json(algorithm_config_path)
     run_config = _load_json(_resolve_config_path(args.run_config))
 
+    dwa_module = algorithm_config.pop(
+        "dwa_module",
+        "PathPlanning.DWAT_v4_st.dwa_average_weighted_side",
+    )
     config = apply_algorithm_overrides(Config(), algorithm_config)
     runtime = load_runtime_options(run_config)
     if not runtime.output_tag or not str(runtime.output_tag).strip():
@@ -147,7 +151,13 @@ def main() -> int:
             reuse_existing_figure=runtime.show_global_planner_search,
         )
 
-    result = run_simulation(config=config, map_ctx=map_ctx, runtime=runtime, renderer=renderer)
+    result = run_simulation(
+        config=config,
+        map_ctx=map_ctx,
+        runtime=runtime,
+        renderer=renderer,
+        dwa_module=dwa_module,
+    )
 
     log_file = save_log(
         config=config,

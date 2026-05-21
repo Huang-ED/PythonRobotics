@@ -1,10 +1,10 @@
+import importlib
 import math
 import traceback
 from typing import Any, Optional
 
 import numpy as np
 
-from PathPlanning.DWAT_v4_st import dwa_average_weighted_side as dwa
 from PathPlanning.DWAT_v4_st.dwa_average_weighted_side import line_circle_intersection
 
 from .models import CollisionEvent, MapContext, RuntimeOptions, SimulationResult
@@ -43,8 +43,17 @@ def _choose_local_goal(
     return np.array(valid_intersection_points[int(np.argmin(dists))])
 
 
-def _build_collision_event(config: Any, x: np.ndarray, obstacle_index: int, obstacle_pos: np.ndarray, obstacle_radius: float, collision_distance: float, iteration: int) -> CollisionEvent:
-    if config.robot_type == dwa.RobotType.rectangle:
+def _build_collision_event(
+    config: Any,
+    dwa_mod: Any,
+    x: np.ndarray,
+    obstacle_index: int,
+    obstacle_pos: np.ndarray,
+    obstacle_radius: float,
+    collision_distance: float,
+    iteration: int,
+) -> CollisionEvent:
+    if config.robot_type == dwa_mod.RobotType.rectangle:
         effective_radius = math.sqrt((config.robot_length / 2) ** 2 + (config.robot_width / 2) ** 2)
         robot_shape_info = f"rectangle (effective radius: {effective_radius:.3f}m)"
     else:
@@ -67,7 +76,9 @@ def run_simulation(
     map_ctx: MapContext,
     runtime: RuntimeOptions,
     renderer: Optional[Any] = None,
+    dwa_module: str = "PathPlanning.DWAT_v4_st.dwa_average_weighted_side",
 ) -> SimulationResult:
+    dwa_mod = importlib.import_module(dwa_module)
     x = np.array([map_ctx.start[0], map_ctx.start[1], -math.pi / 8.0, 0.0, 0.0])
     trajectory = np.array(x)
     log_data = []
@@ -114,7 +125,7 @@ def run_simulation(
                         dynamic_ob_after,
                         final_cost,
                         candidate_trajectories,
-                    ) = dwa.dwa_control_merged(
+                    ) = dwa_mod.dwa_control_merged(
                         x,
                         config,
                         dwagoal,
@@ -143,7 +154,7 @@ def run_simulation(
                         static_ob_after,
                         dynamic_ob_after,
                         final_cost,
-                    ) = dwa.dwa_control_merged(
+                    ) = dwa_mod.dwa_control_merged(
                         x,
                         config,
                         dwagoal,
@@ -179,14 +190,14 @@ def run_simulation(
                 )
                 iteration += 1
 
-                x = dwa.motion(x, u, config.dt)
+                x = dwa_mod.motion(x, u, config.dt)
                 trajectory = np.vstack((trajectory, x))
 
                 all_current_ob = map_ctx.map_manager.get_current_obstacles()
                 all_current_ob_radii = map_ctx.map_manager.get_obstacle_radii()
 
                 collision_detected, obstacle_index, collision_distance = (
-                    dwa.check_collision_at_current_position_circle_approximation(
+                    dwa_mod.check_collision_at_current_position_circle_approximation(
                         x,
                         all_current_ob,
                         all_current_ob_radii,
@@ -199,6 +210,7 @@ def run_simulation(
                     obstacle_radius = all_current_ob_radii[obstacle_index]
                     collision_event = _build_collision_event(
                         config=config,
+                        dwa_mod=dwa_mod,
                         x=x,
                         obstacle_index=obstacle_index,
                         obstacle_pos=obstacle_pos,
