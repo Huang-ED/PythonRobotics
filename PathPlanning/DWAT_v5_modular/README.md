@@ -52,3 +52,12 @@ Disable animation or frame saving:
 ```bash
 python -m PathPlanning.DWAT_v5_modular.main --no-animation --no-save-frames
 ```
+
+Mass Running Example:
+```
+for scenario in scenario_234 scenario_234-1 scenario_5 scenario_6; do
+    python -m PathPlanning.DWAT_v5_modular.main \
+    --scenario PathPlanning/DWAT_v5_modular/configs/scenarios/$scenario.json \
+    --algorithm-config PathPlanning/DWAT_v5_modular/configs/algorithm/v20.7.7.json
+done
+```

@@ -1,5 +1,5 @@
 {
-  "dwa_module": "PathPlanning.DWAT_v4_st.dwa_average_weighted_side_no_time_decay",
+  "dwa_module": "PathPlanning.DWAT_v4_st.dwa_average_weighted_side",
   "max_speed": 0.5,
   "min_speed": 0.0,
   "max_yaw_rate": 0.6981317007977318,
@@ -27,5 +27,7 @@
   "robot_radius": 0.5,
   "obstacle_radius": 0.5,
   "robot_width": 0.5,
-  "robot_length": 1.2
+  "robot_length": 1.2,
+  "side_clearance_barrier_type": "exponential",
+  "side_clearance_gaussian_decay": 3.0
 }

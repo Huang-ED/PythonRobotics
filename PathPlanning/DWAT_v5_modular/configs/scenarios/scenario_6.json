@@ -1,0 +1,39 @@
+{
+  "image_path": "EnvData/simple2.png",
+  "map_size": [50, 50],
+  "enable_map_boundary_obstacles": false,
+  "start_position": [25.0, 5.0],
+  "goal_position": [25.0, 45.0],
+  "dynamic_obstacles": [
+    {
+      "motion_type": "waypoint",
+      "waypoints": [[23.0, 25.0], [23.0, 25.0]],
+      "speed": 0.0,
+      "radius": 1.0
+    },
+    {
+      "motion_type": "waypoint",
+      "waypoints": [[24.0, 25.0], [24.0, 25.0]],
+      "speed": 0.0,
+      "radius": 1.0
+    },
+    {
+      "motion_type": "waypoint",
+      "waypoints": [[25.0, 25.0], [25.0, 25.0]],
+      "speed": 0.0,
+      "radius": 1.0
+    },
+    {
+      "motion_type": "waypoint",
+      "waypoints": [[26.0, 25.0], [26.0, 25.0]],
+      "speed": 0.0,
+      "radius": 1.0
+    },
+    {
+      "motion_type": "waypoint",
+      "waypoints": [[27.0, 25.0], [27.0, 25.0]],
+      "speed": 0.0,
+      "radius": 1.0
+    }
+  ]
+}

@@ -66,6 +66,10 @@ class Config:
         self.max_side_weight_dist = 3.0      # [m] max distance for dynamic obstacle side cost calculation
         self.time_decay_lambda = 0.1  # [1/s] exponential time-discount for dynamic obstacle cost
 
+        # Side clearance barrier function configuration
+        self.side_clearance_barrier_type = "exponential"  # "exponential" or "quadratic"
+        self.side_clearance_gaussian_decay = 3.0  # Decay parameter λ for exponential: S = A*exp(-λ*d²)
+
         self.predict_time_to_goal = 1.0  # [s]
         self.predict_time_obstacle = 30.0  # [s]
 
@@ -418,11 +422,18 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
                     current_direct_comp = float("inf")
                 else:
                     # 1. Calculate Side Cost Vector (one per trajectory point)
-                    # 2nd-order polynomial barrier on normalized clearance closeness.
-                    # This emphasizes very small clearances more strongly than linear weighting.
                     side_norm = np.maximum(config.max_side_weight_dist, 1e-6)
-                    side_closeness = np.maximum(0.0, 1.0 - (d_side_arr / side_norm))
-                    cost_side_vec = config.max_side_weight_dist * (side_closeness ** 2)
+                    
+                    if config.side_clearance_barrier_type == "exponential":
+                        # Gaussian exponential barrier: S = A * exp(-λ*d²)
+                        # Decay rate λ ≈ 3.0 / M² ensures cost ≈ 5% of max at distance = M
+                        decay_rate = config.side_clearance_gaussian_decay / (side_norm ** 2)
+                        cost_side_vec = config.max_side_weight_dist * np.exp(-decay_rate * (d_side_arr ** 2))
+                    else:
+                        # Quadratic barrier: S = A * (1 - d/M)²
+                        # This emphasizes very small clearances more strongly than linear weighting.
+                        side_closeness = np.maximum(0.0, 1.0 - (d_side_arr / side_norm))
+                        cost_side_vec = config.max_side_weight_dist * (side_closeness ** 2)
 
                     # 2. Calculate Direct Cost Vector (one per trajectory point)
                     # Exponential time discount: near-future points matter more.

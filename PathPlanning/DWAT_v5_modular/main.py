@@ -147,7 +147,7 @@ def main() -> int:
         renderer.initialize_scene(
             map_ctx=map_ctx,
             config=config,
-            base_dir=Path(__file__).resolve().parent,
+                base_dir=Path(__file__).resolve().parent / "results",
             reuse_existing_figure=runtime.show_global_planner_search,
         )
 
