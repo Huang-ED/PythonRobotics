@@ -6,7 +6,7 @@ from typing import Any, Optional
 import matplotlib.pyplot as plt
 import numpy as np
 
-from PathPlanning.DWAT_v4_st import dwa_average_weighted_side as dwa
+from ..DWAT_v4_st import dwa_consistent as dwa
 
 from .models import MapContext, OutputArtifacts, RuntimeOptions, SimulationResult
 

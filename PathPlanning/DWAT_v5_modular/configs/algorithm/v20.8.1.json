@@ -1,4 +1,5 @@
 {
+  "dwa_module": "PathPlanning.DWAT_v4_st.dwa_consistent",
   "max_speed": 0.5,
   "min_speed": 0.0,
   "max_yaw_rate": 0.6981317007977318,
@@ -12,7 +13,7 @@
   "obstacle_cost_gain": 0.05,
   "side_cost_gain": 0.6,
   "max_obstacle_cost_dist": 8.0,
-  "max_side_weight_dist": 3.0,
+  "max_side_weight_dist": 2.0,
   "time_decay_lambda": 0.1,
   "predict_time_to_goal": 1.0,
   "predict_time_obstacle": 30.0,
@@ -26,5 +27,6 @@
   "robot_radius": 0.5,
   "obstacle_radius": 0.5,
   "robot_width": 0.5,
-  "robot_length": 1.2
+  "robot_length": 1.2,
+  "side_clearance_barrier_type": "quadratic"
 }

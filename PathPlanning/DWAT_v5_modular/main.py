@@ -4,7 +4,9 @@ import json
 from pathlib import Path
 from typing import Any, Dict
 
-from PathPlanning.DWAT_v4_st.dwa_average_weighted_side import Config, RobotType
+_dwa_module = importlib.import_module("PathPlanning.DWAT_v4_st.dwa_consistent")
+Config = _dwa_module.Config
+RobotType = _dwa_module.RobotType
 
 
 def _repo_root() -> Path:
@@ -118,7 +120,7 @@ def main() -> int:
 
     dwa_module = algorithm_config.pop(
         "dwa_module",
-        "PathPlanning.DWAT_v4_st.dwa_average_weighted_side",
+        "PathPlanning.DWAT_v4_st.dwa_consistent",
     )
     config = apply_algorithm_overrides(Config(), algorithm_config)
     runtime = load_runtime_options(run_config)

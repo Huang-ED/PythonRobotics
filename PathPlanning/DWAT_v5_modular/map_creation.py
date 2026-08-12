@@ -163,6 +163,9 @@ def create_map_context(
     map_manager.start_position = np.array(scenario["start_position"], dtype=float)
     map_manager.goal_position = np.array(scenario["goal_position"], dtype=float)
 
+    # Optional initial heading (radians). 0 = east (+x), pi/2 = north (+y).
+    start_yaw = float(scenario.get("start_yaw", MapContext.start_yaw))
+
     dynamic_obstacles = scenario.get("dynamic_obstacles", [])
     _add_dynamic_obstacles(map_manager, dynamic_obstacles)
 
@@ -191,4 +194,5 @@ def create_map_context(
         road_map=road_map,
         rx=rx,
         ry=ry,
+        start_yaw=start_yaw,
     )

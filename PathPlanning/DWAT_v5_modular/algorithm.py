@@ -5,7 +5,8 @@ from typing import Any, Optional
 
 import numpy as np
 
-from PathPlanning.DWAT_v4_st.dwa_average_weighted_side import line_circle_intersection
+_dwa_module = importlib.import_module("PathPlanning.DWAT_v4_st.dwa_consistent")
+line_circle_intersection = _dwa_module.line_circle_intersection
 
 from .models import CollisionEvent, MapContext, RuntimeOptions, SimulationResult
 
@@ -76,10 +77,10 @@ def run_simulation(
     map_ctx: MapContext,
     runtime: RuntimeOptions,
     renderer: Optional[Any] = None,
-    dwa_module: str = "PathPlanning.DWAT_v4_st.dwa_average_weighted_side",
+    dwa_module: str = "PathPlanning.DWAT_v4_st.dwa_consistent",
 ) -> SimulationResult:
     dwa_mod = importlib.import_module(dwa_module)
-    x = np.array([map_ctx.start[0], map_ctx.start[1], -math.pi / 8.0, 0.0, 0.0])
+    x = np.array([map_ctx.start[0], map_ctx.start[1], map_ctx.start_yaw, 0.0, 0.0])
     trajectory = np.array(x)
     log_data = []
     iteration = 0

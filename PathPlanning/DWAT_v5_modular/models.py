@@ -1,3 +1,4 @@
+import math
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -25,6 +26,9 @@ class MapContext:
     road_map: np.ndarray
     rx: List[float]
     ry: List[float]
+    # Initial heading (radians). Convention: 0 = +x (east), pi/2 = +y (north).
+    # Defaults to the historical hardcoded value so existing scenarios are unchanged.
+    start_yaw: float = -math.pi / 8.0
 
 
 @dataclass
