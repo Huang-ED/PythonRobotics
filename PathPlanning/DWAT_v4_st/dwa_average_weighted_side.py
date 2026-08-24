@@ -70,6 +70,14 @@ class Config:
         self.side_clearance_barrier_type = "exponential"  # "exponential" or "quadratic"
         self.side_clearance_gaussian_decay = 3.0  # Decay parameter λ for exponential: S = A*exp(-λ*d²)
 
+        # How the per-point compound costs (side_cost * time_cost) are reduced to
+        # one scalar along the prediction horizon:
+        #   "mean" -> time-weighted average (default, horizon-length invariant)
+        #   "max"  -> worst single (discounted) point along the horizon
+        # An unnormalized sum is deliberately not offered: it equals "mean" with
+        # side_cost_gain scaled by sum(time_cost), i.e. a gain change, not a new cost.
+        self.dynamic_ob_cost_aggregation = "mean"
+
         self.predict_time_to_goal = 1.0  # [s]
         self.predict_time_obstacle = 30.0  # [s]
 
@@ -325,6 +333,36 @@ def predict_trajectory_obstacle(x_init, v, y, config):
     return trajectory
 
 
+def aggregate_compound_costs(cost_side_vec, cost_direct_vec, mode="mean"):
+    """Reduce the per-point compound costs (side * time) to a single scalar.
+
+    Returns (obstacle_cost, side_component, direct_component), where the last two
+    are only used for logging.
+    """
+    compound_costs = cost_side_vec * cost_direct_vec
+    if len(compound_costs) == 0:
+        return 0.0, 0.0, 0.0
+
+    if mode == "max":
+        i_max = int(np.argmax(compound_costs))
+        return float(compound_costs[i_max]), float(cost_side_vec[i_max]), float(cost_direct_vec[i_max])
+
+    if mode == "mean":
+        # Time-weighted average of the side costs.
+        weight_sum = np.sum(cost_direct_vec)
+        if weight_sum > 1e-12:
+            obstacle_cost = float(np.sum(compound_costs) / weight_sum)
+            side_component = obstacle_cost
+        else:
+            obstacle_cost = float(np.mean(compound_costs))
+            side_component = float(np.mean(cost_side_vec))
+        return obstacle_cost, side_component, float(np.mean(cost_direct_vec))
+
+    raise ValueError(
+        f"Unknown dynamic_ob_cost_aggregation: {mode!r} (expected 'mean' or 'max')"
+    )
+
+
 def calc_control_and_trajectory_merged(x, dw, config, goal,
                                      static_ob, static_ob_radii,
                                      dynamic_ob_pos, dynamic_ob_radii,
@@ -441,27 +479,14 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
                     times = np.arange(trajectory_for_obstacle.shape[0]) * config.dt
                     cost_direct_vec = np.exp(-max(config.time_decay_lambda, 0.0) * times)
 
-                    # 3. Compound Cost Vector
-                    compound_costs = cost_side_vec * cost_direct_vec
-                    
-                    # 4. Final Cost is a TIME-WEIGHTED average of compound costs
-                    if len(compound_costs) > 0:
-                        weight_sum = np.sum(cost_direct_vec)
-                        if weight_sum > 1e-12:
-                            dynamic_ob_cost = np.sum(compound_costs) / weight_sum
-                            current_side_comp = np.sum(cost_side_vec * cost_direct_vec) / weight_sum
-                        else:
-                            dynamic_ob_cost = np.mean(compound_costs)
-                            current_side_comp = np.mean(cost_side_vec)
+                    # 3. Reduce the compound cost vector along the horizon
+                    #    ("mean": time-weighted average, "max": worst point)
+                    dynamic_ob_cost, current_side_comp, current_direct_comp = aggregate_compound_costs(
+                        cost_side_vec,
+                        cost_direct_vec,
+                        getattr(config, "dynamic_ob_cost_aggregation", "mean"),
+                    )
 
-                        # For logging: calculate average components
-                        current_direct_comp = np.mean(cost_direct_vec)
-                        
-                        # # Alternative: Max-based
-                        # dynamic_ob_cost = np.max(compound_costs)
-                        # current_side_comp = cost_side_vec[np.argmax(compound_costs)]
-                        # current_direct_comp = cost_direct_vec[np.argmax(compound_costs)]
-                    
                     dynamic_ob_cost = config.side_cost_gain * dynamic_ob_cost
 
             final_cost = to_goal_cost + speed_cost + static_ob_cost + dynamic_ob_cost

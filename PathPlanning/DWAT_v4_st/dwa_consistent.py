@@ -28,6 +28,7 @@ check_collision_at_current_position_circle_approximation = (
     base.check_collision_at_current_position_circle_approximation
 )
 filter_obstacles_by_direction = base.filter_obstacles_by_direction
+aggregate_compound_costs = base.aggregate_compound_costs
 
 
 def _combine_obstacles(
@@ -202,18 +203,12 @@ def calc_control_and_trajectory_merged(
 
                     times = np.arange(trajectory_for_obstacle.shape[0]) * config.dt
                     cost_direct_vec = np.exp(-max(config.time_decay_lambda, 0.0) * times)
-                    compound_costs = cost_side_vec * cost_direct_vec
 
-                    if len(compound_costs) > 0:
-                        weight_sum = np.sum(cost_direct_vec)
-                        if weight_sum > 1e-12:
-                            obstacle_cost = np.sum(compound_costs) / weight_sum
-                            current_side_comp = np.sum(cost_side_vec * cost_direct_vec) / weight_sum
-                        else:
-                            obstacle_cost = np.mean(compound_costs)
-                            current_side_comp = np.mean(cost_side_vec)
-
-                        current_direct_comp = np.mean(cost_direct_vec)
+                    obstacle_cost, current_side_comp, current_direct_comp = aggregate_compound_costs(
+                        cost_side_vec,
+                        cost_direct_vec,
+                        getattr(config, "dynamic_ob_cost_aggregation", "mean"),
+                    )
 
                     obstacle_cost = config.side_cost_gain * obstacle_cost
 
