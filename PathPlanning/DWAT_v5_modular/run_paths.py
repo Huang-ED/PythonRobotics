@@ -39,23 +39,28 @@ def default_runs_root() -> Path:
 
 
 def version_from_config(algorithm_config_path: Path) -> str:
-    """Derive the version path from the algorithm config filename.
+    """Derive the version path from where the algorithm config sits.
 
-    ``v20.9.json`` -> ``v20.9``
+    The config tree and the run tree use the same shape, so a config's location
+    is its version::
 
-    A single underscore marks a variant of a parent config, so the ablation
-    sweep nests under the config it varies rather than sitting beside it:
+        configs/algorithm/v20.9.json            -> v20.9
+        configs/algorithm/v20.7.8-2/predT10.json -> v20.7.8-2/predT10
 
-    ``v20.7.8-2_predT10.json`` -> ``v20.7.8-2/predT10``
-
-    Only the first underscore splits, so ``v20.7.8-2_predT10_a0.5`` becomes
-    ``v20.7.8-2/predT10_a0.5`` -- one variant of one parent, not a deeper tree.
+    A config outside the tree falls back to the older flat convention, where a
+    single underscore marked a variant (``v20.7.8-2_predT10`` ->
+    ``v20.7.8-2/predT10``), so paths written before the grouping still map to
+    the same run directory they always did.
     """
-    stem = algorithm_config_path.stem
-    parent, sep, variant = stem.partition("_")
-    if sep and variant:
-        return f"{parent}/{variant}"
-    return stem
+    path = Path(algorithm_config_path).resolve()
+    root = (Path(__file__).resolve().parent / "configs" / "algorithm").resolve()
+    try:
+        rel = path.relative_to(root)
+    except ValueError:
+        stem = path.stem
+        parent, sep, variant = stem.partition("_")
+        return f"{parent}/{variant}" if sep and variant else stem
+    return rel.with_suffix("").as_posix()
 
 
 def group_from_scenario(scenario: Dict[str, Any]) -> str:

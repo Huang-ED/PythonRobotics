@@ -31,6 +31,29 @@ def _resolve_config_path(path_text: str) -> Path:
     if local_candidate.exists():
         return local_candidate
 
+    # Algorithm configs are grouped (v20.7.8-2/predT10.json), so a pre-grouping
+    # path or a bare name still needs to resolve.
+    find_config_by_name = importlib.import_module(
+        "PathPlanning.DWAT_v5_modular.map_creation"
+    ).find_config_by_name
+    configs = Path(__file__).resolve().parent / "configs"
+    for sub in ("algorithm", "run", "scenarios"):
+        found = find_config_by_name(path_text, configs / sub)
+        if found is not None:
+            return found
+
+    # Variant configs used to be flat: "v20.7.8-2_predT10.json" is now
+    # "v20.7.8-2/predT10.json". Translate the old name so existing scripts,
+    # notes and READMEs keep resolving.
+    stem = Path(path_text).name
+    if stem.endswith(".json"):
+        stem = stem[: -len(".json")]
+    parent, sep, variant = stem.partition("_")
+    if sep and variant:
+        legacy = configs / "algorithm" / parent / f"{variant}.json"
+        if legacy.exists():
+            return legacy.resolve()
+
     raise FileNotFoundError(f"Config file not found: {path_text}")
 
 

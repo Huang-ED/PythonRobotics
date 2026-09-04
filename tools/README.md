@@ -13,8 +13,10 @@ runs/<version>/<group>/<scenario>__<timestamp>/
     video.mp4
 ```
 
-- **version** — the `--algorithm-config` filename. `v20.7.8-2_predT10.json`
-  nests as `v20.7.8-2/predT10`, so an ablation sweep reads as one experiment.
+- **version** — where the algorithm config sits under `configs/algorithm/`.
+  `v20.7.8-2/predT10.json` gives `v20.7.8-2/predT10`, so an ablation sweep reads
+  as one experiment. (The older flat name `v20.7.8-2_predT10.json` maps to the
+  same version, so pre-grouping commands still land in the same place.)
 - **group** — the `"group"` key in the scenario JSON: `encounters`, `combined`,
   `synthetic`, `imported`, `video`, `baseline`. Purely to keep listings short.
 - Pre-v5 generations sit under `runs/_archive/<generation>/` in the same shape.

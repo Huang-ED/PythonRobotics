@@ -9,7 +9,7 @@ Modular split of DWA + Theta* into four responsibilities:
 
 ## Config Layout
 
-- Scenario config: `configs/scenarios/*.json`
+- Scenario config: `configs/scenarios/<group>/*.json` (a bare name also works)
 - Algorithm tuning config: `configs/algorithm/default.json`
 - Runtime/display config: `configs/run/default.json`
 
@@ -68,9 +68,43 @@ planner. Full spec: `configs/README_scene_format.md`.
 python PathPlanning/DWAT_v5_modular/adapters/scene_export_adapter.py     # dataset -> scenario + tracks
 
 python -m PathPlanning.DWAT_v5_modular.main \
-  --scenario PathPlanning/DWAT_v5_modular/configs/scenarios/scene_export.json \
+  --scenario PathPlanning/DWAT_v5_modular/configs/scenarios/imported/scene_export.json \
   --algorithm-config PathPlanning/DWAT_v5_modular/configs/algorithm/v20.7.8-2.json
 ```
+
+## Config layout
+
+Configs are grouped so no listing gets long, and the grouping mirrors `runs/`:
+
+```
+configs/
+  algorithm/
+    v20.7.5.json ... v20.9.3.json      one file per version
+    v20.7.8-2/                         variants of v20.7.8-2
+      predT5.json ... predT30.json     the prediction-horizon sweep
+  scenarios/
+    baseline/  combined/  encounters/  imported/  synthetic/  video/
+  run/
+    default.json  video.json
+```
+
+A scenario's folder is its `"group"` key, and an algorithm config's folder is
+its version, so `configs/algorithm/v20.7.8-2/predT10.json` produces runs under
+`runs/v20.7.8-2/predT10/`.
+
+**You can pass a bare name.** These are equivalent:
+
+```bash
+--scenario ow_sequence
+--scenario PathPlanning/DWAT_v5_modular/configs/scenarios/combined/ow_sequence.json
+--scenario PathPlanning/DWAT_v5_modular/configs/scenarios/ow_sequence.json   # pre-grouping path
+```
+
+All three resolve to the same file; the lookup falls back to searching by
+filename, and errors rather than guessing if a name is ambiguous. The old flat
+variant names still work too (`v20.7.8-2_predT10` finds
+`v20.7.8-2/predT10.json`), and they derive the same version, so old and new
+invocations write into the same run directory.
 
 ## Where output goes
 
@@ -111,7 +145,7 @@ From repository root:
 
 Use scenario_3.json for a lightweight super simple test.
 ```bash
-python -m PathPlanning.DWAT_v5_modular.main --scenario PathPlanning/DWAT_v5_modular/configs/scenarios/scenario_3.json --algorithm-config PathPlanning/DWAT_v5_modular/configs/algorithm/v20.7.5.json
+python -m PathPlanning.DWAT_v5_modular.main --scenario PathPlanning/DWAT_v5_modular/configs/scenarios/synthetic/scenario_3.json --algorithm-config PathPlanning/DWAT_v5_modular/configs/algorithm/v20.7.5.json
 ```
 
 Example for video3 scenario:
@@ -120,7 +154,7 @@ Use video3.json for a real-world map test.
 (Currently without optimization, this might run for a while.)
 ```bash
 python -m PathPlanning.DWAT_v5_modular.main \
-  --scenario PathPlanning/DWAT_v5_modular/configs/scenarios/video3.json
+  --scenario PathPlanning/DWAT_v5_modular/configs/scenarios/video/video3.json
 ```
 
 Disable animation or frame saving:
@@ -211,18 +245,18 @@ t~169.6 s) while `video3_lrshift.json` completes.
 ```bash
 # 1. obstacle-free reference run (the suite is placed against this)
 python -m PathPlanning.DWAT_v5_modular.main \
-  --scenario PathPlanning/DWAT_v5_modular/configs/scenarios/openwater_baseline.json \
+  --scenario PathPlanning/DWAT_v5_modular/configs/scenarios/baseline/openwater_baseline.json \
   --algorithm-config PathPlanning/DWAT_v5_modular/configs/algorithm/v20.7.8-2.json \
   --no-animation --no-save-frames
 
 # 2. generate the scenarios
 python PathPlanning/DWAT_v5_modular/adapters/encounter_suite.py \
   --reference-log runs/v20.7.8-2/baseline/openwater_baseline__<ts>/log_details.json \
-  --base-scenario PathPlanning/DWAT_v5_modular/configs/scenarios/openwater_baseline.json \
+  --base-scenario PathPlanning/DWAT_v5_modular/configs/scenarios/baseline/openwater_baseline.json \
   --suite openwater
 
 # 3. run them
-for s in PathPlanning/DWAT_v5_modular/configs/scenarios/openwater_*.json; do
+for s in PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owenc_*.json; do
   python -m PathPlanning.DWAT_v5_modular.main --scenario "$s" \
     --algorithm-config PathPlanning/DWAT_v5_modular/configs/algorithm/v20.7.8-2.json \
     --no-animation --no-save-frames
@@ -231,7 +265,7 @@ done
 # 4. score them
 python PathPlanning/DWAT_v5_modular/adapters/encounter_report.py \
   --baseline-log runs/v20.7.8-2/baseline/openwater_baseline__<ts>/log_details.json \
-  --manifest PathPlanning/DWAT_v5_modular/configs/scenarios/openwater_manifest.json \
+  --manifest PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owenc_manifest.json \
   --runs 'runs/v20.7.8-2/encounters/owenc_*/log_details.json'
 ```
 
@@ -278,7 +312,7 @@ the regression test for it.
 ```bash
 python PathPlanning/DWAT_v5_modular/adapters/encounter_suite.py \
     --reference-log runs/v20.7.8-2/baseline/openwater_baseline__<ts>/log_details.json \
-    --base-scenario PathPlanning/DWAT_v5_modular/configs/scenarios/openwater_baseline.json \
+    --base-scenario PathPlanning/DWAT_v5_modular/configs/scenarios/baseline/openwater_baseline.json \
     --combine ow_sequence
 ```
 
@@ -316,7 +350,7 @@ then assemble with ffmpeg:
 
 ```bash
 MPLBACKEND=Agg python -m PathPlanning.DWAT_v5_modular.main \
-    --scenario PathPlanning/DWAT_v5_modular/configs/scenarios/ow_sequence.json \
+    --scenario PathPlanning/DWAT_v5_modular/configs/scenarios/combined/ow_sequence.json \
     --algorithm-config PathPlanning/DWAT_v5_modular/configs/algorithm/v20.7.8-2.json \
     --run-config PathPlanning/DWAT_v5_modular/configs/run/video.json
 # prints:  Run directory: runs/v20.7.8-2/combined/ow_sequence__<timestamp>

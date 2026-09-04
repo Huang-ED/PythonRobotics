@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Optional
 
 import numpy as np
 
@@ -42,6 +42,32 @@ def _load_json(path: Path) -> Dict[str, Any]:
         return json.load(f)
 
 
+def find_config_by_name(name: str, search_root: Path) -> Optional[Path]:
+    """Locate a config by bare filename anywhere under search_root.
+
+    Configs are grouped into subdirectories (scenarios/encounters/,
+    algorithm/v20.7.8-2/, ...), so a path written before that grouping -- or a
+    bare name like "ow_sequence" -- no longer resolves directly. Searching by
+    filename keeps both working, and means the grouping can be rearranged again
+    without invalidating every command in the READMEs and notebooks.
+
+    Returns None if there is no match. Raises if the name is ambiguous, rather
+    than silently picking one of two different configs.
+    """
+    stem = Path(name).name
+    if not stem.endswith(".json"):
+        stem += ".json"
+    hits = sorted(search_root.rglob(stem))
+    if not hits:
+        return None
+    if len(hits) > 1:
+        joined = ", ".join(str(h.relative_to(search_root)) for h in hits)
+        raise FileNotFoundError(
+            f"Ambiguous config name {stem!r}; matches {joined}. Pass a fuller path."
+        )
+    return hits[0]
+
+
 def resolve_scenario_path(scenario_path: str) -> Path:
     candidate = Path(scenario_path)
     if candidate.is_absolute():
@@ -54,6 +80,12 @@ def resolve_scenario_path(scenario_path: str) -> Path:
     local_candidate = (Path(__file__).resolve().parent / candidate).resolve()
     if local_candidate.exists():
         return local_candidate
+
+    found = find_config_by_name(
+        scenario_path, Path(__file__).resolve().parent / "configs" / "scenarios"
+    )
+    if found is not None:
+        return found
 
     raise FileNotFoundError(f"Scenario config not found: {scenario_path}")
 
