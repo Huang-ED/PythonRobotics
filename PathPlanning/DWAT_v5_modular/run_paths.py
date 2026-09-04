@@ -29,6 +29,22 @@ from typing import Any, Dict, Optional
 # Used when a scenario JSON does not declare a "group".
 DEFAULT_GROUP = "misc"
 
+ILLEGAL_PATH_CHARS = '\\/:*?"<>|'
+
+
+def safe_component(name: str, fallback: str = "unnamed") -> str:
+    """Make one path component safe to store on Windows / OneDrive.
+
+    A leading or trailing space breaks OneDrive sync, and NTFS silently drops a
+    trailing one -- so two names the code treats as different would land in the
+    same directory. Strip both rather than trust config authors.
+    """
+    cleaned = "".join(
+        "_" if (c in ILLEGAL_PATH_CHARS or ord(c) < 32) else c for c in name
+    )
+    cleaned = cleaned.strip().rstrip(".")
+    return cleaned or fallback
+
 
 def _repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
@@ -66,7 +82,7 @@ def version_from_config(algorithm_config_path: Path) -> str:
 def group_from_scenario(scenario: Dict[str, Any]) -> str:
     """Read the family label out of a scenario dict."""
     group = str(scenario.get("group", "") or "").strip().strip("/")
-    return group or DEFAULT_GROUP
+    return safe_component(group, DEFAULT_GROUP) if group else DEFAULT_GROUP
 
 
 def build_run_dir(
@@ -84,6 +100,12 @@ def build_run_dir(
     """
     if timestamp is None:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    # Sanitise each level separately: version may legitimately contain "/"
+    # (v20.7.8-2/predT10), so it cannot be cleaned as a single component.
+    version = "/".join(safe_component(part) for part in str(version).split("/") if part)
+    group = safe_component(group, DEFAULT_GROUP)
+    scenario_name = safe_component(scenario_name)
 
     run_dir = Path(runs_root) / version / group / f"{scenario_name}__{timestamp}"
 

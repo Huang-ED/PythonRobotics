@@ -19,12 +19,32 @@ import re
 from pathlib import Path
 from typing import NamedTuple, Optional, Set
 
+ILLEGAL_PATH_CHARS = '\\/:*?"<>|'
+
 TIMESTAMP_RE = re.compile(r"_(\d{8}_\d{6})$")
 VERSION_ONLY_RE = re.compile(r"^v[\d.]+$")
 MODULAR_SEP = "-modular-"
 
 # Used when a run name records a version but never named its scenario.
 UNNAMED_SCENARIO = "unnamed"
+
+
+def safe_component(name: str, fallback: str = "unnamed") -> str:
+    """Make one path component safe to store on Windows / OneDrive.
+
+    Historical run names were not written with that in mind:
+    ``figs_temp - Compare`` splits into version ``"temp "`` and scenario
+    ``" Compare"``, and a leading or trailing space is not storable. NTFS
+    silently *drops* a trailing space, so ``temp /`` and ``temp/`` become the
+    same directory while the code still believes they differ; a leading space
+    survives instead and breaks OneDrive sync. Both are stripped here so the
+    two failure modes cannot arise.
+    """
+    cleaned = "".join(
+        "_" if (c in ILLEGAL_PATH_CHARS or ord(c) < 32) else c for c in name
+    )
+    cleaned = cleaned.strip().rstrip(".")
+    return cleaned or fallback
 
 
 class RunName(NamedTuple):
@@ -48,17 +68,17 @@ def parse_run_name(name: str) -> Optional[RunName]:
 
     if MODULAR_SEP in body:
         version, scenario = body.split(MODULAR_SEP, 1)
-        return RunName(version, scenario, timestamp, True)
+        return RunName(safe_component(version), safe_component(scenario), timestamp, True)
 
     if "-" not in body:
         # Older LocalGlobal names separate with "_" (figs_v7.1_video1) or carry
         # no scenario at all (figs_v7.3.1). Keep both rather than drop them.
         if VERSION_ONLY_RE.match(body):
-            return RunName(body, UNNAMED_SCENARIO, timestamp, False)
+            return RunName(safe_component(body), UNNAMED_SCENARIO, timestamp, False)
         head, sep, tail = body.partition("_")
         if sep and VERSION_ONLY_RE.match(head):
-            return RunName(head, tail, timestamp, False)
-        return RunName(body, UNNAMED_SCENARIO, timestamp, False)
+            return RunName(safe_component(head), safe_component(tail), timestamp, False)
+        return RunName(safe_component(body), UNNAMED_SCENARIO, timestamp, False)
 
     tokens = body.split("-")
     version_tokens = [tokens[0]]
@@ -69,8 +89,9 @@ def parse_run_name(name: str) -> Optional[RunName]:
         version_tokens.append(tokens[i])
         i += 1
     if i >= len(tokens):
-        return RunName("-".join(version_tokens), UNNAMED_SCENARIO, timestamp, False)
-    return RunName("-".join(version_tokens), "-".join(tokens[i:]), timestamp, False)
+        return RunName(safe_component("-".join(version_tokens)), UNNAMED_SCENARIO, timestamp, False)
+    return RunName(safe_component("-".join(version_tokens)),
+                   safe_component("-".join(tokens[i:])), timestamp, False)
 
 
 def version_dir(version: str, known_parents: Set[str]) -> str:

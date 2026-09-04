@@ -31,11 +31,30 @@ figures and videos) live in `PathPlanning/DWAT_v5_modular/results/` instead.
 | `run_naming.py` | Parses the historical `figs_*` names into version / scenario / timestamp. Imported by the other two; not run directly. |
 | `migrate_runs.py` | One-shot move of the old split layout into `runs/`. `--dry-run` prints the plan; `--apply` performs it and writes `migration_manifest.csv`. |
 | `build_run_index.py` | Regenerates `runs/INDEX.md`: every run with its outcome, artifacts and size. Run it after a batch of simulations. |
+| `check_names.py` | Finds path names OneDrive / Windows cannot store. `--fix` renames them. Worth running after any bulk move. |
 
 ```bash
 python tools/build_run_index.py          # refresh runs/INDEX.md
+python tools/check_names.py              # exit 1 if any name is unsafe
 python tools/migrate_runs.py --dry-run   # (already applied once)
 ```
+
+## Why names are checked
+
+This tree sits inside OneDrive, so a name that is fine on Linux can still break
+sync -- or be silently changed. Both happened here, from a single historical
+folder named `figs_temp - Compare`, which parsed into version `"temp "` and
+scenario `" Compare"`:
+
+- The **trailing** space was silently dropped by NTFS, so `temp /` and `temp/`
+  became one directory while the migration still believed they were two.
+  Nothing errored; the recorded destination in `migration_manifest.csv` simply
+  did not match the disk.
+- The **leading** space survived, and OneDrive will not sync an item whose name
+  starts with one.
+
+`run_naming.safe_component` and `run_paths.safe_component` now strip both at
+every point a path component is built, so neither can recur.
 
 ## Why the naming parser is fussy
 
