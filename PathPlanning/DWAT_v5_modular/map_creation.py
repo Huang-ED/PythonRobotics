@@ -76,10 +76,84 @@ def resolve_image_path(image_path: str, scenario_file: Path) -> Path:
     )
 
 
-def _add_dynamic_obstacles(map_manager: MapManager, dynamic_obstacles: List[Dict[str, Any]]) -> None:
+def resolve_data_path(data_path: str, scenario_file: Path) -> Path:
+    """Resolve a data asset the same way resolve_image_path resolves images."""
+    path = Path(data_path)
+    if path.is_absolute() and path.exists():
+        return path
+
+    root_candidate = (_repo_root() / path).resolve()
+    if root_candidate.exists():
+        return root_candidate
+
+    scenario_relative = (scenario_file.parent / path).resolve()
+    if scenario_relative.exists():
+        return scenario_relative
+
+    raise FileNotFoundError(
+        f"Data file not found. Tried absolute/root/scenario-relative for: {data_path}"
+    )
+
+
+def _load_track(obs_data: Dict[str, Any], scenario_file: Path, track_cache: Dict[str, Any]):
+    """Pull one recorded track out of a bundle .npz, or read it inline.
+
+    Bundle layout (see EnvData/adapters/scene_format.py):
+        positions (n_obs, K, 2) | lengths (n_obs,) | times (K,) or (n_obs, K)
+        radii (n_obs,) | velocities (n_obs, K, 2), optional | ids (n_obs,), optional
+    """
+    if "track_file" not in obs_data:
+        trajectory = np.asarray(obs_data["trajectory"], dtype=float)
+        times = np.asarray(obs_data["times"], dtype=float)
+        velocities = obs_data.get("velocities")
+        if velocities is not None:
+            velocities = np.asarray(velocities, dtype=float)
+        return trajectory, times, velocities, obs_data.get("radius"), obs_data.get("track_id")
+
+    track_file = str(resolve_data_path(obs_data["track_file"], scenario_file))
+    if track_file not in track_cache:
+        track_cache[track_file] = np.load(track_file, allow_pickle=False)
+    bundle = track_cache[track_file]
+
+    k = int(obs_data["track_index"])
+    n = int(bundle["lengths"][k])
+    trajectory = bundle["positions"][k, :n]
+    times = bundle["times"][:n] if bundle["times"].ndim == 1 else bundle["times"][k, :n]
+    velocities = bundle["velocities"][k, :n] if "velocities" in bundle.files else None
+    radius = obs_data.get("radius", float(bundle["radii"][k]))
+
+    track_id = obs_data.get("track_id")
+    if track_id is None and "ids" in bundle.files:
+        track_id = str(bundle["ids"][k])
+
+    return trajectory, times, velocities, radius, track_id
+
+
+def _add_dynamic_obstacles(
+    map_manager: MapManager,
+    dynamic_obstacles: List[Dict[str, Any]],
+    scenario_file: Path,
+) -> None:
+    # Trajectory obstacles usually share one bundle file; open it once.
+    track_cache: Dict[str, Any] = {}
+
     for obs_data in dynamic_obstacles:
         motion_type = obs_data.get("motion_type", "waypoint")
-        if motion_type == "circle":
+        if motion_type == "trajectory":
+            trajectory, times, velocities, radius, track_id = _load_track(
+                obs_data, scenario_file, track_cache
+            )
+            map_manager.add_dynamic_obstacle(
+                motion_type="trajectory",
+                trajectory=trajectory,
+                times=times,
+                velocities=velocities,
+                radius=radius if radius is not None else map_manager.config.obstacle_radius,
+                start_time=obs_data.get("start_time", 0.0),
+                on_finish=obs_data.get("on_finish", "hold"),
+                track_id=track_id,
+            )
+        elif motion_type == "circle":
             map_manager.add_dynamic_obstacle(
                 speed=obs_data["speed"],
                 radius=obs_data.get("radius", map_manager.config.obstacle_radius),
@@ -152,13 +226,26 @@ def create_map_context(
     scenario_file = resolve_scenario_path(scenario_path)
     scenario = _load_json(scenario_file)
 
-    image_file = resolve_image_path(scenario["image_path"], scenario_file)
-
     map_manager = MapManager(config)
     map_manager.config.enable_map_boundary_obstacles = scenario.get(
         "enable_map_boundary_obstacles", map_manager.config.enable_map_boundary_obstacles
     )
-    map_manager.load_map_from_image(str(image_file), tuple(scenario["map_size"]))
+
+    # The static map comes either from a raster image (hand-authored scenarios)
+    # or from an occupancy grid exported by an external dataset. Prefer the grid
+    # when present: resizing an image resamples it, and imported obstacle
+    # trajectories are certified against the grid, not against the picture.
+    if "occupancy_path" in scenario:
+        occupancy_file = resolve_data_path(scenario["occupancy_path"], scenario_file)
+        map_manager.load_map_from_occupancy(
+            np.load(str(occupancy_file)),
+            resolution=scenario.get("occupancy_resolution", 1.0),
+            origin=tuple(scenario.get("occupancy_origin", (0.0, 0.0))),
+            cell_anchor=scenario.get("occupancy_cell_anchor", "center"),
+        )
+    else:
+        image_file = resolve_image_path(scenario["image_path"], scenario_file)
+        map_manager.load_map_from_image(str(image_file), tuple(scenario["map_size"]))
 
     map_manager.start_position = np.array(scenario["start_position"], dtype=float)
     map_manager.goal_position = np.array(scenario["goal_position"], dtype=float)
@@ -167,7 +254,7 @@ def create_map_context(
     start_yaw = float(scenario.get("start_yaw", MapContext.start_yaw))
 
     dynamic_obstacles = scenario.get("dynamic_obstacles", [])
-    _add_dynamic_obstacles(map_manager, dynamic_obstacles)
+    _add_dynamic_obstacles(map_manager, dynamic_obstacles, scenario_file)
 
     if show_global_search_animation:
         # Keep global-search and local-search updates on the same figure.

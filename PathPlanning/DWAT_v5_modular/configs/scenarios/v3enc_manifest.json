@@ -1,0 +1,272 @@
+[
+  {
+    "meeting_point": [
+      58.52,
+      71.69
+    ],
+    "t_meet_s": 45.0,
+    "ego_heading_deg": -122.4,
+    "ego_speed": 0.5,
+    "spawn": [
+      48.87,
+      56.49
+    ],
+    "target_course_deg": 57.6,
+    "course_rel_deg": 180.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.9,
+    "rel_bearing_deg": 0.0,
+    "sector": "head-on (R14)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 17.2,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "v3A_head_on",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/v3enc_v3A_head_on.json",
+    "spawn_in_map": true
+  },
+  {
+    "meeting_point": [
+      58.52,
+      71.69
+    ],
+    "t_meet_s": 45.0,
+    "ego_heading_deg": -122.4,
+    "ego_speed": 0.5,
+    "spawn": [
+      40.95,
+      67.76
+    ],
+    "target_course_deg": 12.6,
+    "course_rel_deg": 135.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.832,
+    "rel_bearing_deg": 19.9,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 15.0,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "v3A_cross_stbd_045",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/v3enc_v3A_cross_stbd_045.json",
+    "spawn_in_map": true
+  },
+  {
+    "meeting_point": [
+      58.52,
+      71.69
+    ],
+    "t_meet_s": 45.0,
+    "ego_heading_deg": -122.4,
+    "ego_speed": 0.5,
+    "spawn": [
+      43.32,
+      81.33
+    ],
+    "target_course_deg": -32.4,
+    "course_rel_deg": 90.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.64,
+    "rel_bearing_deg": 38.7,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 6.0,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "v3A_cross_stbd_090",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/v3enc_v3A_cross_stbd_090.json",
+    "spawn_in_map": true
+  },
+  {
+    "meeting_point": [
+      58.52,
+      71.69
+    ],
+    "t_meet_s": 45.0,
+    "ego_heading_deg": -122.4,
+    "ego_speed": 0.5,
+    "spawn": [
+      54.59,
+      89.25
+    ],
+    "target_course_deg": -77.4,
+    "course_rel_deg": 45.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.357,
+    "rel_bearing_deg": 52.5,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 0.0,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "v3A_cross_stbd_135",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/v3enc_v3A_cross_stbd_135.json",
+    "spawn_in_map": true
+  },
+  {
+    "meeting_point": [
+      58.52,
+      71.69
+    ],
+    "t_meet_s": 45.0,
+    "ego_heading_deg": -122.4,
+    "ego_speed": 0.5,
+    "spawn": [
+      76.08,
+      75.61
+    ],
+    "target_course_deg": -167.4,
+    "course_rel_deg": -45.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.357,
+    "rel_bearing_deg": 307.5,
+    "sector": "crossing from port (R17, ego stand-on)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 0.0,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "v3A_cross_port_045",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/v3enc_v3A_cross_port_045.json",
+    "spawn_in_map": true
+  },
+  {
+    "meeting_point": [
+      58.52,
+      71.69
+    ],
+    "t_meet_s": 45.0,
+    "ego_heading_deg": -122.4,
+    "ego_speed": 0.5,
+    "spawn": [
+      66.12,
+      66.86
+    ],
+    "target_course_deg": -212.4,
+    "course_rel_deg": -90.0,
+    "target_speed": 0.2,
+    "closing_speed": 0.539,
+    "rel_bearing_deg": 338.2,
+    "sector": "crossing from port (R17, ego stand-on)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 0.0,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "v3A_cross_port_090",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/v3enc_v3A_cross_port_090.json",
+    "spawn_in_map": true
+  },
+  {
+    "meeting_point": [
+      58.52,
+      71.69
+    ],
+    "t_meet_s": 45.0,
+    "ego_heading_deg": -122.4,
+    "ego_speed": 0.5,
+    "spawn": [
+      63.34,
+      79.28
+    ],
+    "target_course_deg": -122.4,
+    "course_rel_deg": 0.0,
+    "target_speed": 0.2,
+    "closing_speed": 0.3,
+    "rel_bearing_deg": 0.0,
+    "sector": "overtaking, ego overtakes (R13, give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 0.0,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "v3A_overtake_ego",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/v3enc_v3A_overtake_ego.json",
+    "spawn_in_map": true
+  },
+  {
+    "meeting_point": [
+      53.39,
+      35.95
+    ],
+    "t_meet_s": 133.0,
+    "ego_heading_deg": -25.1,
+    "ego_speed": 0.5,
+    "spawn": [
+      89.51,
+      19.0
+    ],
+    "target_course_deg": 154.9,
+    "course_rel_deg": 180.0,
+    "target_speed": 0.3,
+    "closing_speed": 0.8,
+    "rel_bearing_deg": 0.0,
+    "sector": "head-on (R14)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 101.8,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "v3B_head_on",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/v3enc_v3B_head_on.json",
+    "spawn_in_map": true
+  },
+  {
+    "meeting_point": [
+      53.39,
+      35.95
+    ],
+    "t_meet_s": 133.0,
+    "ego_heading_deg": -25.1,
+    "ego_speed": 0.5,
+    "spawn": [
+      90.92,
+      49.51
+    ],
+    "target_course_deg": -160.1,
+    "course_rel_deg": -135.0,
+    "target_speed": 0.3,
+    "closing_speed": 0.743,
+    "rel_bearing_deg": 343.4,
+    "sector": "crossing from port (R17, ego stand-on)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 99.4,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "v3B_cross_port_135",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/v3enc_v3B_cross_port_135.json",
+    "spawn_in_map": true
+  },
+  {
+    "meeting_point": [
+      53.39,
+      35.95
+    ],
+    "t_meet_s": 133.0,
+    "ego_heading_deg": -25.1,
+    "ego_speed": 0.5,
+    "spawn": [
+      29.31,
+      47.25
+    ],
+    "target_course_deg": -25.1,
+    "course_rel_deg": 0.0,
+    "target_speed": 0.2,
+    "closing_speed": 0.3,
+    "rel_bearing_deg": 360.0,
+    "sector": "overtaking, ego overtakes (R13, give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 49.7,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "v3B_overtake_ego",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/v3enc_v3B_overtake_ego.json",
+    "spawn_in_map": true
+  }
+]

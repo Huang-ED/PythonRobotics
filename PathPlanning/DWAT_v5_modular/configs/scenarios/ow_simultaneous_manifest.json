@@ -1,0 +1,80 @@
+[
+  {
+    "meeting_point": [
+      50.5,
+      45.61
+    ],
+    "t_meet_s": 80.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      27.88,
+      22.98
+    ],
+    "target_course_deg": 45.0,
+    "course_rel_deg": 135.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.832,
+    "rel_bearing_deg": 19.9,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 50.0,
+    "name": "stbd_bow",
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "spawn_in_map": true
+  },
+  {
+    "meeting_point": [
+      50.51,
+      40.61
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      50.51,
+      4.61
+    ],
+    "target_course_deg": 90.0,
+    "course_rel_deg": 180.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.9,
+    "rel_bearing_deg": 0.0,
+    "sector": "head-on (R14)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 62.2,
+    "name": "ahead",
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "spawn_in_map": true
+  },
+  {
+    "meeting_point": [
+      50.51,
+      35.61
+    ],
+    "t_meet_s": 100.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      78.79,
+      7.33
+    ],
+    "target_course_deg": -225.0,
+    "course_rel_deg": -135.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.832,
+    "rel_bearing_deg": 340.1,
+    "sector": "crossing from port (R17, ego stand-on)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 70.0,
+    "name": "port_bow",
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "spawn_in_map": true
+  }
+]

@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+  /* minimal reset -- supplied by the artifact runtime, needed in a local file */
+  *,*::before,*::after { box-sizing: border-box; }
+  body { margin: 0; }
+  img,svg { max-width: 100%; }
+  table { border-collapse: collapse; }
+
+ol.steps { counter-reset: s; list-style: none; margin: 0; padding: 0;
+           display: flex; flex-direction: column; gap: 1px;
+           background: var(--rule); border: 1px solid var(--rule); }
+ol.steps li { counter-increment: s; background: var(--surface);
+              padding: 15px 20px 15px 58px; position: relative;
+              font-size: .93rem; line-height: 1.55; }
+ol.steps li::before {
+  content: counter(s, decimal-leading-zero);
+  position: absolute; left: 20px; top: 15px;
+  font-family: "IBM Plex Mono", monospace; font-size: .7rem;
+  font-weight: 600; color: var(--accent); letter-spacing: .04em;
+}
+</style>
+<title>DWAT Encounter Suite — Work Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+
+<style>
+/* ---- Light palette (complete, on bare :root) -------------------------------
+   Grounded in Admiralty chart convention: cool pale water as the ground,
+   blue-biased ink, and chart magenta -- the colour real charts reserve for
+   cautionary and traffic-regulation overlays -- as the single accent.        */
+:root {
+  --ground:      #F4F6F8;
+  --surface:     #FFFFFF;
+  --surface-alt: #E9EEF2;
+  --ink:         #101820;
+  --ink-2:       #47555F;
+  --ink-3:       #6E7C86;
+  --rule:        #D2DAE1;
+  --rule-strong: #B3BFC8;
+  --accent:      #C2006B;
+  --accent-soft: #FBE8F1;
+  --ok:          #0F7355;
+  --warn:        #9A5D06;
+  --bad:         #A82016;
+  --shadow:      0 1px 2px rgba(16,24,32,.06), 0 8px 24px rgba(16,24,32,.05);
+}
+/* ---- Dark palette: ECDIS night mode. Tokens only, never components. ------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground:      #0B1116;
+    --surface:     #121B22;
+    --surface-alt: #18242C;
+    --ink:         #E3ECF2;
+    --ink-2:       #9EB0BB;
+    --ink-3:       #73858E;
+    --rule:        #23323C;
+    --rule-strong: #354854;
+    --accent:      #FF5FA8;
+    --accent-soft: #2B1220;
+    --ok:          #34C79A;
+    --warn:        #E0A33A;
+    --bad:         #FF6F62;
+    --shadow:      0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"] {
+  --ground:      #0B1116;
+  --surface:     #121B22;
+  --surface-alt: #18242C;
+  --ink:         #E3ECF2;
+  --ink-2:       #9EB0BB;
+  --ink-3:       #73858E;
+  --rule:        #23323C;
+  --rule-strong: #354854;
+  --accent:      #FF5FA8;
+  --accent-soft: #2B1220;
+  --ok:          #34C79A;
+  --warn:        #E0A33A;
+  --bad:         #FF6F62;
+  --shadow:      0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  line-height: 1.62;
+  margin: 0;
+  padding: 0 24px 96px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 1120px; margin: 0 auto; }
+.col  { max-width: 680px; }
+
+/* ---- Type ---------------------------------------------------------------- */
+h1, h2, h3 {
+  font-family: Archivo, "Helvetica Neue", Arial, sans-serif;
+  text-wrap: balance;
+  margin: 0;
+}
+h1 { font-size: clamp(2.1rem, 5vw, 3.1rem); font-weight: 700; letter-spacing: -.022em; line-height: 1.06; }
+h2 { font-size: clamp(1.35rem, 2.6vw, 1.72rem); font-weight: 600; letter-spacing: -.014em; line-height: 1.2; }
+h3 { font-size: 1.03rem; font-weight: 600; letter-spacing: -.005em; }
+
+p { margin: 0; }
+.col p + p { margin-top: 1.05em; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px;
+}
+
+code, .mono, th, .num {
+  font-family: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+}
+code {
+  font-size: .855em;
+  background: var(--surface-alt);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: .08em .34em;
+}
+strong { font-weight: 600; }
+
+/* ---- Eyebrow labels: chart-annotation voice ------------------------------ */
+.eyebrow {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: .688rem;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* ---- Masthead ------------------------------------------------------------ */
+header { padding: 76px 0 34px; border-bottom: 2px solid var(--ink); }
+header .lede {
+  margin-top: 20px; max-width: 640px;
+  font-size: 1.14rem; color: var(--ink-2);
+}
+.byline {
+  margin-top: 26px; display: flex; flex-wrap: wrap; gap: 8px 22px;
+  font-family: "IBM Plex Mono", monospace; font-size: .74rem;
+  color: var(--ink-3); letter-spacing: .03em;
+}
+
+/* ---- Stat strip ---------------------------------------------------------- */
+.stats {
+  display: grid; gap: 1px; background: var(--rule);
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  border: 1px solid var(--rule); margin: 0 0 8px;
+}
+.stat { background: var(--surface); padding: 17px 18px 15px; }
+.stat .v {
+  font-family: Archivo, sans-serif; font-weight: 700;
+  font-size: 1.68rem; letter-spacing: -.02em; line-height: 1;
+}
+.stat .k {
+  font-family: "IBM Plex Mono", monospace; font-size: .672rem;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink-3); margin-top: 7px;
+}
+
+/* ---- Sections ------------------------------------------------------------ */
+section { padding-top: 60px; }
+.head { display: flex; flex-direction: column; gap: 9px; margin-bottom: 22px; }
+
+/* ---- Decision log: evidence forced consequence ---------------------------- */
+.log { display: flex; flex-direction: column; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+.entry {
+  background: var(--surface);
+  display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 0;
+}
+@media (max-width: 720px) { .entry { grid-template-columns: 1fr; } }
+.entry > div { padding: 20px 22px; }
+.entry .found { border-right: 1px solid var(--rule); }
+@media (max-width: 720px) {
+  .entry .found { border-right: 0; border-bottom: 1px solid var(--rule); }
+}
+.entry .tag {
+  font-family: "IBM Plex Mono", monospace; font-size: .653rem;
+  letter-spacing: .11em; text-transform: uppercase; color: var(--ink-3);
+  display: block; margin-bottom: 9px;
+}
+.entry .did .tag { color: var(--accent); }
+.entry p { font-size: .93rem; line-height: 1.56; }
+.entry h3 { margin-bottom: 7px; }
+
+/* ---- Tables -------------------------------------------------------------- */
+.scroll { overflow-x: auto; border: 1px solid var(--rule); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: .855rem; min-width: 560px; }
+th {
+  text-align: left; font-size: .672rem; font-weight: 600;
+  letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3);
+  padding: 12px 14px; border-bottom: 1px solid var(--rule-strong);
+  white-space: nowrap; background: var(--surface-alt);
+}
+td {
+  padding: 10px 14px; border-bottom: 1px solid var(--rule);
+  font-family: "IBM Plex Mono", monospace; font-size: .81rem;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+td.case { color: var(--ink); }
+tr:last-child td { border-bottom: 0; }
+tbody tr.pair { background: var(--accent-soft); }
+td .u { color: var(--ink-3); font-size: .92em; }
+.chip {
+  display: inline-block; padding: 1px 7px; border-radius: 2px;
+  font-size: .72rem; font-weight: 600; letter-spacing: .02em;
+}
+.chip.ok   { color: var(--ok);   border: 1px solid currentColor; }
+.chip.bad  { color: var(--bad);  border: 1px solid currentColor; }
+.cap {
+  font-size: .8rem; color: var(--ink-3); margin-top: 10px;
+  max-width: 680px; line-height: 1.5;
+}
+
+/* ---- Callout ------------------------------------------------------------- */
+.note {
+  background: var(--surface); border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent); padding: 20px 22px;
+}
+.note.crit { border-left-color: var(--bad); }
+.note h3 { margin-bottom: 8px; }
+.note p { font-size: .94rem; }
+.note p + p { margin-top: .8em; }
+
+/* ---- Findings ------------------------------------------------------------ */
+.finds { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); }
+.find {
+  background: var(--surface); border: 1px solid var(--rule);
+  padding: 22px 22px 24px; box-shadow: var(--shadow);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.find .n {
+  font-family: "IBM Plex Mono", monospace; font-size: .672rem;
+  letter-spacing: .1em; color: var(--accent); text-transform: uppercase;
+}
+.find p { font-size: .91rem; line-height: 1.55; color: var(--ink-2); }
+.find .hit {
+  font-family: "IBM Plex Mono", monospace; font-size: .78rem;
+  color: var(--ink); background: var(--surface-alt);
+  border: 1px solid var(--rule); padding: 8px 11px; margin-top: auto;
+}
+
+/* ---- Formula ------------------------------------------------------------- */
+.formula {
+  background: var(--surface); border: 1px solid var(--rule);
+  padding: 22px 24px; overflow-x: auto;
+  font-family: "IBM Plex Mono", monospace; font-size: .85rem;
+  line-height: 1.9; color: var(--ink);
+}
+.formula .c { color: var(--ink-3); }
+
+/* ---- Files --------------------------------------------------------------- */
+.files { display: flex; flex-direction: column; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+.file { background: var(--surface); padding: 15px 20px; display: grid; grid-template-columns: 260px 1fr; gap: 18px; align-items: baseline; }
+@media (max-width: 700px) { .file { grid-template-columns: 1fr; gap: 5px; } }
+.file .path { font-family: "IBM Plex Mono", monospace; font-size: .8rem; color: var(--accent); word-break: break-all; }
+.file .what { font-size: .9rem; color: var(--ink-2); line-height: 1.5; }
+
+ul.tight { margin: 0; padding-left: 1.15em; }
+ul.tight li { margin-bottom: .5em; }
+ul.tight li:last-child { margin-bottom: 0; }
+
+footer {
+  margin-top: 76px; padding-top: 26px; border-top: 1px solid var(--rule);
+  font-family: "IBM Plex Mono", monospace; font-size: .74rem; color: var(--ink-3);
+}
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Work log &middot; DWAT encounter suite</div>
+  <h1>What was done,<br>in order</h1>
+  <p class="lede">A complete inventory of the session: what was measured before anything was built, what was written, what was run, what had to be corrected, and what was deliberately left untouched.</p>
+  <div class="byline">
+    <span>PathPlanning/DWAT_v5_modular</span>
+    <span>baseline v20.7.8-2</span>
+    <span>all changes uncommitted on master</span>
+  </div>
+</header>
+
+<section style="padding-top:34px">
+  <div class="stats">
+    <div class="stat"><div class="v">3</div><div class="k">tools written</div></div>
+    <div class="stat"><div class="v">25</div><div class="k">scenario configs</div></div>
+    <div class="stat"><div class="v">27</div><div class="k">runs executed</div></div>
+    <div class="stat"><div class="v">6</div><div class="k">self-corrections</div></div>
+    <div class="stat"><div class="v">0</div><div class="k">planner files changed</div></div>
+  </div>
+</section>
+
+<section>
+  <div class="head col">
+    <span class="eyebrow">Phase 1 &middot; before building</span>
+    <h2>Investigation</h2>
+  </div>
+  <p class="col" style="margin-bottom:20px">Every design decision downstream came out of one of these measurements, which is why they came first.</p>
+  <ol class="steps">
+    <li>Read the v5_modular pipeline, the <code>dwa_average_weighted_side</code> cost function, <code>map_manager</code>'s motion models, and the imported-scene format spec.</li>
+    <li>Extracted the reference ego trajectory with timestamps from the v20.7.8-2 <code>video3_lrshift</code> log.</li>
+    <li>Computed the Theta* global path: <code>(70,90)&rarr;(48,55)&rarr;(44,46)&rarr;(47,39)&rarr;(66,30)&rarr;(69,27)&rarr;(60,10)</code>.</li>
+    <li><strong>Ray-cast port and starboard water clearance along the whole route</strong> — surfaced the 45-vs-8 unit asymmetry that forced the open-water control map.</li>
+    <li>Re-ran video3 with <code>dynamic_obstacles: []</code> and <strong>found the shipped obstacles are inert</strong> — 0.01 units of difference across 206&nbsp;s.</li>
+    <li>Measured the channel pinch at t&asymp;167&nbsp;s: <strong>1.21 units of clearance against a ~1.215 threshold</strong>.</li>
+    <li>Verified <code>waypoint</code>-mode obstacles hold exact constant velocity — the assumption the whole construction rests on.</li>
+    <li>Read the cost function and established it has <strong>no port/starboard asymmetry</strong>, later confirmed by measurement.</li>
+  </ol>
+</section>
+
+<section>
+  <div class="head col">
+    <span class="eyebrow">Phase 2 &middot; tooling</span>
+    <h2>Three new tools</h2>
+  </div>
+  <div class="files">
+    <div class="file">
+      <div class="path">adapters/encounter_suite.py</div>
+      <div class="what">Generator. Collision-course construction; course <em>and</em> bearing parameterization with a quadratic solver that refuses impossible geometries; CPA offsetting for the null case; COLREGs sector classification; navigability check against real coastlines; target-vs-target collision check; meeting-spacing warnings; <code>--combine</code> mode; manifest output.</div>
+    </div>
+    <div class="file">
+      <div class="path">adapters/encounter_report.py</div>
+      <div class="what">Scoring. Surface-to-surface clearance, time of CPA, pass side and relative bearing, deviation from the obstacle-free baseline, delay to goal, minimum speed within the encounter window.</div>
+    </div>
+    <div class="file">
+      <div class="path">adapters/encounter_plot.py</div>
+      <div class="what">Contact sheets, rendered from run logs rather than saved frames — so figures rebuild without re-simulating.</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="head col">
+    <span class="eyebrow">Phase 3 &middot; assets</span>
+    <h2>Maps, configs, scenarios</h2>
+  </div>
+  <ol class="steps" start="9">
+    <li><code>EnvData/openwater/openwater_100.npy</code> — the symmetric control basin.</li>
+    <li><code>configs/scenarios/openwater_baseline.json</code> — ego start moved to y=85 specifically so the overtaken case has room astern.</li>
+    <li><code>configs/run/video.json</code> — frame-rendering config with the global-planner figure disabled.</li>
+    <li><strong>25 scenario configs</strong>: 11 open-water cases, 10 video3 cases, 3 combined multi-target scenes, 1 baseline — plus 5 manifests recording each case's intended geometry, bearing and sector.</li>
+  </ol>
+</section>
+
+<section>
+  <div class="head col">
+    <span class="eyebrow">Phase 4 &middot; execution</span>
+    <h2>27 runs</h2>
+  </div>
+  <ol class="steps" start="13">
+    <li>Two obstacle-free baselines — video3 static and open-water; the second re-run after moving the start point.</li>
+    <li>10 video3 encounter runs, 5-wide in parallel.</li>
+    <li>11 open-water encounter runs, 6-wide in parallel.</li>
+    <li>Diagnostic probes at <code>predT10</code> and <code>predT5</code> on the failing overtaken case.</li>
+    <li>3 combined scenes rendered with frames, assembled into <strong>3 mp4s</strong> via ffmpeg.</li>
+    <li>Two controlled variants isolating obstacle 3, to test the pinch-failure claim rather than assert it.</li>
+  </ol>
+</section>
+
+<section>
+  <div class="head col">
+    <span class="eyebrow">Phase 5 &middot; corrections</span>
+    <h2>Things I got wrong and fixed</h2>
+  </div>
+  <p class="col" style="margin-bottom:20px">Listed because the checks that caught most of these are now permanent parts of the tooling.</p>
+  <div class="log">
+    <div class="entry">
+      <div class="found"><span class="tag">Wrong</span><h3>Targets sailing over islands</h3><p>My first video3 pass produced two targets whose tracks crossed land. They would still have run and produced numbers.</p></div>
+      <div class="did"><span class="tag">Fixed</span><h3>Navigability check, then a sweep</h3><p>Added the check, then swept every (course, speed) pair against the real coastline instead of guessing replacements.</p></div>
+    </div>
+    <div class="entry">
+      <div class="found"><span class="tag">Wrong</span><h3>Traffic colliding with itself</h3><p>The first <code>ow_simultaneous</code> aimed three targets at one point at one instant, so they hit each other — gap &minus;1.00.</p></div>
+      <div class="did"><span class="tag">Fixed</span><h3>Caught by the check I'd just written</h3><p>Staggered the meetings 10&nbsp;s: still inside the detection horizon, but 7.32 units of mutual clearance.</p></div>
+    </div>
+    <div class="entry">
+      <div class="found"><span class="tag">Wrong</span><h3>Spawn outside the map</h3><p><code>cross_port_090</code> at t=130 needed 52 units of run-up against a 50-unit half-width.</p></div>
+      <div class="did"><span class="tag">Fixed</span><h3>Lowered that target's speed</h3><p>Spawn distance is <code>speed &times; t_meet</code>, so 0.3 brings it back inside the basin.</p></div>
+    </div>
+    <div class="entry">
+      <div class="found"><span class="tag">Wrong</span><h3>A meaningless metric</h3><p><code>vmin</code> reported 0.00 for every run, because every run starts from rest.</p></div>
+      <div class="did"><span class="tag">Fixed</span><h3>Windowed it to the encounter</h3><p>Now reports the minimum speed around CPA, which is what "did it slow down to give way" actually asks.</p></div>
+    </div>
+    <div class="entry">
+      <div class="found"><span class="tag">Wrong</span><h3>Two code defects</h3><p>A <code>relative_to()</code> crash on out-of-repo output paths, and a name match where <code>overtake_ego</code> could shadow <code>overtaken_ego</code>.</p></div>
+      <div class="did"><span class="tag">Fixed</span><h3>Longest-match and a safe display path</h3><p>Both patched in <code>encounter_report.py</code>.</p></div>
+    </div>
+    <div class="entry">
+      <div class="found"><span class="tag">Wrong</span><h3>A bad estimate of my own</h3><p>I guessed video3 frame rendering would take hours and nearly built a separate log-based renderer to avoid it.</p></div>
+      <div class="did"><span class="tag">Fixed</span><h3>Measured instead of guessing</h3><p>116 frames/min &rarr; ~18 minutes. Dropped the unnecessary work.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="head col">
+    <span class="eyebrow">Phase 6 &middot; results</span>
+    <h2>What the suite surfaced</h2>
+  </div>
+  <div class="finds">
+    <div class="find">
+      <div class="n">Finding 01</div>
+      <h3>No port/starboard rule</h3>
+      <p>Mirrored pairs identical to two decimals: 0.57/0.58, 0.76/0.77, 0.94/0.94. Found by reading the cost function, then measured in the symmetric basin.</p>
+      <div class="hit">These 9 numbers are the COLREGs "before".</div>
+    </div>
+    <div class="find">
+      <div class="n">Finding 02</div>
+      <h3>No safety domain</h3>
+      <p>Clearances 0.35&ndash;1.22 units, traceable to <code>max_side_weight_dist: 2.0</code> against <code>8.0</code> for static obstacles — a moving vessel gets a quarter the influence radius of a rock.</p>
+      <div class="hit">2.0 &rarr; 4 / 6 / 8 is the next sweep.</div>
+    </div>
+    <div class="find">
+      <div class="n">Finding 03</div>
+      <h3>A long horizon can make a case unsolvable</h3>
+      <p>The overtaken cases abort on iteration 0. Mechanism confirmed by falsification: predT30 fails, predT10 reaches goal, predT5 fails differently.</p>
+      <div class="hit">Not about overtaking — about the horizon.</div>
+    </div>
+    <div class="find">
+      <div class="n">Finding 04</div>
+      <h3>Margin degrades as traffic stacks</h3>
+      <p>The three-vessel simultaneous scene reached 0.35 units — tighter than any single encounter. The manoeuvre that clears the first two leaves less room for the third.</p>
+      <div class="hit">Consistent with Finding 02: no reserve.</div>
+    </div>
+    <div class="find">
+      <div class="n">Finding 05</div>
+      <h3>Some encounters cannot occur on a real route</h3>
+      <p>video3's Slot B admits no starboard crossing at all — the traffic would have to sail off the shore. Which encounters a route can produce is itself a property of the route.</p>
+      <div class="hit">Now checked, not assumed.</div>
+    </div>
+    <div class="find">
+      <div class="n">Noted in passing</div>
+      <h3>Two repo hazards</h3>
+      <p><code>algorithm.py:96</code> is an uncapped <code>while True</code>, so a non-converging run spins until the shell timeout. And <code>.gitignore</code>'s bare <code>figs*</code> rule silently ignores every run log under <code>Logs/</code>.</p>
+      <div class="hit">Neither changed without your say-so.</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="head col">
+    <span class="eyebrow">Phase 7 &middot; documentation</span>
+    <h2>Written up</h2>
+  </div>
+  <ol class="steps" start="19">
+    <li>README sections covering the suite design, both maps and why both exist, the course-vs-bearing distinction, combined scenes, video rendering, and the predT finding recorded as a known result.</li>
+    <li><code>results/encounter_suite/</code> — three figures plus a README, deliberately named to sit outside the <code>figs*</code> ignore rule.</li>
+    <li>A published design-rationale artifact, and these two standalone HTML documents.</li>
+  </ol>
+</section>
+
+<section>
+  <div class="head col">
+    <span class="eyebrow">Scope</span>
+    <h2>What was deliberately not touched</h2>
+  </div>
+  <div class="note crit">
+    <h3>No planner or simulation code was modified</h3>
+    <p><code>algorithm.py</code>, <code>main.py</code>, <code>output_display.py</code>, <code>models.py</code> and everything under <code>DWAT_v4_st/</code> are unchanged. Every result here is v20.7.8-2 behaving exactly as it already did.</p>
+    <p><code>map_manager.py</code> and <code>map_creation.py</code> do show diffs in <code>git status</code>, but those were <strong>already modified before this session began</strong> — they are prior work, not mine. The only edit to a pre-existing file was appending to <code>README.md</code>.</p>
+    <p>Nothing has been committed. All changes sit uncommitted on <code>master</code>.</p>
+  </div>
+</section>
+
+<footer>
+  DWAT_v5_modular &middot; work log &middot; companion to the design-rationale document
+</footer>
+
+</div>
+</body>
+</html>

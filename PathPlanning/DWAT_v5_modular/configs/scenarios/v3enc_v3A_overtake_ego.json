@@ -1,0 +1,33 @@
+{
+  "image_path": "EnvData/AISData_20240827/land_shapes_ht_crop.png",
+  "map_size": [
+    100,
+    100
+  ],
+  "enable_map_boundary_obstacles": true,
+  "start_position": [
+    70.0,
+    90.0
+  ],
+  "goal_position": [
+    60.0,
+    10.0
+  ],
+  "dynamic_obstacles": [
+    {
+      "motion_type": "waypoint",
+      "waypoints": [
+        [
+          63.3397,
+          79.2846
+        ],
+        [
+          24.8673,
+          18.6618
+        ]
+      ],
+      "speed": 0.2,
+      "radius": 0.5
+    }
+  ]
+}

@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+  /* minimal reset -- supplied by the artifact runtime, needed in a local file */
+  *,*::before,*::after { box-sizing: border-box; }
+  body { margin: 0; }
+  img,svg { max-width: 100%; }
+  table { border-collapse: collapse; }
+</style>
+<title>DWAT Encounter Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+
+<style>
+/* ---- Light palette (complete, on bare :root) -------------------------------
+   Grounded in Admiralty chart convention: cool pale water as the ground,
+   blue-biased ink, and chart magenta -- the colour real charts reserve for
+   cautionary and traffic-regulation overlays -- as the single accent.        */
+:root {
+  --ground:      #F4F6F8;
+  --surface:     #FFFFFF;
+  --surface-alt: #E9EEF2;
+  --ink:         #101820;
+  --ink-2:       #47555F;
+  --ink-3:       #6E7C86;
+  --rule:        #D2DAE1;
+  --rule-strong: #B3BFC8;
+  --accent:      #C2006B;
+  --accent-soft: #FBE8F1;
+  --ok:          #0F7355;
+  --warn:        #9A5D06;
+  --bad:         #A82016;
+  --shadow:      0 1px 2px rgba(16,24,32,.06), 0 8px 24px rgba(16,24,32,.05);
+}
+/* ---- Dark palette: ECDIS night mode. Tokens only, never components. ------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground:      #0B1116;
+    --surface:     #121B22;
+    --surface-alt: #18242C;
+    --ink:         #E3ECF2;
+    --ink-2:       #9EB0BB;
+    --ink-3:       #73858E;
+    --rule:        #23323C;
+    --rule-strong: #354854;
+    --accent:      #FF5FA8;
+    --accent-soft: #2B1220;
+    --ok:          #34C79A;
+    --warn:        #E0A33A;
+    --bad:         #FF6F62;
+    --shadow:      0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"] {
+  --ground:      #0B1116;
+  --surface:     #121B22;
+  --surface-alt: #18242C;
+  --ink:         #E3ECF2;
+  --ink-2:       #9EB0BB;
+  --ink-3:       #73858E;
+  --rule:        #23323C;
+  --rule-strong: #354854;
+  --accent:      #FF5FA8;
+  --accent-soft: #2B1220;
+  --ok:          #34C79A;
+  --warn:        #E0A33A;
+  --bad:         #FF6F62;
+  --shadow:      0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  line-height: 1.62;
+  margin: 0;
+  padding: 0 24px 96px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 1120px; margin: 0 auto; }
+.col  { max-width: 680px; }
+
+/* ---- Type ---------------------------------------------------------------- */
+h1, h2, h3 {
+  font-family: Archivo, "Helvetica Neue", Arial, sans-serif;
+  text-wrap: balance;
+  margin: 0;
+}
+h1 { font-size: clamp(2.1rem, 5vw, 3.1rem); font-weight: 700; letter-spacing: -.022em; line-height: 1.06; }
+h2 { font-size: clamp(1.35rem, 2.6vw, 1.72rem); font-weight: 600; letter-spacing: -.014em; line-height: 1.2; }
+h3 { font-size: 1.03rem; font-weight: 600; letter-spacing: -.005em; }
+
+p { margin: 0; }
+.col p + p { margin-top: 1.05em; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px;
+}
+
+code, .mono, th, .num {
+  font-family: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+}
+code {
+  font-size: .855em;
+  background: var(--surface-alt);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: .08em .34em;
+}
+strong { font-weight: 600; }
+
+/* ---- Eyebrow labels: chart-annotation voice ------------------------------ */
+.eyebrow {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: .688rem;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* ---- Masthead ------------------------------------------------------------ */
+header { padding: 76px 0 34px; border-bottom: 2px solid var(--ink); }
+header .lede {
+  margin-top: 20px; max-width: 640px;
+  font-size: 1.14rem; color: var(--ink-2);
+}
+.byline {
+  margin-top: 26px; display: flex; flex-wrap: wrap; gap: 8px 22px;
+  font-family: "IBM Plex Mono", monospace; font-size: .74rem;
+  color: var(--ink-3); letter-spacing: .03em;
+}
+
+/* ---- Stat strip ---------------------------------------------------------- */
+.stats {
+  display: grid; gap: 1px; background: var(--rule);
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  border: 1px solid var(--rule); margin: 0 0 8px;
+}
+.stat { background: var(--surface); padding: 17px 18px 15px; }
+.stat .v {
+  font-family: Archivo, sans-serif; font-weight: 700;
+  font-size: 1.68rem; letter-spacing: -.02em; line-height: 1;
+}
+.stat .k {
+  font-family: "IBM Plex Mono", monospace; font-size: .672rem;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink-3); margin-top: 7px;
+}
+
+/* ---- Sections ------------------------------------------------------------ */
+section { padding-top: 60px; }
+.head { display: flex; flex-direction: column; gap: 9px; margin-bottom: 22px; }
+
+/* ---- Decision log: evidence forced consequence ---------------------------- */
+.log { display: flex; flex-direction: column; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+.entry {
+  background: var(--surface);
+  display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 0;
+}
+@media (max-width: 720px) { .entry { grid-template-columns: 1fr; } }
+.entry > div { padding: 20px 22px; }
+.entry .found { border-right: 1px solid var(--rule); }
+@media (max-width: 720px) {
+  .entry .found { border-right: 0; border-bottom: 1px solid var(--rule); }
+}
+.entry .tag {
+  font-family: "IBM Plex Mono", monospace; font-size: .653rem;
+  letter-spacing: .11em; text-transform: uppercase; color: var(--ink-3);
+  display: block; margin-bottom: 9px;
+}
+.entry .did .tag { color: var(--accent); }
+.entry p { font-size: .93rem; line-height: 1.56; }
+.entry h3 { margin-bottom: 7px; }
+
+/* ---- Tables -------------------------------------------------------------- */
+.scroll { overflow-x: auto; border: 1px solid var(--rule); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: .855rem; min-width: 560px; }
+th {
+  text-align: left; font-size: .672rem; font-weight: 600;
+  letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3);
+  padding: 12px 14px; border-bottom: 1px solid var(--rule-strong);
+  white-space: nowrap; background: var(--surface-alt);
+}
+td {
+  padding: 10px 14px; border-bottom: 1px solid var(--rule);
+  font-family: "IBM Plex Mono", monospace; font-size: .81rem;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+td.case { color: var(--ink); }
+tr:last-child td { border-bottom: 0; }
+tbody tr.pair { background: var(--accent-soft); }
+td .u { color: var(--ink-3); font-size: .92em; }
+.chip {
+  display: inline-block; padding: 1px 7px; border-radius: 2px;
+  font-size: .72rem; font-weight: 600; letter-spacing: .02em;
+}
+.chip.ok   { color: var(--ok);   border: 1px solid currentColor; }
+.chip.bad  { color: var(--bad);  border: 1px solid currentColor; }
+.cap {
+  font-size: .8rem; color: var(--ink-3); margin-top: 10px;
+  max-width: 680px; line-height: 1.5;
+}
+
+/* ---- Callout ------------------------------------------------------------- */
+.note {
+  background: var(--surface); border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent); padding: 20px 22px;
+}
+.note.crit { border-left-color: var(--bad); }
+.note h3 { margin-bottom: 8px; }
+.note p { font-size: .94rem; }
+.note p + p { margin-top: .8em; }
+
+/* ---- Findings ------------------------------------------------------------ */
+.finds { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); }
+.find {
+  background: var(--surface); border: 1px solid var(--rule);
+  padding: 22px 22px 24px; box-shadow: var(--shadow);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.find .n {
+  font-family: "IBM Plex Mono", monospace; font-size: .672rem;
+  letter-spacing: .1em; color: var(--accent); text-transform: uppercase;
+}
+.find p { font-size: .91rem; line-height: 1.55; color: var(--ink-2); }
+.find .hit {
+  font-family: "IBM Plex Mono", monospace; font-size: .78rem;
+  color: var(--ink); background: var(--surface-alt);
+  border: 1px solid var(--rule); padding: 8px 11px; margin-top: auto;
+}
+
+/* ---- Formula ------------------------------------------------------------- */
+.formula {
+  background: var(--surface); border: 1px solid var(--rule);
+  padding: 22px 24px; overflow-x: auto;
+  font-family: "IBM Plex Mono", monospace; font-size: .85rem;
+  line-height: 1.9; color: var(--ink);
+}
+.formula .c { color: var(--ink-3); }
+
+/* ---- Files --------------------------------------------------------------- */
+.files { display: flex; flex-direction: column; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+.file { background: var(--surface); padding: 15px 20px; display: grid; grid-template-columns: 260px 1fr; gap: 18px; align-items: baseline; }
+@media (max-width: 700px) { .file { grid-template-columns: 1fr; gap: 5px; } }
+.file .path { font-family: "IBM Plex Mono", monospace; font-size: .8rem; color: var(--accent); word-break: break-all; }
+.file .what { font-size: .9rem; color: var(--ink-2); line-height: 1.5; }
+
+ul.tight { margin: 0; padding-left: 1.15em; }
+ul.tight li { margin-bottom: .5em; }
+ul.tight li:last-child { margin-bottom: 0; }
+
+footer {
+  margin-top: 76px; padding-top: 26px; border-top: 1px solid var(--rule);
+  font-family: "IBM Plex Mono", monospace; font-size: .74rem; color: var(--ink-3);
+}
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Design rationale &middot; DWAT v20.7.8-2</div>
+  <h1>Encounter suite for<br>DWA + Theta*</h1>
+  <p class="lede">A generated set of ship-encounter scenarios — head-on, crossing, overtaking — built to be provably collision-courses rather than hopefully-close-passes, plus what running them revealed about the planner.</p>
+  <div class="byline">
+    <span>PathPlanning/DWAT_v5_modular</span>
+    <span>21 scenarios · 2 maps</span>
+    <span>baseline v20.7.8-2</span>
+  </div>
+</header>
+
+<section style="padding-top:34px">
+  <div class="stats">
+    <div class="stat"><div class="v">21</div><div class="k">encounter cases</div></div>
+    <div class="stat"><div class="v">19</div><div class="k">scored</div></div>
+    <div class="stat"><div class="v">2</div><div class="k">hard failures</div></div>
+    <div class="stat"><div class="v">0.43</div><div class="k">tightest clearance</div></div>
+    <div class="stat"><div class="v">0.01</div><div class="k">units — old suite's effect</div></div>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<section>
+  <div class="head col">
+    <span class="eyebrow">Where it started</span>
+    <h2>The existing obstacles were doing nothing at all</h2>
+  </div>
+  <div class="col">
+    <p>Before designing anything I re-ran <code>video3_lrshift.json</code> with <code>dynamic_obstacles: []</code> and compared it against the shipped run. The two trajectories are identical to within <strong>0.01 units across the full 206&nbsp;s</strong>, step for step.</p>
+    <p>The three circling obstacles never influence the ego. Whatever that scenario was testing, it was not avoidance. That single measurement reframed the task: the problem is not <em>tuning</em> obstacle placement, it is that hand-placement gives you no way to know whether an encounter happened. Everything downstream follows from deciding to place targets by construction instead.</p>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<section>
+  <div class="head col">
+    <span class="eyebrow">The construction</span>
+    <h2>Making a collision course, not a near miss</h2>
+  </div>
+  <div class="col" style="margin-bottom:22px">
+    <p>Take an obstacle-free reference run. At time <code>t_meet</code> the ego is at <strong>M</strong> with heading <strong>h</strong> and speed <em>v<sub>e</sub></em>. Give the target a course <strong>χ</strong> and speed <em>v<sub>t</sub></em>, and spawn it so that it arrives at <strong>M</strong> at the same instant:</p>
+  </div>
+  <div class="formula">P₀ = M − v<sub>t</sub> · χ̂ · t_meet<br><br>
+<span class="c">then, with both holding constant velocity:</span><br>
+target(t) − ego(t) = (t_meet − t) · ( v<sub>e</sub>·ĥ − v<sub>t</sub>·χ̂ )</div>
+  <div class="col" style="margin-top:22px">
+    <p>That difference has a <strong>constant direction and a shrinking magnitude</strong> — the textbook definition of a constant-bearing, decreasing-range collision course. The encounter is guaranteed, not hoped for. Verified numerically: every collision case measures CPA <code>0.000</code> at exactly <code>t_meet</code>.</p>
+    <p>The same algebra gives the no-action control for free. Offsetting the spawn perpendicular to that fixed direction sets the closest approach to <em>exactly</em> that offset, because the along-track component is the part that collapses to zero. The null case measures <code>6.000</code> against a planned 6.0.</p>
+    <p>One consequence worth stating plainly: the target's <strong>relative bearing is an output, not an input</strong>. It falls out of χ and <em>v<sub>t</sub></em>. That matters because bearing is what COLREGs is actually written in terms of, so every case is emitted with its bearing and rule sector attached, and the geometry can be checked rather than assumed.</p>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<section>
+  <div class="head col">
+    <span class="eyebrow">Decision log</span>
+    <h2>What the evidence forced</h2>
+  </div>
+  <p class="col" style="margin-bottom:22px">Each of these was a change of direction caused by a measurement, not a preference. Left: what turned up. Right: what it made me do.</p>
+
+  <div class="log">
+    <div class="entry">
+      <div class="found">
+        <span class="tag">Measured</span>
+        <h3>DWA re-linearises every step</h3>
+        <p>The planner extrapolates each target forward at constant velocity over the prediction horizon. A circling target's prediction is wrong within about one sample interval.</p>
+      </div>
+      <div class="did">
+        <span class="tag">So</span>
+        <h3>Straight-line targets only</h3>
+        <p>Targets are emitted as <code>waypoint</code> motion with a single long leg. Verified to hold exact constant velocity and never double back. Circles would measure prediction error, not avoidance.</p>
+      </div>
+    </div>
+
+    <div class="entry">
+      <div class="found">
+        <span class="tag">Measured</span>
+        <h3>video3's water is 4:1 asymmetric</h3>
+        <p>Ray-casting the route: on the long approach, starboard has 45 units of water and port has 8–16. Later the ratio inverts.</p>
+      </div>
+      <div class="did">
+        <span class="tag">So</span>
+        <h3>Built an open-water control basin</h3>
+        <p>A turn to starboard on video3 may be the land's doing, not the planner's. Mirrored pairs only mean something in symmetric water — so the core suite runs in a featureless basin, and video3 became a separate confinement tier.</p>
+      </div>
+    </div>
+
+    <div class="entry">
+      <div class="found">
+        <span class="tag">Measured</span>
+        <h3>The route clears a pinch by 1.21 units</h3>
+        <p>With <em>no dynamic obstacles at all</em>, the ego passes (68.0, 27.7) at t≈167&nbsp;s with 1.21 units to spare against a ~1.22 collision threshold.</p>
+      </div>
+      <div class="did">
+        <span class="tag">So</span>
+        <h3>Excluded t = 160–175 entirely</h3>
+        <p>Anything placed there tests the pinch, not the encounter. It also ruled out a third slot I had planned. <em>"Pinch"</em> is my own shorthand, not a term from the codebase: the stretch where land squeezes the navigable channel down to almost nothing.</p>
+        <p>This zero margin is also what makes plain <code>video3.json</code> fail on v20.7.8-2 — established by isolating the variable, not inferred. See below.</p>
+      </div>
+    </div>
+
+    <div class="entry">
+      <div class="found">
+        <span class="tag">Caught</span>
+        <h3>My first video3 targets sailed over islands</h3>
+        <p>Two of five had tracks crossing land — physically impossible traffic that would still have run and produced numbers.</p>
+      </div>
+      <div class="did">
+        <span class="tag">So</span>
+        <h3>Added a navigability check, then swept</h3>
+        <p>Rather than guess replacements, I swept every (course, speed) pair against the real coastline and kept only what floats. Slot A admits no port crossing at speed; Slot B admits <em>no starboard crossing at all</em> — starboard there is the shore.</p>
+      </div>
+    </div>
+
+    <div class="entry">
+      <div class="found">
+        <span class="tag">Ambiguity</span>
+        <h3>"90° crossing" has two readings</h3>
+        <p>A 90° <em>course</em> crossing at target speed 0.4 puts the target at a <em>bearing</em> of 38.7°. Generators usually mean the first; COLREGs means the second.</p>
+      </div>
+      <div class="did">
+        <span class="tag">So</span>
+        <h3>Implemented both, defaulted to course</h3>
+        <p>Bearing-mode solves a quadratic for the course. It also exposes a real constraint: holding a bearing abeam needs <em>v<sub>t</sub></em> ≥ <em>v<sub>e</sub></em>, and anything abaft the beam needs strictly faster — a slower vessel behind you can never close. Impossible geometries are refused, not fudged.</p>
+      </div>
+    </div>
+
+    <div class="entry">
+      <div class="found">
+        <span class="tag">Measured</span>
+        <h3>Detection range is ~25 units on a 103-unit route</h3>
+        <p><code>predict_time_obstacle</code> 30&nbsp;s × ~0.9 closing speed. Targets sit inside the cost horizon for ~50&nbsp;s before CPA.</p>
+      </div>
+      <div class="did">
+        <span class="tag">So</span>
+        <h3>One encounter per scenario file</h3>
+        <p>Slots need ≥60&nbsp;s separation, capping this route at two or three. Packing several into one run saves runs and confounds every result, so each case is isolated and shares an identical ego state.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<section>
+  <div class="head col">
+    <span class="eyebrow">Results · control basin</span>
+    <h2>The mirrored pairs came back identical</h2>
+  </div>
+  <div class="scroll">
+    <table>
+      <thead><tr>
+        <th>Case</th><th>Goal</th><th>Clearance</th><th>Side at CPA</th><th>Deviation</th><th>Delay</th>
+      </tr></thead>
+      <tbody>
+        <tr><td class="case">head_on</td><td><span class="chip ok">reached</span></td><td>0.48</td><td>starboard</td><td>1.74</td><td>0.7<span class="u">s</span></td></tr>
+        <tr class="pair"><td class="case">cross_stbd_045</td><td><span class="chip ok">reached</span></td><td>0.58</td><td>port</td><td>1.79</td><td>0.7<span class="u">s</span></td></tr>
+        <tr class="pair"><td class="case">cross_port_045</td><td><span class="chip ok">reached</span></td><td>0.57</td><td>starboard</td><td>1.79</td><td>0.7<span class="u">s</span></td></tr>
+        <tr class="pair"><td class="case">cross_stbd_090</td><td><span class="chip ok">reached</span></td><td>0.77</td><td>port</td><td>2.17</td><td>1.0<span class="u">s</span></td></tr>
+        <tr class="pair"><td class="case">cross_port_090</td><td><span class="chip ok">reached</span></td><td>0.76</td><td>starboard</td><td>2.15</td><td>1.0<span class="u">s</span></td></tr>
+        <tr class="pair"><td class="case">cross_stbd_135</td><td><span class="chip ok">reached</span></td><td>0.94</td><td>port</td><td>2.97</td><td>1.9<span class="u">s</span></td></tr>
+        <tr class="pair"><td class="case">cross_port_135</td><td><span class="chip ok">reached</span></td><td>0.94</td><td>starboard</td><td>2.98</td><td>1.9<span class="u">s</span></td></tr>
+        <tr><td class="case">overtake_ego</td><td><span class="chip ok">reached</span></td><td>1.21</td><td>starboard</td><td>2.47</td><td>1.1<span class="u">s</span></td></tr>
+        <tr><td class="case">null_safe_pass</td><td><span class="chip ok">reached</span></td><td>4.88</td><td>port</td><td><strong>0.00</strong></td><td>0.0<span class="u">s</span></td></tr>
+        <tr><td class="case">overtaken_ego</td><td><span class="chip bad">aborted</span></td><td colspan="4"><span class="u">No best trajectory found — iteration 0</span></td></tr>
+        <tr><td class="case">overtaken_ego_fast</td><td><span class="chip bad">aborted</span></td><td colspan="4"><span class="u">No best trajectory found — iteration 0</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="cap">Highlighted rows are mirrored port/starboard pairs. Clearance is surface-to-surface: centre distance minus the target radius and the ego's half-diagonal.</p>
+
+  <div class="col" style="margin-top:26px">
+    <p>The pairs agree to two decimal places — 0.57/0.58, 0.76/0.77, 0.94/0.94, with deviations 1.79/1.79, 2.15/2.17, 2.97/2.98. This is the empirical confirmation of something I first found by reading the cost function: there is no port/starboard asymmetry anywhere in it. The ego mirrors its own behaviour exactly.</p>
+    <p><code>null_safe_pass</code> is a clean pass in the other sense: deviation <strong>0.00</strong>. The ego correctly ignores a target that was never a threat, which is the control against over-reaction.</p>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<section>
+  <div class="head col">
+    <span class="eyebrow">Results · confinement tier</span>
+    <h2>video3: all ten pass, all ten graze</h2>
+  </div>
+  <div class="scroll">
+    <table>
+      <thead><tr>
+        <th>Case</th><th>Slot</th><th>Clearance</th><th>t<sub>CPA</sub></th><th>Side</th><th>Deviation</th>
+      </tr></thead>
+      <tbody>
+        <tr><td class="case">v3A_head_on</td><td>A</td><td>0.49</td><td>45.4</td><td>port</td><td>1.75</td></tr>
+        <tr><td class="case">v3A_cross_stbd_045</td><td>A</td><td>0.57</td><td>44.8</td><td>port</td><td>1.79</td></tr>
+        <tr><td class="case">v3A_cross_stbd_090</td><td>A</td><td>0.76</td><td>43.3</td><td>port</td><td>2.15</td></tr>
+        <tr><td class="case">v3A_cross_stbd_135</td><td>A</td><td>0.92</td><td>38.9</td><td>port</td><td>2.93</td></tr>
+        <tr><td class="case">v3A_cross_port_045</td><td>A</td><td>0.91</td><td>38.8</td><td>starboard</td><td>2.94</td></tr>
+        <tr><td class="case">v3A_cross_port_090</td><td>A</td><td>0.89</td><td>43.8</td><td>starboard</td><td>2.09</td></tr>
+        <tr><td class="case">v3A_overtake_ego</td><td>A</td><td>1.22</td><td>42.9</td><td>starboard</td><td>2.46</td></tr>
+        <tr><td class="case">v3B_head_on</td><td>B</td><td><strong>0.43</strong></td><td>133.7</td><td>starboard</td><td>1.67</td></tr>
+        <tr><td class="case">v3B_cross_port_135</td><td>B</td><td>0.51</td><td>132.9</td><td>starboard</td><td>1.64</td></tr>
+        <tr><td class="case">v3B_overtake_ego</td><td>B</td><td>0.79</td><td>130.0</td><td>starboard</td><td>2.46</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="cap">Slot A is t≈45&nbsp;s (port 10, starboard 45). Slot B is t≈133&nbsp;s (port 5, starboard 17). No collisions, no planner failures, every case reached goal.</p>
+</section>
+
+<!-- =================================================================== -->
+<section>
+  <div class="head col">
+    <span class="eyebrow">Findings</span>
+    <h2>Three things the suite surfaced</h2>
+  </div>
+  <div class="finds">
+    <div class="find">
+      <div class="n">Finding 01 · confirmed twice</div>
+      <h3>No port/starboard rule exists</h3>
+      <p>The dynamic-obstacle cost in <code>dwa_average_weighted_side</code> is a spatio-temporal clearance run through a symmetric barrier. It is mirror-symmetric by construction. I found this by reading the cost function; the control basin then measured it.</p>
+      <p>COLREGs compliance is currently 50% by accident — the stand-on cases look correct only because doing nothing happens to be right there.</p>
+      <div class="hit">These 9 numbers are your "before".</div>
+    </div>
+
+    <div class="find">
+      <div class="n">Finding 02 · actionable</div>
+      <h3>No safety domain, and the knob is named</h3>
+      <p>Clearances cluster at 0.43–1.22 units — a third to one ship-length. That is <code>max_side_weight_dist: 2.0</code>: the side cost is <em>zero</em> beyond 2 units of the target's track, so the planner has no reason to want more room.</p>
+      <p>Static obstacles get <code>max_obstacle_cost_dist: 8.0</code> — four times the influence radius of a moving vessel. The ego avoids hull contact, not close quarters.</p>
+      <div class="hit">2.0 → 4 / 6 / 8 is the next sweep.</div>
+    </div>
+
+    <div class="find">
+      <div class="n">Finding 03 · hard failure</div>
+      <h3>A long horizon can make a case unsolvable</h3>
+      <p>Both overtaken cases abort on iteration 0. At <code>t=0</code> the ego is at rest, so the dynamic window admits only <code>v ∈ [0, 0.02]</code> — one acceleration step — yet each candidate is scored holding that velocity across the full 30&nbsp;s horizon.</p>
+      <p>The planner predicts itself crawling 0.6 units while the target advances 18 and passes through it. Every candidate scores as colliding; nothing is left to choose.</p>
+      <div class="hit">predT30 fails · predT10 reaches goal · predT5 fails differently</div>
+    </div>
+  </div>
+
+  <div class="note" style="margin-top:26px">
+    <h3>Why plain video3 fails: isolating the variable</h3>
+    <p>The claim that the pinch causes it started as an inference from three facts that merely fit together — the failure lands inside the pinch, the obstacle-free run survives it by ~0.005 units, and <code>video3_lrshift</code> differs only in obstacle 3's centre. That is circumstantial: obstacle 3 was never tested on its own.</p>
+    <p>So it was tested. Two controlled variants, everything else held constant:</p>
+    <p><strong>Obstacle 3 removed</strong> (1 and 2 kept) &rarr; <strong>goal reached</strong>, 206.0&nbsp;s. <strong>Obstacle 3 alone</strong> (1 and 2 removed) &rarr; <strong>fails at t=169.6&nbsp;s at (67.32, 28.20)</strong> — the identical time and position as plain <code>video3.json</code>.</p>
+    <p>Necessary and sufficient. At the moment of failure that obstacle sat 1.99 units of surface clearance from the ego, against a <code>max_side_weight_dist</code> of exactly 2.0: it had just entered the cost's influence radius, in the one place on the route where the ego has no lateral room to answer.</p>
+  </div>
+
+  <div class="note crit" style="margin-top:26px">
+    <h3>Why finding 03 is not about overtaking</h3>
+    <p>I had a mechanism hypothesis and wanted it falsifiable rather than asserted, so I re-ran the identical scenario at shorter horizons. At <code>predT10</code> it <strong>reaches the goal</strong> — clearance 0.91, deviation 2.94, speed held at 0.50. At <code>predT5</code> it fails with a different error entirely (<code>No admissible (v, ω) pairs found in dynamic window</code>).</p>
+    <p>So the horizon, not the encounter, is what makes it unsolvable. This will bite <em>any</em> case where a target is inbound on the ego's present position while the ego is slow — overtaking is merely the geometry that guarantees it. Given your existing predT5–30 sweep, the point is that horizon length is not only a cost/accuracy tradeoff: it can render situations infeasible that a shorter horizon handles.</p>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<section>
+  <div class="head col">
+    <span class="eyebrow">What shipped</span>
+    <h2>Three tools, two maps, twenty-one scenarios</h2>
+  </div>
+  <div class="files">
+    <div class="file">
+      <div class="path">adapters/encounter_suite.py</div>
+      <div class="what">Generator. Course <em>or</em> bearing parameterization, collision-course construction, CPA offsetting, COLREGs sector classification, navigability check against the real coastline, manifest output.</div>
+    </div>
+    <div class="file">
+      <div class="path">adapters/encounter_report.py</div>
+      <div class="what">Scoring. Surface-to-surface clearance, time of CPA, pass side and relative bearing, deviation from the obstacle-free baseline, delay to goal, minimum speed within the encounter window.</div>
+    </div>
+    <div class="file">
+      <div class="path">adapters/encounter_plot.py</div>
+      <div class="what">Contact sheet. One panel per case: ego track against baseline, target track, closest-approach marker.</div>
+    </div>
+    <div class="file">
+      <div class="path">configs/scenarios/openwater_baseline.json<br>EnvData/openwater/openwater_100.npy</div>
+      <div class="what">The symmetric control basin — featureless 100×100, blocked outer ring, straight north–south route. The ego starts at y=85 rather than y=92 specifically so the overtaken case has room astern.</div>
+    </div>
+    <div class="file">
+      <div class="path">configs/scenarios/owenc_*.json<br>configs/scenarios/v3enc_*.json</div>
+      <div class="what">11 open-water cases and 10 video3 cases, plus two manifests recording each case's intended geometry, bearing, sector and spawn.</div>
+    </div>
+    <div class="file">
+      <div class="path">README.md</div>
+      <div class="what">Design rationale, the two maps and why both exist, the course-vs-bearing distinction, and the predT finding written up as a known result.</div>
+    </div>
+  </div>
+  <p class="cap">Everything is uncommitted on <code>master</code>. The one change to existing behaviour is none — no planner or simulation code was modified.</p>
+</section>
+
+<!-- =================================================================== -->
+<section>
+  <div class="head col">
+    <span class="eyebrow">Open items</span>
+    <h2>What needs your call</h2>
+  </div>
+  <div class="col">
+    <ul class="tight">
+      <li><strong>Course angle or relative bearing as the primary axis?</strong> Both are implemented; I defaulted to course difference. Say which and I'll regenerate — note that bearing-mode constrains target speed.</li>
+      <li><strong>Sweep <code>max_side_weight_dist</code></strong> (2.0 → 4, 6, 8). One-line experiment; the suite already measures the response.</li>
+      <li><strong>Re-run everything at <code>predT10</code></strong> — currently the only setting where all 21 cases complete.</li>
+      <li><strong><code>algorithm.py:96</code> is an uncapped <code>while True</code>.</strong> A non-converging run spins until the shell timeout instead of failing fast. I did not change it without your say-so.</li>
+    </ul>
+  </div>
+  <div class="note" style="margin-top:24px">
+    <h3>One caveat to keep standing</h3>
+    <p>The <em>side at CPA</em> column is not yet evidence of anything. With deviations of 1.7–3.0 units, which side the target ends up on falls out of the encounter geometry rather than any decision the planner made. It is recorded because it is the baseline you will diff against once a side rule exists — not because it is a compliance result today.</p>
+  </div>
+</section>
+
+<footer>
+  DWAT_v5_modular &middot; baseline v20.7.8-2 &middot; reference runs: openwater_baseline (153.3&nbsp;s), video3 static (206.0&nbsp;s)
+</footer>
+
+</div>
+</body>
+</html>

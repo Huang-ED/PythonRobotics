@@ -1,0 +1,104 @@
+{
+    "format_version": 1,
+    "name": "scene_export_100",
+    "source": {
+        "dataset": "EnvData/scene_export",
+        "scene_npz": "EnvData/scene_export/scene.npz",
+        "time_step": 0.25,
+        "world_bounds": [
+            0.0,
+            50.0,
+            0.0,
+            50.0
+        ],
+        "reference_robot_radius": 0.3,
+        "reference_robot_v_pref": 1.0
+    },
+    "occupancy_path": "EnvData/scene_export/converted/occupancy_100.npy",
+    "occupancy_resolution": 0.5,
+    "occupancy_origin": [
+        0.0,
+        0.0
+    ],
+    "occupancy_cell_anchor": "center",
+    "map_size": [
+        100,
+        100
+    ],
+    "enable_map_boundary_obstacles": false,
+    "start_position": [
+        40.5,
+        5.5
+    ],
+    "goal_position": [
+        32.5,
+        42.5
+    ],
+    "dynamic_obstacles": [
+        {
+            "motion_type": "trajectory",
+            "track_file": "EnvData/scene_export/converted/dynamic_tracks.npz",
+            "track_index": 0,
+            "radius": 0.3,
+            "start_time": 0.0,
+            "on_finish": "hold"
+        },
+        {
+            "motion_type": "trajectory",
+            "track_file": "EnvData/scene_export/converted/dynamic_tracks.npz",
+            "track_index": 1,
+            "radius": 0.3,
+            "start_time": 0.0,
+            "on_finish": "hold"
+        },
+        {
+            "motion_type": "trajectory",
+            "track_file": "EnvData/scene_export/converted/dynamic_tracks.npz",
+            "track_index": 2,
+            "radius": 0.3,
+            "start_time": 0.0,
+            "on_finish": "hold"
+        },
+        {
+            "motion_type": "trajectory",
+            "track_file": "EnvData/scene_export/converted/dynamic_tracks.npz",
+            "track_index": 3,
+            "radius": 0.3,
+            "start_time": 0.0,
+            "on_finish": "hold"
+        },
+        {
+            "motion_type": "trajectory",
+            "track_file": "EnvData/scene_export/converted/dynamic_tracks.npz",
+            "track_index": 4,
+            "radius": 0.3,
+            "start_time": 0.0,
+            "on_finish": "hold"
+        },
+        {
+            "motion_type": "trajectory",
+            "track_file": "EnvData/scene_export/converted/dynamic_tracks.npz",
+            "track_index": 5,
+            "radius": 0.3,
+            "start_time": 0.0,
+            "on_finish": "hold"
+        },
+        {
+            "motion_type": "trajectory",
+            "track_file": "EnvData/scene_export/converted/dynamic_tracks.npz",
+            "track_index": 6,
+            "radius": 0.3,
+            "start_time": 0.0,
+            "on_finish": "hold"
+        },
+        {
+            "motion_type": "trajectory",
+            "track_file": "EnvData/scene_export/converted/dynamic_tracks.npz",
+            "track_index": 7,
+            "radius": 0.3,
+            "start_time": 0.0,
+            "on_finish": "hold"
+        }
+    ],
+    "start_yaw": 2.173083672929862
+}
