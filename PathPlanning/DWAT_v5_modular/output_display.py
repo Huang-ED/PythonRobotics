@@ -140,8 +140,16 @@ def save_log(
     result: SimulationResult,
     run_dir: Path,
 ) -> Optional[Path]:
-    """Write log_details.json into the run directory created by run_paths."""
-    if not result.log_entries:
+    """Write log_details.json into the run directory created by run_paths.
+
+    A run that aborts on iteration 0 -- as the two "ego is overtaken" cases do
+    at predict_time_obstacle = 30 s -- produces no log entries at all. Skipping
+    the write there meant the failure existed only on stdout, so the case left
+    no durable record that it had even run. An empty-but-failed run is still a
+    result worth keeping, so the log is written whenever there is anything to
+    say: entries, an error, or a collision.
+    """
+    if not (result.log_entries or result.error or result.collision_event):
         return None
 
     run_dir = Path(run_dir)

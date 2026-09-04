@@ -91,6 +91,20 @@ def analyse(run_path: Path, baseline_traj: np.ndarray, manifest: dict, path_xy=N
     # same quantity the planner's own collision check uses.
     ego_r = math.hypot(cfg["robot_length"] / 2.0, cfg["robot_width"] / 2.0)
 
+    # A run that aborts on iteration 0 logs a single state, so trajectory is
+    # (5,) rather than (N, 5). Those logs only started existing once save_log
+    # was changed to record failed runs; scoring one is meaningless, but
+    # crashing the whole report because one case failed is worse.
+    if traj.ndim != 2 or traj.shape[0] < 2:
+        return {
+            "run": run_path.parent.name,
+            "reached_goal": False,
+            "error": data.get("error") or "no trajectory recorded",
+            "collision": data.get("collision_event") is not None,
+            "duration_s": 0.0,
+            "aborted": True,
+        }
+
     result = {
         "run": run_path.parent.name,
         "reached_goal": bool(data.get("reached_goal")),
@@ -198,6 +212,11 @@ def main() -> int:
         intended = manifest_by_name.get(name, {}).get("sector", "")
         if intended:
             note.append(intended)
+        if r.get("aborted"):
+            print(f"{(name or r['run'])[:20]:<20}{'NO':>6}"
+                  f"{'—':>8}{'—':>7}{'—':>10}{'—':>8}{'—':>7}{'—':>7}"
+                  f"  {'; '.join(note)}")
+            continue
         print(f"{(name or r['run'])[:20]:<20}"
               f"{'yes' if r['reached_goal'] else 'NO':>6}"
               f"{r.get('min_clearance', float('nan')):>8.2f}"

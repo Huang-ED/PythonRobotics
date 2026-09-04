@@ -39,6 +39,33 @@ python PathPlanning/DWAT_v5_modular/adapters/encounter_plot.py \
 Add `--static-map` with a `.npy` of static obstacle points to draw land, as the
 video3 sheet does.
 
+## Video of the individual cases
+
+The suite was originally run headless, so only logs survived. On 2026-09-04 the
+scored cases were re-rendered with frames and encoded to mp4. They live under
+`runs/` (git-ignored) rather than here, because 11 videos is deliverable
+material only if you want all of it:
+
+| run directory | case |
+|---|---|
+| `runs/v20.7.8-2/encounters/owenc_head_on__20260904_170445/` | head-on, tightest basin clearance 0.48 |
+| `runs/v20.7.8-2/encounters/owenc_cross_{stbd,port}_045__*/` | mirrored pair, 0.58 / 0.57 |
+| `runs/v20.7.8-2/encounters/owenc_cross_{stbd,port}_090__*/` | mirrored pair, 0.77 / 0.76 |
+| `runs/v20.7.8-2/encounters/owenc_cross_{stbd,port}_135__*/` | mirrored pair, 0.94 / 0.94 |
+| `runs/v20.7.8-2/encounters/owenc_overtake_ego__20260904_172308/` | ego overtakes, 1.21 |
+| `runs/v20.7.8-2/encounters/owenc_null_safe_pass__20260904_173905/` | the control: deviation 0.00 |
+| `runs/v20.7.8-2/predT10/encounters/owenc_overtaken_ego__20260904_173918/` | Finding 03 falsified: reaches goal at predT10 |
+| `runs/v20.7.8-2/encounters/v3enc_v3B_head_on__20260904_174030/` | confinement contrast, 0.43 — tightest in the suite |
+
+Each holds `frames/`, `video.mp4`, `log_details.json` and `run.json`. Every
+re-run reproduced its original trajectory **bit-exactly** and every scored
+number matches the table in `dwat_encounter_suite_rationale.html`, so these are
+the same results, now watchable.
+
+The two `overtaken_ego` cases at predT30 still abort on iteration 0 and are not
+worth rendering — the video would be a single frame. They now write a
+`log_details.json` recording the error, which they previously did not.
+
 ## Note on frames
 
 The suite was run with `--no-animation --no-save-frames`. Per-frame PNGs were
