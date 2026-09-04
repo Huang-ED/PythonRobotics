@@ -1,5 +1,6 @@
 {
-  "image_path": "EnvData/AISData_20240827/land_shapes_ht_crop.png",
+  "group": "combined",
+  "image_path": "EnvData/maps/land_shapes_ht_crop.png",
   "map_size": [
     100,
     100

@@ -64,6 +64,12 @@ def load_runtime_options(overrides: Dict[str, Any]) -> Any:
 
 
 def _build_output_tag(algorithm_config_path: Path, scenario_path: Path) -> str:
+    """Legacy label, kept for logs and for anything that still greps run names.
+
+    Output location no longer derives from this string -- see run_paths -- but
+    the historical ``figs_<algo>-modular-<scenario>`` form is what every run
+    before the runs/ layout was named, so it stays as the run's display name.
+    """
     algo_name = algorithm_config_path.stem
     scenario_name = scenario_path.stem
     return f"figs_{algo_name}-modular-{scenario_name}"
@@ -85,6 +91,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--run-config",
         default="PathPlanning/DWAT_v5_modular/configs/run/default.json",
         help="Runtime options JSON path.",
+    )
+    parser.add_argument(
+        "--runs-root",
+        default=None,
+        help="Root of the run-output tree (default: <repo>/runs).",
     )
     parser.add_argument(
         "--no-animation",
@@ -137,6 +148,21 @@ def main() -> int:
     if args.no_save_frames:
         runtime.save_animation_to_figs = False
 
+    run_paths = importlib.import_module("PathPlanning.DWAT_v5_modular.run_paths")
+
+    scenario_doc = _load_json(scenario_path)
+    version = run_paths.version_from_config(algorithm_config_path)
+    group = run_paths.group_from_scenario(scenario_doc)
+    runs_root = Path(args.runs_root) if args.runs_root else run_paths.default_runs_root()
+
+    run_dir = run_paths.build_run_dir(
+        runs_root=runs_root,
+        version=version,
+        group=group,
+        scenario_name=scenario_path.stem,
+    )
+    print(f"Run directory: {run_dir}")
+
     map_ctx = create_map_context(
         config=config,
         scenario_path=str(scenario_path),
@@ -149,7 +175,7 @@ def main() -> int:
         renderer.initialize_scene(
             map_ctx=map_ctx,
             config=config,
-                base_dir=Path(__file__).resolve().parent / "results",
+            base_dir=run_dir,
             reuse_existing_figure=runtime.show_global_planner_search,
         )
 
@@ -165,7 +191,19 @@ def main() -> int:
         config=config,
         runtime=runtime,
         result=result,
-        logs_root=_repo_root() / "Logs",
+        run_dir=run_dir,
+    )
+
+    run_paths.write_run_manifest(
+        run_dir=run_dir,
+        version=version,
+        group=group,
+        scenario_name=scenario_path.stem,
+        scenario_path=scenario_path,
+        algorithm_config_path=algorithm_config_path,
+        run_config_path=_resolve_config_path(args.run_config),
+        config=config,
+        runtime=runtime,
     )
 
     artifacts = build_output_artifacts(renderer=renderer, log_file=log_file)

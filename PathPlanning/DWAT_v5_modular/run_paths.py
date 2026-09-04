@@ -1,0 +1,174 @@
+"""Where a run's output goes.
+
+One run == one directory, holding everything that run produced:
+
+    runs/<version>/<group>/<scenario>__<timestamp>/
+        run.json          what was run (versions, paths, resolved config)
+        log_details.json  the simulation log
+        frames/           frame_0.png, frame_1.png, ...
+        video.mp4         assembled afterwards by ffmpeg
+
+This replaces the older split where frames went to
+``DWAT_v5_modular/results/figs_<algo>-modular-<scenario>/`` (no timestamp, so a
+rerun overwrote them) while the log went to ``Logs/<same tag>_<timestamp>/``
+(timestamped, so a rerun added one). Pairing a video back to the numbers that
+produced it was guesswork; now they sit in the same folder.
+
+The three path components come from what you already pass on the command line:
+
+    --algorithm-config configs/algorithm/v20.7.8-2.json   -> version
+    --scenario         configs/scenarios/ow_sequence.json -> scenario
+    scenario JSON's "group" key                           -> group
+"""
+
+import json
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, Optional
+
+# Used when a scenario JSON does not declare a "group".
+DEFAULT_GROUP = "misc"
+
+
+def _repo_root() -> Path:
+    return Path(__file__).resolve().parents[2]
+
+
+def default_runs_root() -> Path:
+    return _repo_root() / "runs"
+
+
+def version_from_config(algorithm_config_path: Path) -> str:
+    """Derive the version path from the algorithm config filename.
+
+    ``v20.9.json`` -> ``v20.9``
+
+    A single underscore marks a variant of a parent config, so the ablation
+    sweep nests under the config it varies rather than sitting beside it:
+
+    ``v20.7.8-2_predT10.json`` -> ``v20.7.8-2/predT10``
+
+    Only the first underscore splits, so ``v20.7.8-2_predT10_a0.5`` becomes
+    ``v20.7.8-2/predT10_a0.5`` -- one variant of one parent, not a deeper tree.
+    """
+    stem = algorithm_config_path.stem
+    parent, sep, variant = stem.partition("_")
+    if sep and variant:
+        return f"{parent}/{variant}"
+    return stem
+
+
+def group_from_scenario(scenario: Dict[str, Any]) -> str:
+    """Read the family label out of a scenario dict."""
+    group = str(scenario.get("group", "") or "").strip().strip("/")
+    return group or DEFAULT_GROUP
+
+
+def build_run_dir(
+    runs_root: Path,
+    version: str,
+    group: str,
+    scenario_name: str,
+    timestamp: Optional[str] = None,
+) -> Path:
+    """Return (and create) the directory for one run.
+
+    The timestamp lives in the leaf name rather than in a level of its own, so
+    a scenario's reruns sort together in one listing instead of each hiding
+    behind its own folder.
+    """
+    if timestamp is None:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    run_dir = Path(runs_root) / version / group / f"{scenario_name}__{timestamp}"
+
+    # A second run inside the same clock second would otherwise collide.
+    if run_dir.exists():
+        suffix = 2
+        while True:
+            candidate = run_dir.with_name(f"{run_dir.name}-{suffix}")
+            if not candidate.exists():
+                run_dir = candidate
+                break
+            suffix += 1
+
+    run_dir.mkdir(parents=True)
+    return run_dir
+
+
+def write_run_manifest(
+    run_dir: Path,
+    version: str,
+    group: str,
+    scenario_name: str,
+    scenario_path: Path,
+    algorithm_config_path: Path,
+    run_config_path: Path,
+    config: Any,
+    runtime: Any,
+) -> Path:
+    """Record what was run, so the folder is self-describing.
+
+    Paths are stored repo-relative where possible; an absolute path outside the
+    repo is kept as-is rather than forced into a misleading relative form.
+    """
+    root = _repo_root()
+
+    def rel(path: Path) -> str:
+        try:
+            return str(Path(path).resolve().relative_to(root))
+        except ValueError:
+            return str(path)
+
+    manifest = {
+        "version": version,
+        "group": group,
+        "scenario": scenario_name,
+        "created": datetime.now().isoformat(timespec="seconds"),
+        "inputs": {
+            "scenario": rel(scenario_path),
+            "algorithm_config": rel(algorithm_config_path),
+            "run_config": rel(run_config_path),
+        },
+        "config": _attrs(config),
+        "runtime": _attrs(runtime),
+    }
+
+    manifest_path = run_dir / "run.json"
+    with manifest_path.open("w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2)
+    return manifest_path
+
+
+def _attrs(obj: Any) -> Dict[str, Any]:
+    """Every public, non-callable attribute -- class-level ones included.
+
+    ``vars()`` alone would miss ``Config.robot_type``, which is declared on the
+    class rather than assigned in ``__init__``; log_details.json has always had
+    that gap. run.json is meant to be a complete record of what was run, so it
+    reads the class attributes too.
+    """
+    out = {}
+    for name in dir(obj):
+        if name.startswith("_"):
+            continue
+        value = getattr(obj, name, None)
+        if callable(value):
+            continue
+        out[name] = _jsonable(value)
+    return out
+
+
+def _jsonable(value: Any) -> Any:
+    """Coerce config values (enums, numpy scalars/arrays) into plain JSON."""
+    if isinstance(value, (str, int, float, bool)) or value is None:
+        return value
+    if hasattr(value, "tolist"):
+        return value.tolist()
+    if hasattr(value, "name") and hasattr(value, "value"):  # enum.Enum
+        return value.name
+    if isinstance(value, (list, tuple)):
+        return [_jsonable(v) for v in value]
+    if isinstance(value, dict):
+        return {str(k): _jsonable(v) for k, v in value.items()}
+    return str(value)

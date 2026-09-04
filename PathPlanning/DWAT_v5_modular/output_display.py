@@ -1,5 +1,4 @@
 import json
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
@@ -41,8 +40,10 @@ class SimulationRenderer:
             plt.figure(figsize=(10, 10))
 
         if self.runtime.save_animation_to_figs:
-            self.fig_dir = base_dir / self.runtime.output_tag
-            self.fig_dir.mkdir(exist_ok=False)
+            # base_dir is the run directory; frames get their own subfolder so
+            # run.json and log_details.json stay visible beside thousands of PNGs.
+            self.fig_dir = base_dir / "frames"
+            self.fig_dir.mkdir(parents=True, exist_ok=False)
 
         if not reuse_existing_figure:
             if map_ctx.map_manager.static_obstacles.shape[0] > 0:
@@ -137,16 +138,15 @@ def save_log(
     config: Any,
     runtime: RuntimeOptions,
     result: SimulationResult,
-    logs_root: Path,
+    run_dir: Path,
 ) -> Optional[Path]:
+    """Write log_details.json into the run directory created by run_paths."""
     if not result.log_entries:
         return None
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_dir = logs_root / f"{runtime.output_tag}_{timestamp}"
-    log_dir.mkdir(parents=True, exist_ok=False)
-
-    details_filename = log_dir / "log_details.json"
+    run_dir = Path(run_dir)
+    run_dir.mkdir(parents=True, exist_ok=True)
+    details_filename = run_dir / "log_details.json"
     with details_filename.open("w", encoding="utf-8") as f:
         json.dump(
             {

@@ -20,11 +20,27 @@ Key runtime option:
 
 ## EnvData Policy
 
-`EnvData/` remains a data asset folder.
+`EnvData/` holds input data, sorted by what a file *is* rather than where it
+came from:
 
-- Keep map images and source assets there.
-- Scenario JSON should reference `image_path` (for example `EnvData/simple2.png`).
-- The loader resolves image paths in this order:
+```
+EnvData/
+  maps/        static maps a scenario points at directly
+               simple*.png, land_shapes_*.png, openwater_100.npy
+  datasets/    raw source data, one directory per dataset
+               ais_20240827/, new_york/, scene_export/, case_discovery/
+  derived/     adapter output, regenerable from datasets/
+               scene_export/{occupancy_100.npy, dynamic_tracks.npz}
+  tools/       scripts that produce maps
+```
+
+The split that matters is `datasets/` versus `derived/`: everything in
+`derived/` can be rebuilt by re-running an adapter, so it is the part that is
+safe to delete.
+
+- Scenario JSON references `image_path` / `occupancy_path` / `track_file`
+  (for example `EnvData/maps/simple2.png`).
+- The loader resolves these paths in this order:
   1. absolute path
   2. repo-root-relative path
   3. scenario-file-relative path
@@ -55,6 +71,39 @@ python -m PathPlanning.DWAT_v5_modular.main \
   --scenario PathPlanning/DWAT_v5_modular/configs/scenarios/scene_export.json \
   --algorithm-config PathPlanning/DWAT_v5_modular/configs/algorithm/v20.7.8-2.json
 ```
+
+## Where output goes
+
+One run produces one directory:
+
+```
+runs/<version>/<group>/<scenario>__<timestamp>/
+    run.json          what was run: config paths and the resolved parameters
+    log_details.json  trajectory, per-iteration log, outcome
+    frames/           frame_0.png, ... (only with frame saving enabled)
+    video.mp4         assembled afterwards by ffmpeg
+```
+
+- **version** comes from the `--algorithm-config` filename. A single underscore
+  marks a variant, so `v20.7.8-2_predT10.json` lands in `v20.7.8-2/predT10/`
+  and the ablation sweep reads as one experiment instead of seven peers.
+- **group** comes from the `"group"` key in the scenario JSON
+  (`encounters`, `combined`, `synthetic`, `imported`, `video`, `baseline`).
+  It exists to keep any one listing short.
+- Older generations live under `runs/_archive/<generation>/` in the same shape.
+
+`python tools/build_run_index.py` regenerates `runs/INDEX.md`, a table of every
+run with its outcome -- use it to answer "which runs collided", which the
+folder tree cannot.
+
+Previously frames went to `DWAT_v5_modular/results/figs_<algo>-modular-<scenario>/`
+with no timestamp while the log went to `Logs/<same>_<timestamp>/`. Reruns
+therefore overwrote frames but accumulated logs, and pairing a video with the
+numbers behind it was guesswork. `python tools/migrate_runs.py` moved the
+history into the layout above; `tools/migration_manifest.csv` records every move.
+
+`PathPlanning/DWAT_v5_modular/results/` now holds only small, committed
+deliverables -- the encounter-suite figures and videos -- not run output.
 
 ## Run
 
@@ -168,7 +217,7 @@ python -m PathPlanning.DWAT_v5_modular.main \
 
 # 2. generate the scenarios
 python PathPlanning/DWAT_v5_modular/adapters/encounter_suite.py \
-  --reference-log Logs/<that run>/log_details.json \
+  --reference-log runs/v20.7.8-2/baseline/openwater_baseline__<ts>/log_details.json \
   --base-scenario PathPlanning/DWAT_v5_modular/configs/scenarios/openwater_baseline.json \
   --suite openwater
 
@@ -181,9 +230,9 @@ done
 
 # 4. score them
 python PathPlanning/DWAT_v5_modular/adapters/encounter_report.py \
-  --baseline-log Logs/<that run>/log_details.json \
+  --baseline-log runs/v20.7.8-2/baseline/openwater_baseline__<ts>/log_details.json \
   --manifest PathPlanning/DWAT_v5_modular/configs/scenarios/openwater_manifest.json \
-  --runs Logs/*openwater_*/log_details.json
+  --runs 'runs/v20.7.8-2/encounters/owenc_*/log_details.json'
 ```
 
 ### Reading the results
@@ -228,7 +277,7 @@ the regression test for it.
 
 ```bash
 python PathPlanning/DWAT_v5_modular/adapters/encounter_suite.py \
-    --reference-log Logs/<obstacle-free run>/log_details.json \
+    --reference-log runs/v20.7.8-2/baseline/openwater_baseline__<ts>/log_details.json \
     --base-scenario PathPlanning/DWAT_v5_modular/configs/scenarios/openwater_baseline.json \
     --combine ow_sequence
 ```
@@ -270,12 +319,13 @@ MPLBACKEND=Agg python -m PathPlanning.DWAT_v5_modular.main \
     --scenario PathPlanning/DWAT_v5_modular/configs/scenarios/ow_sequence.json \
     --algorithm-config PathPlanning/DWAT_v5_modular/configs/algorithm/v20.7.8-2.json \
     --run-config PathPlanning/DWAT_v5_modular/configs/run/video.json
+# prints:  Run directory: runs/v20.7.8-2/combined/ow_sequence__<timestamp>
 
-cd PathPlanning/DWAT_v5_modular/results
+RUN=runs/v20.7.8-2/combined/ow_sequence__<timestamp>
 ffmpeg -y -framerate 30 -start_number 0 \
-    -i figs_v20.7.8-2-modular-ow_sequence/frame_%d.png \
+    -i "$RUN/frames/frame_%d.png" \
     -c:v libx264 -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" \
-    figs_v20.7.8-2-modular-ow_sequence.mp4
+    "$RUN/video.mp4"
 ```
 
 Frame saving is much slower than a headless run, and the cost scales with the

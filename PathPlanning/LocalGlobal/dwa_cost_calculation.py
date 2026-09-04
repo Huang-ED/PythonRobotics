@@ -81,8 +81,8 @@ def main():
     config = Config()
 
     ## Define the map
-    # image_path = "EnvData/AISData_20240827/land_shapes_sf_crop.png"
-    image_path = "EnvData/AISData_20240827/land_shapes_ht_crop.png"
+    # image_path = "EnvData/maps/land_shapes_sf_crop.png"
+    image_path = "EnvData/maps/land_shapes_ht_crop.png"
     arr = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     arr = cv2.resize(arr, (100, 100))
     _, arr = cv2.threshold(arr, 128, 1, cv2.THRESH_BINARY)

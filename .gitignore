@@ -74,10 +74,22 @@ matplotrecorder/*
 
 ## Added by Huang-ED
 *.draft
-figs*
 *demo*
-EnvData
 **TrashBin**
-Logs*/dwa_log_details_*
+
+# Input data and run output. Both are large and local-only; the code that
+# reads and writes them is tracked, the contents are not.
+EnvData/
+runs/
+
+# Legacy output locations, superseded by runs/. Kept so that anything not
+# picked up by tools/migrate_runs.py stays out of the index.
+Logs/
 Logs_LG/
 Logs_split/
+
+# NOTE: the blanket "figs*" rule was removed once run output moved under
+# runs/. It silently swallowed any file whose name merely began with "figs",
+# which meant a stray 40 GB frame directory looked identical to a clean tree.
+# A leftover figs_* directory should now show up in `git status` and be
+# migrated, not hidden.

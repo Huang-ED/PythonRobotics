@@ -26,8 +26,8 @@ the pass condition, because the target was never a threat.
 Usage
 -----
     python PathPlanning/DWAT_v5_modular/adapters/encounter_report.py \
-        --baseline-log Logs/<obstacle-free run>/log_details.json \
-        --runs Logs/openwater_head_on_*/log_details.json ...
+        --baseline-log runs/v20.7.8-2/baseline/openwater_baseline__<ts>/log_details.json \
+        --runs 'runs/v20.7.8-2/encounters/owenc_*/log_details.json'
 """
 
 import argparse

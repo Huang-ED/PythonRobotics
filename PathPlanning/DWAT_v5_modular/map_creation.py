@@ -98,7 +98,7 @@ def resolve_data_path(data_path: str, scenario_file: Path) -> Path:
 def _load_track(obs_data: Dict[str, Any], scenario_file: Path, track_cache: Dict[str, Any]):
     """Pull one recorded track out of a bundle .npz, or read it inline.
 
-    Bundle layout (see EnvData/adapters/scene_format.py):
+    Bundle layout (see adapters/scene_format.py):
         positions (n_obs, K, 2) | lengths (n_obs,) | times (K,) or (n_obs, K)
         radii (n_obs,) | velocities (n_obs, K, 2), optional | ids (n_obs,), optional
     """

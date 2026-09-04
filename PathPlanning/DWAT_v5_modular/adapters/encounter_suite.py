@@ -40,7 +40,7 @@ since DWA re-linearises a curving target every step.
 Usage
 -----
     python PathPlanning/DWAT_v5_modular/adapters/encounter_suite.py \
-        --reference-log Logs/<obstacle-free run>/log_details.json \
+        --reference-log runs/v20.7.8-2/baseline/openwater_baseline__<ts>/log_details.json \
         --base-scenario PathPlanning/DWAT_v5_modular/configs/scenarios/openwater_baseline.json \
         --suite openwater
 """

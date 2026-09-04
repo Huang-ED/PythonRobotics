@@ -8,9 +8,9 @@ clearances tells you whether a run was safe, not what it did.
 Usage
 -----
     python PathPlanning/DWAT_v5_modular/adapters/encounter_plot.py \
-        --baseline-log Logs/<obstacle-free run>/log_details.json \
+        --baseline-log runs/v20.7.8-2/baseline/openwater_baseline__<ts>/log_details.json \
         --manifest PathPlanning/DWAT_v5_modular/configs/scenarios/owenc_manifest.json \
-        --runs "Logs/*owenc_*/log_details.json" \
+        --runs "runs/v20.7.8-2/encounters/owenc_*/log_details.json" \
         --out scratch/openwater_contact_sheet.png
 """
 

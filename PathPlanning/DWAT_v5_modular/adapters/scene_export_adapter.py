@@ -1,4 +1,4 @@
-"""Convert EnvData/scene_export into the intermediary scene format.
+"""Convert EnvData/datasets/scene_export into the intermediary scene format.
 
 The export is already a simulation snapshot on a 50x50 / 1 m grid, so this is a
 pure repackaging step: no projection, no resampling, no unit conversion. The
@@ -34,11 +34,11 @@ import numpy as np
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from scene_format import write_scene_config, write_track_bundle  # noqa: E402
 
-DEFAULT_SCENE = os.path.join('EnvData', 'scene_export', 'scene.npz')
-DEFAULT_OCCUPANCY = os.path.join('EnvData', 'scene_export', 'occupancy.npy')
-DEFAULT_TRACKS = os.path.join('EnvData', 'scene_export', 'converted', 'dynamic_tracks.npz')
-DEFAULT_IMAGE = os.path.join('EnvData', 'scene_export', 'land_shapes_sf_crop.png')
-REFINED_DIR = os.path.join('EnvData', 'scene_export', 'converted')
+DEFAULT_SCENE = os.path.join('EnvData', 'datasets', 'scene_export', 'scene.npz')
+DEFAULT_OCCUPANCY = os.path.join('EnvData', 'datasets', 'scene_export', 'occupancy.npy')
+DEFAULT_TRACKS = os.path.join('EnvData', 'derived', 'scene_export', 'dynamic_tracks.npz')
+DEFAULT_IMAGE = os.path.join('EnvData', 'datasets', 'scene_export', 'land_shapes_sf_crop.png')
+REFINED_DIR = os.path.join('EnvData', 'derived', 'scene_export')
 DEFAULT_CONFIG = os.path.join('PathPlanning', 'DWAT_v5_modular', 'configs', 'scenarios',
                               'scene_export.json')
 
@@ -167,7 +167,7 @@ def convert(scene_path=DEFAULT_SCENE,
         radii=[obstacle_radius] * n_obs,
         on_finish='hold',
         source={
-            'dataset': 'EnvData/scene_export',
+            'dataset': 'EnvData/datasets/scene_export',
             'scene_npz': scene_path.replace(os.sep, '/'),
             'time_step': time_step,
             'world_bounds': [x_min, x_max, y_min, y_max],

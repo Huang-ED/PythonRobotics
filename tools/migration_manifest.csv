@@ -1,0 +1,1150 @@
+source,destination,kind,note
+Logs/figs_P3_predT10_v1.0-modular-scene_export_20260825_012608/log_details.json,runs/P3_predT10_v1.0/imported/scene_export__20260825_012608/log_details.json,log,
+Logs/figs_P4_predT5_v1.0_a0.5-modular-scene_export_20260825_012947/log_details.json,runs/P4_predT5_v1.0_a0.5/imported/scene_export__20260825_012947/log_details.json,log,
+Logs/figs_v20.7.5-modular-scenario3_20260422_150612/log_details.json,runs/v20.7.5/synthetic/scenario3__20260422_150612/log_details.json,log,
+Logs/figs_v20.7.5-modular-scenario3_20260422_151315/log_details.json,runs/v20.7.5/synthetic/scenario3__20260422_151315/log_details.json,log,
+Logs/figs_v20.7.5-modular-scenario3_20260422_151753/log_details.json,runs/v20.7.5/synthetic/scenario3__20260422_151753/log_details.json,log,
+Logs/figs_v20.7.5-modular-scenario3_20260422_152201/log_details.json,runs/v20.7.5/synthetic/scenario3__20260422_152201/log_details.json,log,
+Logs/figs_v20.7.5-modular-scenario3-test_20260422_154159/log_details.json,runs/v20.7.5/synthetic/scenario3-test__20260422_154159/log_details.json,log,
+Logs/figs_v20.7.5-modular-scenario3-test_20260422_154451/log_details.json,runs/v20.7.5/synthetic/scenario3-test__20260422_154451/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario3-test,runs/v20.7.5/synthetic/scenario3-test__20260422_154451/frames,frames,attached to latest of 2 logs
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario3-test.mp4,runs/v20.7.5/synthetic/scenario3-test__20260422_154451/video.mp4,video,attached to latest of 2 logs
+Logs/figs_v20.7.5-modular-scenario3-test2_20260422_154850/log_details.json,runs/v20.7.5/synthetic/scenario3-test2__20260422_154850/log_details.json,log,
+Logs/figs_v20.7.5-modular-scenario3-test2_20260422_155119/log_details.json,runs/v20.7.5/synthetic/scenario3-test2__20260422_155119/log_details.json,log,
+Logs/figs_v20.7.5-modular-scenario3-test2_20260422_155224/log_details.json,runs/v20.7.5/synthetic/scenario3-test2__20260422_155224/log_details.json,log,
+Logs/figs_v20.7.5-modular-scenario_12_20260518_124844/log_details.json,runs/v20.7.5/synthetic/scenario_12__20260518_124844/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_12,runs/v20.7.5/synthetic/scenario_12__20260518_124844/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_12.mp4,runs/v20.7.5/synthetic/scenario_12__20260518_124844/video.mp4,video,
+Logs/figs_v20.7.5-modular-scenario_123_20260518_165946/log_details.json,runs/v20.7.5/synthetic/scenario_123__20260518_165946/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_123,runs/v20.7.5/synthetic/scenario_123__20260518_165946/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_123.mp4,runs/v20.7.5/synthetic/scenario_123__20260518_165946/video.mp4,video,
+Logs/figs_v20.7.5-modular-scenario_1234_20260518_175750/log_details.json,runs/v20.7.5/synthetic/scenario_1234__20260518_175750/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_1234,runs/v20.7.5/synthetic/scenario_1234__20260518_175750/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_1234.mp4,runs/v20.7.5/synthetic/scenario_1234__20260518_175750/video.mp4,video,
+Logs/figs_v20.7.5-modular-scenario_1234-1_20260518_180903/log_details.json,runs/v20.7.5/synthetic/scenario_1234-1__20260518_180903/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_1234-1,runs/v20.7.5/synthetic/scenario_1234-1__20260518_180903/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_1234-1.mp4,runs/v20.7.5/synthetic/scenario_1234-1__20260518_180903/video.mp4,video,
+Logs/figs_v20.7.5-modular-scenario_124_20260518_170530/log_details.json,runs/v20.7.5/synthetic/scenario_124__20260518_170530/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_124,runs/v20.7.5/synthetic/scenario_124__20260518_170530/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_124.mp4,runs/v20.7.5/synthetic/scenario_124__20260518_170530/video.mp4,video,
+Logs/figs_v20.7.5-modular-scenario_13_20260518_125511/log_details.json,runs/v20.7.5/synthetic/scenario_13__20260518_125511/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_13,runs/v20.7.5/synthetic/scenario_13__20260518_125511/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_13.mp4,runs/v20.7.5/synthetic/scenario_13__20260518_125511/video.mp4,video,
+Logs/figs_v20.7.5-modular-scenario_134_20260518_170905/log_details.json,runs/v20.7.5/synthetic/scenario_134__20260518_170905/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_134,runs/v20.7.5/synthetic/scenario_134__20260518_170905/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_134.mp4,runs/v20.7.5/synthetic/scenario_134__20260518_170905/video.mp4,video,
+Logs/figs_v20.7.5-modular-scenario_14_20260518_125822/log_details.json,runs/v20.7.5/synthetic/scenario_14__20260518_125822/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_14,runs/v20.7.5/synthetic/scenario_14__20260518_125822/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_14.mp4,runs/v20.7.5/synthetic/scenario_14__20260518_125822/video.mp4,video,
+Logs/figs_v20.7.5-modular-scenario_23_20260518_110146/log_details.json,runs/v20.7.5/synthetic/scenario_23__20260518_110146/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_23,runs/v20.7.5/synthetic/scenario_23__20260518_110146/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_23.mp4,runs/v20.7.5/synthetic/scenario_23__20260518_110146/video.mp4,video,
+Logs/figs_v20.7.5-modular-scenario_23-1_20260518_170508/log_details.json,runs/v20.7.5/synthetic/scenario_23-1__20260518_170508/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_23-1,runs/v20.7.5/synthetic/scenario_23-1__20260518_170508/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_23-1.mp4,runs/v20.7.5/synthetic/scenario_23-1__20260518_170508/video.mp4,video,
+Logs/figs_v20.7.5-modular-scenario_234_20260518_175054/log_details.json,runs/v20.7.5/synthetic/scenario_234__20260518_175054/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_234,runs/v20.7.5/synthetic/scenario_234__20260518_175054/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_234.mp4,runs/v20.7.5/synthetic/scenario_234__20260518_175054/video.mp4,video,
+Logs/figs_v20.7.5-modular-scenario_234-1_20260518_180520/log_details.json,runs/v20.7.5/synthetic/scenario_234-1__20260518_180520/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_234-1,runs/v20.7.5/synthetic/scenario_234-1__20260518_180520/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_234-1.mp4,runs/v20.7.5/synthetic/scenario_234-1__20260518_180520/video.mp4,video,
+Logs/figs_v20.7.5-modular-scenario_2345-1_20260529_032335/log_details.json,runs/v20.7.5/synthetic/scenario_2345-1__20260529_032335/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_2345-1,runs/v20.7.5/synthetic/scenario_2345-1__20260529_032335/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_2345-1.mp4,runs/v20.7.5/synthetic/scenario_2345-1__20260529_032335/video.mp4,video,
+Logs/figs_v20.7.5-modular-scenario_23456-1_20260529_032405/log_details.json,runs/v20.7.5/synthetic/scenario_23456-1__20260529_032405/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_23456-1,runs/v20.7.5/synthetic/scenario_23456-1__20260529_032405/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_23456-1.mp4,runs/v20.7.5/synthetic/scenario_23456-1__20260529_032405/video.mp4,video,
+Logs/figs_v20.7.5-modular-scenario_24_20260518_163939/log_details.json,runs/v20.7.5/synthetic/scenario_24__20260518_163939/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_24,runs/v20.7.5/synthetic/scenario_24__20260518_163939/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_24.mp4,runs/v20.7.5/synthetic/scenario_24__20260518_163939/video.mp4,video,
+Logs/figs_v20.7.5-modular-scenario_34_20260518_164502/log_details.json,runs/v20.7.5/synthetic/scenario_34__20260518_164502/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_34,runs/v20.7.5/synthetic/scenario_34__20260518_164502/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_34.mp4,runs/v20.7.5/synthetic/scenario_34__20260518_164502/video.mp4,video,
+Logs/figs_v20.7.5-modular-scenario_5_20260528_162013/log_details.json,runs/v20.7.5/synthetic/scenario_5__20260528_162013/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_5,runs/v20.7.5/synthetic/scenario_5__20260528_162013/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_5.mp4,runs/v20.7.5/synthetic/scenario_5__20260528_162013/video.mp4,video,
+Logs/figs_v20.7.5-modular-scenario_6_20260528_192438/log_details.json,runs/v20.7.5/synthetic/scenario_6__20260528_192438/log_details.json,log,
+Logs/figs_v20.7.5-modular-scenario_6_20260528_195038/log_details.json,runs/v20.7.5/synthetic/scenario_6__20260528_195038/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_6,runs/v20.7.5/synthetic/scenario_6__20260528_195038/frames,frames,attached to latest of 2 logs
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_6.mp4,runs/v20.7.5/synthetic/scenario_6__20260528_195038/video.mp4,video,attached to latest of 2 logs
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_6-wrong,runs/v20.7.5/synthetic/scenario_6-wrong__notime/frames,frames,no matching log
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-scenario_6-wrong.mp4,runs/v20.7.5/synthetic/scenario_6-wrong__notime/video.mp4,video,no matching log
+Logs/figs_v20.7.5-modular-video3_20260422_165753/log_details.json,runs/v20.7.5/video/video3__20260422_165753/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-video3,runs/v20.7.5/video/video3__20260422_165753/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-video3.mp4,runs/v20.7.5/video/video3__20260422_165753/video.mp4,video,
+Logs/figs_v20.7.5-modular-video4_20260521_130908/log_details.json,runs/v20.7.5/video/video4__20260521_130908/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-video4,runs/v20.7.5/video/video4__20260521_130908/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-video4.mp4,runs/v20.7.5/video/video4__20260521_130908/video.mp4,video,
+Logs/figs_v20.7.5-modular-video5_20260521_162231/log_details.json,runs/v20.7.5/video/video5__20260521_162231/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-video5,runs/v20.7.5/video/video5__20260521_162231/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-video5.mp4,runs/v20.7.5/video/video5__20260521_162231/video.mp4,video,
+Logs/figs_v20.7.6-modular-scenario_1_20260521_153831/log_details.json,runs/v20.7.6/synthetic/scenario_1__20260521_153831/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.6-modular-scenario_1,runs/v20.7.6/synthetic/scenario_1__20260521_153831/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.6-modular-scenario_1.mp4,runs/v20.7.6/synthetic/scenario_1__20260521_153831/video.mp4,video,
+Logs/figs_v20.7.6-modular-scenario_2_20260521_154240/log_details.json,runs/v20.7.6/synthetic/scenario_2__20260521_154240/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.6-modular-scenario_2,runs/v20.7.6/synthetic/scenario_2__20260521_154240/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.6-modular-scenario_2.mp4,runs/v20.7.6/synthetic/scenario_2__20260521_154240/video.mp4,video,
+Logs/figs_v20.7.6-modular-scenario_3_20260521_121141/log_details.json,runs/v20.7.6/synthetic/scenario_3__20260521_121141/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.6-modular-scenario_3,runs/v20.7.6/synthetic/scenario_3__20260521_121141/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.6-modular-scenario_3.mp4,runs/v20.7.6/synthetic/scenario_3__20260521_121141/video.mp4,video,
+Logs/figs_v20.7.6-modular-scenario_4_20260521_154834/log_details.json,runs/v20.7.6/synthetic/scenario_4__20260521_154834/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.6-modular-scenario_4,runs/v20.7.6/synthetic/scenario_4__20260521_154834/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.6-modular-scenario_4.mp4,runs/v20.7.6/synthetic/scenario_4__20260521_154834/video.mp4,video,
+Logs/figs_v20.7.7-modular-scenario_234_20260610_174634/log_details.json,runs/v20.7.7/synthetic/scenario_234__20260610_174634/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.7-modular-scenario_234,runs/v20.7.7/synthetic/scenario_234__20260610_174634/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.7-modular-scenario_234.mp4,runs/v20.7.7/synthetic/scenario_234__20260610_174634/video.mp4,video,
+Logs/figs_v20.7.7-modular-scenario_234-1_20260610_174809/log_details.json,runs/v20.7.7/synthetic/scenario_234-1__20260610_174809/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.7-modular-scenario_234-1,runs/v20.7.7/synthetic/scenario_234-1__20260610_174809/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.7-modular-scenario_234-1.mp4,runs/v20.7.7/synthetic/scenario_234-1__20260610_174809/video.mp4,video,
+Logs/figs_v20.7.7-modular-scenario_3_20260610_173214/log_details.json,runs/v20.7.7/synthetic/scenario_3__20260610_173214/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.7-modular-scenario_3,runs/v20.7.7/synthetic/scenario_3__20260610_173214/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.7-modular-scenario_3.mp4,runs/v20.7.7/synthetic/scenario_3__20260610_173214/video.mp4,video,
+Logs/figs_v20.7.7-modular-scenario_5_20260611_075111/log_details.json,runs/v20.7.7/synthetic/scenario_5__20260611_075111/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.7-modular-scenario_5,runs/v20.7.7/synthetic/scenario_5__20260611_075111/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.7-modular-scenario_5.mp4,runs/v20.7.7/synthetic/scenario_5__20260611_075111/video.mp4,video,
+Logs/figs_v20.7.7-modular-scenario_6_20260611_075548/log_details.json,runs/v20.7.7/synthetic/scenario_6__20260611_075548/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.7-modular-scenario_6,runs/v20.7.7/synthetic/scenario_6__20260611_075548/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.7-modular-scenario_6.mp4,runs/v20.7.7/synthetic/scenario_6__20260611_075548/video.mp4,video,
+Logs/figs_v20.7.7-modular-video3_20260610_182306/log_details.json,runs/v20.7.7/video/video3__20260610_182306/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.7-modular-video3,runs/v20.7.7/video/video3__20260610_182306/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.7-modular-video3.mp4,runs/v20.7.7/video/video3__20260610_182306/video.mp4,video,
+Logs/figs_v20.7.8-modular-scenario_234_20260611_232106/log_details.json,runs/v20.7.8/synthetic/scenario_234__20260611_232106/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-modular-scenario_234,runs/v20.7.8/synthetic/scenario_234__20260611_232106/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-modular-scenario_234.mp4,runs/v20.7.8/synthetic/scenario_234__20260611_232106/video.mp4,video,
+Logs/figs_v20.7.8-modular-scenario_234-1_20260611_232247/log_details.json,runs/v20.7.8/synthetic/scenario_234-1__20260611_232247/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-modular-scenario_234-1,runs/v20.7.8/synthetic/scenario_234-1__20260611_232247/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-modular-scenario_234-1.mp4,runs/v20.7.8/synthetic/scenario_234-1__20260611_232247/video.mp4,video,
+Logs/figs_v20.7.8-2-modular-_tmp_video3_static_20260826_172529/log_details.json,runs/v20.7.8-2/misc/_tmp_video3_static__20260826_172529/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-openwater_baseline_20260827_182656/log_details.json,runs/v20.7.8-2/baseline/openwater_baseline__20260827_182656/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-openwater_baseline_20260827_184123/log_details.json,runs/v20.7.8-2/baseline/openwater_baseline__20260827_184123/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-ow_sequence_20260831_015531/log_details.json,runs/v20.7.8-2/combined/ow_sequence__20260831_015531/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-ow_sequence,runs/v20.7.8-2/combined/ow_sequence__20260831_015531/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-ow_sequence.mp4,runs/v20.7.8-2/combined/ow_sequence__20260831_015531/video.mp4,video,
+Logs/figs_v20.7.8-2-modular-ow_simultaneous_20260831_015532/log_details.json,runs/v20.7.8-2/combined/ow_simultaneous__20260831_015532/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-ow_simultaneous,runs/v20.7.8-2/combined/ow_simultaneous__20260831_015532/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-ow_simultaneous.mp4,runs/v20.7.8-2/combined/ow_simultaneous__20260831_015532/video.mp4,video,
+Logs/figs_v20.7.8-2-modular-owenc_cross_port_045_20260827_195124/log_details.json,runs/v20.7.8-2/encounters/owenc_cross_port_045__20260827_195124/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-owenc_cross_port_090_20260827_195119/log_details.json,runs/v20.7.8-2/encounters/owenc_cross_port_090__20260827_195119/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-owenc_cross_port_135_20260827_195128/log_details.json,runs/v20.7.8-2/encounters/owenc_cross_port_135__20260827_195128/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-owenc_cross_stbd_045_20260827_195129/log_details.json,runs/v20.7.8-2/encounters/owenc_cross_stbd_045__20260827_195129/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-owenc_cross_stbd_090_20260827_195129/log_details.json,runs/v20.7.8-2/encounters/owenc_cross_stbd_090__20260827_195129/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-owenc_cross_stbd_135_20260827_195133/log_details.json,runs/v20.7.8-2/encounters/owenc_cross_stbd_135__20260827_195133/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-owenc_head_on_20260827_200310/log_details.json,runs/v20.7.8-2/encounters/owenc_head_on__20260827_200310/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-owenc_null_safe_pass_20260827_200308/log_details.json,runs/v20.7.8-2/encounters/owenc_null_safe_pass__20260827_200308/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-owenc_overtake_ego_20260827_200320/log_details.json,runs/v20.7.8-2/encounters/owenc_overtake_ego__20260827_200320/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-owenc_overtaken_ego,runs/v20.7.8-2/encounters/owenc_overtaken_ego__notime/frames,frames,no matching log
+Logs/figs_v20.7.8-2-modular-scenario_1_20260815_174406/log_details.json,runs/v20.7.8-2/synthetic/scenario_1__20260815_174406/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-scenario_1,runs/v20.7.8-2/synthetic/scenario_1__20260815_174406/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-scenario_1.mp4,runs/v20.7.8-2/synthetic/scenario_1__20260815_174406/video.mp4,video,
+Logs/figs_v20.7.8-2-modular-scenario_2_20260815_174737/log_details.json,runs/v20.7.8-2/synthetic/scenario_2__20260815_174737/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-scenario_2,runs/v20.7.8-2/synthetic/scenario_2__20260815_174737/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-scenario_2.mp4,runs/v20.7.8-2/synthetic/scenario_2__20260815_174737/video.mp4,video,
+Logs/figs_v20.7.8-2-modular-scenario_234_20260815_181012/log_details.json,runs/v20.7.8-2/synthetic/scenario_234__20260815_181012/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-scenario_234,runs/v20.7.8-2/synthetic/scenario_234__20260815_181012/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-scenario_234.mp4,runs/v20.7.8-2/synthetic/scenario_234__20260815_181012/video.mp4,video,
+Logs/figs_v20.7.8-2-modular-scenario_234-1_20260612_021813/log_details.json,runs/v20.7.8-2/synthetic/scenario_234-1__20260612_021813/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-scenario_234-1,runs/v20.7.8-2/synthetic/scenario_234-1__20260612_021813/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-scenario_234-1.mp4,runs/v20.7.8-2/synthetic/scenario_234-1__20260612_021813/video.mp4,video,
+Logs/figs_v20.7.8-2-modular-scenario_3_20260713_003328/log_details.json,runs/v20.7.8-2/synthetic/scenario_3__20260713_003328/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-scenario_3_20260825_012615/log_details.json,runs/v20.7.8-2/synthetic/scenario_3__20260825_012615/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-scenario_3,runs/v20.7.8-2/synthetic/scenario_3__20260825_012615/frames,frames,attached to latest of 2 logs
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-scenario_3.mp4,runs/v20.7.8-2/synthetic/scenario_3__20260825_012615/video.mp4,video,attached to latest of 2 logs
+Logs/figs_v20.7.8-2-modular-scenario_3_headNorth_20260815_175045/log_details.json,runs/v20.7.8-2/synthetic/scenario_3_headNorth__20260815_175045/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-scenario_3_headNorth,runs/v20.7.8-2/synthetic/scenario_3_headNorth__20260815_175045/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-scenario_3_headNorth.mp4,runs/v20.7.8-2/synthetic/scenario_3_headNorth__20260815_175045/video.mp4,video,
+Logs/figs_v20.7.8-2-modular-scenario_4_20260815_175517/log_details.json,runs/v20.7.8-2/synthetic/scenario_4__20260815_175517/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-scenario_4,runs/v20.7.8-2/synthetic/scenario_4__20260815_175517/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-scenario_4.mp4,runs/v20.7.8-2/synthetic/scenario_4__20260815_175517/video.mp4,video,
+Logs/figs_v20.7.8-2-modular-scenario_5_20260815_175850/log_details.json,runs/v20.7.8-2/synthetic/scenario_5__20260815_175850/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-scenario_5,runs/v20.7.8-2/synthetic/scenario_5__20260815_175850/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-scenario_5.mp4,runs/v20.7.8-2/synthetic/scenario_5__20260815_175850/video.mp4,video,
+Logs/figs_v20.7.8-2-modular-scenario_6_20260815_180235/log_details.json,runs/v20.7.8-2/synthetic/scenario_6__20260815_180235/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-scenario_6,runs/v20.7.8-2/synthetic/scenario_6__20260815_180235/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-scenario_6.mp4,runs/v20.7.8-2/synthetic/scenario_6__20260815_180235/video.mp4,video,
+Logs/figs_v20.7.8-2-modular-scene_export_20260825_012439/log_details.json,runs/v20.7.8-2/imported/scene_export__20260825_012439/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-scene_export,runs/v20.7.8-2/imported/scene_export__20260825_012439/frames,frames,
+Logs/figs_v20.7.8-2-modular-scene_export_static_only_20260825_013929/log_details.json,runs/v20.7.8-2/imported/scene_export_static_only__20260825_013929/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-v3_drop3_20260902_171147/log_details.json,runs/v20.7.8-2/misc/v3_drop3__20260902_171147/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-v3_only3_20260902_170644/log_details.json,runs/v20.7.8-2/misc/v3_only3__20260902_170644/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-v3enc_v3A_cross_port_045_20260827_190218/log_details.json,runs/v20.7.8-2/encounters/v3enc_v3A_cross_port_045__20260827_190218/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-v3enc_v3A_cross_port_090_20260827_190159/log_details.json,runs/v20.7.8-2/encounters/v3enc_v3A_cross_port_090__20260827_190159/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-v3enc_v3A_cross_stbd_045_20260827_190152/log_details.json,runs/v20.7.8-2/encounters/v3enc_v3A_cross_stbd_045__20260827_190152/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-v3enc_v3A_cross_stbd_090_20260827_190201/log_details.json,runs/v20.7.8-2/encounters/v3enc_v3A_cross_stbd_090__20260827_190201/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-v3enc_v3A_cross_stbd_135_20260827_190232/log_details.json,runs/v20.7.8-2/encounters/v3enc_v3A_cross_stbd_135__20260827_190232/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-v3enc_v3A_head_on_20260827_193725/log_details.json,runs/v20.7.8-2/encounters/v3enc_v3A_head_on__20260827_193725/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-v3enc_v3A_overtake_ego_20260827_193752/log_details.json,runs/v20.7.8-2/encounters/v3enc_v3A_overtake_ego__20260827_193752/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-v3enc_v3B_cross_port_135_20260827_193755/log_details.json,runs/v20.7.8-2/encounters/v3enc_v3B_cross_port_135__20260827_193755/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-v3enc_v3B_head_on_20260827_193831/log_details.json,runs/v20.7.8-2/encounters/v3enc_v3B_head_on__20260827_193831/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-v3enc_v3B_overtake_ego_20260827_193844/log_details.json,runs/v20.7.8-2/encounters/v3enc_v3B_overtake_ego__20260827_193844/log_details.json,log,
+Logs/figs_v20.7.8-2-modular-v3seq_20260831_023313/log_details.json,runs/v20.7.8-2/combined/v3seq__20260831_023313/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-v3seq,runs/v20.7.8-2/combined/v3seq__20260831_023313/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-v3seq.mp4,runs/v20.7.8-2/combined/v3seq__20260831_023313/video.mp4,video,
+Logs/figs_v20.7.8-2-modular-video3_20260612_031331/log_details.json,runs/v20.7.8-2/video/video3__20260612_031331/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-video3,runs/v20.7.8-2/video/video3__20260612_031331/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-video3.mp4,runs/v20.7.8-2/video/video3__20260612_031331/video.mp4,video,
+Logs/figs_v20.7.8-2-modular-video3_lrshift_20260709_192424/log_details.json,runs/v20.7.8-2/video/video3_lrshift__20260709_192424/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-video3_lrshift,runs/v20.7.8-2/video/video3_lrshift__20260709_192424/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2-modular-video3_lrshift.mp4,runs/v20.7.8-2/video/video3_lrshift__20260709_192424/video.mp4,video,
+Logs/figs_v20.7.8-2_goal1.0-modular-scene_export_static_only_20260825_014659/log_details.json,runs/v20.7.8-2/goal1.0/imported/scene_export_static_only__20260825_014659/log_details.json,log,
+Logs/figs_v20.7.8-2_predT10-modular-owenc_overtaken_ego_20260827_201504/log_details.json,runs/v20.7.8-2/predT10/encounters/owenc_overtaken_ego__20260827_201504/log_details.json,log,
+Logs/figs_v20.7.8-2_predT10-modular-scenario_3_north_20260713_005938/log_details.json,runs/v20.7.8-2/predT10/synthetic/scenario_3_north__20260713_005938/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2_predT10-modular-scenario_3_north,runs/v20.7.8-2/predT10/synthetic/scenario_3_north__20260713_005938/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2_predT10-modular-scenario_3_north.mp4,runs/v20.7.8-2/predT10/synthetic/scenario_3_north__20260713_005938/video.mp4,video,
+Logs/figs_v20.7.8-2_predT10-modular-scene_export_20260825_012721/log_details.json,runs/v20.7.8-2/predT10/imported/scene_export__20260825_012721/log_details.json,log,
+Logs/figs_v20.7.8-2_predT12-modular-scenario_3_north_20260715_131627/log_details.json,runs/v20.7.8-2/predT12/synthetic/scenario_3_north__20260715_131627/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2_predT12-modular-scenario_3_north,runs/v20.7.8-2/predT12/synthetic/scenario_3_north__20260715_131627/frames,frames,
+Logs/figs_v20.7.8-2_predT15-modular-scenario_3_north_20260715_131955/log_details.json,runs/v20.7.8-2/predT15/synthetic/scenario_3_north__20260715_131955/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2_predT15-modular-scenario_3_north,runs/v20.7.8-2/predT15/synthetic/scenario_3_north__20260715_131955/frames,frames,
+Logs/figs_v20.7.8-2_predT18-modular-scenario_3_north_20260715_133244/log_details.json,runs/v20.7.8-2/predT18/synthetic/scenario_3_north__20260715_133244/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2_predT18-modular-scenario_3_north,runs/v20.7.8-2/predT18/synthetic/scenario_3_north__20260715_133244/frames,frames,
+Logs/figs_v20.7.8-2_predT20-modular-scenario_3_north_20260713_005820/log_details.json,runs/v20.7.8-2/predT20/synthetic/scenario_3_north__20260713_005820/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2_predT20-modular-scenario_3_north,runs/v20.7.8-2/predT20/synthetic/scenario_3_north__20260713_005820/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2_predT20-modular-scenario_3_north.mp4,runs/v20.7.8-2/predT20/synthetic/scenario_3_north__20260713_005820/video.mp4,video,
+Logs/figs_v20.7.8-2_predT30-modular-scenario_3_north_20260713_005359/log_details.json,runs/v20.7.8-2/predT30/synthetic/scenario_3_north__20260713_005359/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2_predT30-modular-scenario_3_north,runs/v20.7.8-2/predT30/synthetic/scenario_3_north__20260713_005359/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2_predT30-modular-scenario_3_north.mp4,runs/v20.7.8-2/predT30/synthetic/scenario_3_north__20260713_005359/video.mp4,video,
+Logs/figs_v20.7.8-2_predT5-modular-owenc_overtaken_ego_20260827_202016/log_details.json,runs/v20.7.8-2/predT5/encounters/owenc_overtaken_ego__20260827_202016/log_details.json,log,
+Logs/figs_v20.7.8-2_predT5-modular-scenario_3_north_20260713_010245/log_details.json,runs/v20.7.8-2/predT5/synthetic/scenario_3_north__20260713_010245/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2_predT5-modular-scenario_3_north,runs/v20.7.8-2/predT5/synthetic/scenario_3_north__20260713_010245/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-2_predT5-modular-scenario_3_north.mp4,runs/v20.7.8-2/predT5/synthetic/scenario_3_north__20260713_010245/video.mp4,video,
+Logs/figs_v20.7.8-2_predT5-modular-scene_export_20260825_012611/log_details.json,runs/v20.7.8-2/predT5/imported/scene_export__20260825_012611/log_details.json,log,
+Logs/figs_v20.7.8-2_r0.25_goal1.0-modular-scene100_static_only_20260825_022041/log_details.json,runs/v20.7.8-2/r0.25_goal1.0/misc/scene100_static_only__20260825_022041/log_details.json,log,
+Logs/figs_v20.7.8-2_r0.25_goal1.0-modular-scene_export_100_20260825_021122/log_details.json,runs/v20.7.8-2/r0.25_goal1.0/imported/scene_export_100__20260825_021122/log_details.json,log,
+Logs/figs_v20.7.8-3-modular-scenario_1_20260815_215308/log_details.json,runs/v20.7.8-3/synthetic/scenario_1__20260815_215308/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-3-modular-scenario_1,runs/v20.7.8-3/synthetic/scenario_1__20260815_215308/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-3-modular-scenario_1.mp4,runs/v20.7.8-3/synthetic/scenario_1__20260815_215308/video.mp4,video,
+Logs/figs_v20.7.8-3-modular-scenario_2_20260815_215725/log_details.json,runs/v20.7.8-3/synthetic/scenario_2__20260815_215725/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-3-modular-scenario_2,runs/v20.7.8-3/synthetic/scenario_2__20260815_215725/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-3-modular-scenario_2.mp4,runs/v20.7.8-3/synthetic/scenario_2__20260815_215725/video.mp4,video,
+Logs/figs_v20.7.8-3-modular-scenario_234_20260815_232959/log_details.json,runs/v20.7.8-3/synthetic/scenario_234__20260815_232959/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-3-modular-scenario_234,runs/v20.7.8-3/synthetic/scenario_234__20260815_232959/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-3-modular-scenario_234.mp4,runs/v20.7.8-3/synthetic/scenario_234__20260815_232959/video.mp4,video,
+Logs/figs_v20.7.8-3-modular-scenario_234-1_20260815_233555/log_details.json,runs/v20.7.8-3/synthetic/scenario_234-1__20260815_233555/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-3-modular-scenario_234-1,runs/v20.7.8-3/synthetic/scenario_234-1__20260815_233555/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-3-modular-scenario_234-1.mp4,runs/v20.7.8-3/synthetic/scenario_234-1__20260815_233555/video.mp4,video,
+Logs/figs_v20.7.8-3-modular-scenario_3_20260815_224154/log_details.json,runs/v20.7.8-3/synthetic/scenario_3__20260815_224154/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-3-modular-scenario_3,runs/v20.7.8-3/synthetic/scenario_3__20260815_224154/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-3-modular-scenario_3.mp4,runs/v20.7.8-3/synthetic/scenario_3__20260815_224154/video.mp4,video,
+Logs/figs_v20.7.8-3-modular-scenario_3_headNorth_20260815_224458/log_details.json,runs/v20.7.8-3/synthetic/scenario_3_headNorth__20260815_224458/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-3-modular-scenario_3_headNorth,runs/v20.7.8-3/synthetic/scenario_3_headNorth__20260815_224458/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-3-modular-scenario_3_headNorth.mp4,runs/v20.7.8-3/synthetic/scenario_3_headNorth__20260815_224458/video.mp4,video,
+Logs/figs_v20.7.8-3-modular-scenario_4_20260815_225448/log_details.json,runs/v20.7.8-3/synthetic/scenario_4__20260815_225448/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-3-modular-scenario_4,runs/v20.7.8-3/synthetic/scenario_4__20260815_225448/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-3-modular-scenario_4.mp4,runs/v20.7.8-3/synthetic/scenario_4__20260815_225448/video.mp4,video,
+Logs/figs_v20.7.8-3-modular-scenario_5_20260815_230040/log_details.json,runs/v20.7.8-3/synthetic/scenario_5__20260815_230040/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-3-modular-scenario_5,runs/v20.7.8-3/synthetic/scenario_5__20260815_230040/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-3-modular-scenario_5.mp4,runs/v20.7.8-3/synthetic/scenario_5__20260815_230040/video.mp4,video,
+Logs/figs_v20.7.8-3-modular-scenario_6_20260815_232529/log_details.json,runs/v20.7.8-3/synthetic/scenario_6__20260815_232529/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-3-modular-scenario_6,runs/v20.7.8-3/synthetic/scenario_6__20260815_232529/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.8-3-modular-scenario_6.mp4,runs/v20.7.8-3/synthetic/scenario_6__20260815_232529/video.mp4,video,
+Logs/figs_v20.8.1-modular-scenario_234-1_20260701_005226/log_details.json,runs/v20.8.1/synthetic/scenario_234-1__20260701_005226/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.8.1-modular-scenario_234-1,runs/v20.8.1/synthetic/scenario_234-1__20260701_005226/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.8.1-modular-scenario_234-1.mp4,runs/v20.8.1/synthetic/scenario_234-1__20260701_005226/video.mp4,video,
+Logs/figs_v20.8.1-modular-video3_20260701_114433/log_details.json,runs/v20.8.1/video/video3__20260701_114433/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.8.1-modular-video3,runs/v20.8.1/video/video3__20260701_114433/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.8.1-modular-video3.mp4,runs/v20.8.1/video/video3__20260701_114433/video.mp4,video,
+Logs/figs_v20.8.1-modular-video5_20260701_135529/log_details.json,runs/v20.8.1/video/video5__20260701_135529/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.8.1-modular-video5,runs/v20.8.1/video/video5__20260701_135529/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.8.1-modular-video5.mp4,runs/v20.8.1/video/video5__20260701_135529/video.mp4,video,
+Logs/figs_v20.8.2-modular-video5_20260702_021814/log_details.json,runs/v20.8.2/video/video5__20260702_021814/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.8.2-modular-video5,runs/v20.8.2/video/video5__20260702_021814/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.8.2-modular-video5.mp4,runs/v20.8.2/video/video5__20260702_021814/video.mp4,video,
+Logs/figs_v20.9-modular-scene_export_20260825_164702/log_details.json,runs/v20.9/imported/scene_export__20260825_164702/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.9-modular-scene_export,runs/v20.9/imported/scene_export__20260825_164702/frames,frames,
+PathPlanning/DWAT_v5_modular/results/figs_v20.9-modular-scene_export.mp4,runs/v20.9/imported/scene_export__20260825_164702/video.mp4,video,
+Logs/figs_v20.9.1-modular-scene_export_20260826_105352/log_details.json,runs/v20.9.1/imported/scene_export__20260826_105352/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.9.1-modular-scene_export,runs/v20.9.1/imported/scene_export__20260826_105352/frames,frames,
+Logs/figs_v20.9.2-modular-scene_export_20260826_115521/log_details.json,runs/v20.9.2/imported/scene_export__20260826_115521/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.9.2-modular-scene_export,runs/v20.9.2/imported/scene_export__20260826_115521/frames,frames,
+Logs/figs_v20.9.3-modular-scene_export_20260826_164918/log_details.json,runs/v20.9.3/imported/scene_export__20260826_164918/log_details.json,log,
+PathPlanning/DWAT_v5_modular/results/figs_v20.9.3-modular-scene_export,runs/v20.9.3/imported/scene_export__20260826_164918/frames,frames,
+PathPlanning/LocalGlobal/figs_v5.2,runs/_archive/local_global/v5.2/misc/unnamed__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7_video1_attempt_0_failed,runs/_archive/local_global/v7/video/video1_attempt_0_failed__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7_video1_attempt_1_failed,runs/_archive/local_global/v7/video/video1_attempt_1_failed__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7_video2_0402_noNormalization_noPTuning,runs/_archive/local_global/v7/video/video2_0402_noNormalization_noPTuning__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7_video2_0402_normalization_noPTuning,runs/_archive/local_global/v7/video/video2_0402_normalization_noPTuning__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7_video2_0405_dt10_ob08_halfway,runs/_archive/local_global/v7/video/video2_0405_dt10_ob08_halfway__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7_video2_0405_dt10_ob15_halfway,runs/_archive/local_global/v7/video/video2_0405_dt10_ob15_halfway__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7_video2_attempt_0_failed,runs/_archive/local_global/v7/video/video2_attempt_0_failed__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7_video2_attempt_1_failed,runs/_archive/local_global/v7/video/video2_attempt_1_failed__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.1_video1,runs/_archive/local_global/v7.1/video/video1__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.1_video2,runs/_archive/local_global/v7.1/video/video2__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.1,runs/_archive/local_global/v7.3.1/misc/unnamed__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.2,runs/_archive/local_global/v7.3.2/misc/unnamed__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.3,runs/_archive/local_global/v7.3.3/misc/unnamed__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.4,runs/_archive/local_global/v7.3.4/misc/unnamed__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.5,runs/_archive/local_global/v7.3.5/misc/unnamed__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.5.mp4,runs/_archive/local_global/v7.3.5/misc/unnamed__notime/video.mp4,video,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.6,runs/_archive/local_global/v7.3.6/misc/unnamed__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.7-test1,runs/_archive/local_global/v7.3.7/misc/test1__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.7-test2,runs/_archive/local_global/v7.3.7/misc/test2__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.7-test3,runs/_archive/local_global/v7.3.7/misc/test3__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.7-test4,runs/_archive/local_global/v7.3.7/misc/test4__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.7-test5,runs/_archive/local_global/v7.3.7/misc/test5__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.7-test6,runs/_archive/local_global/v7.3.7/misc/test6__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.8-test1,runs/_archive/local_global/v7.3.8/misc/test1__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.8-test2,runs/_archive/local_global/v7.3.8/misc/test2__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.8-test2.9_vid1,runs/_archive/local_global/v7.3.8/misc/test2.9_vid1__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.8-test3,runs/_archive/local_global/v7.3.8/misc/test3__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.8-test3_vid1,runs/_archive/local_global/v7.3.8/misc/test3_vid1__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.8,runs/_archive/local_global/v7.3.8/misc/unnamed__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.9-test1-vid2,runs/_archive/local_global/v7.3.9/misc/test1-vid2__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.9-test1_vid1,runs/_archive/local_global/v7.3.9/misc/test1_vid1__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.9-test2-vid2,runs/_archive/local_global/v7.3.9/misc/test2-vid2__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.9-test2_vid1,runs/_archive/local_global/v7.3.9/misc/test2_vid1__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.9-test3-vid2,runs/_archive/local_global/v7.3.9/misc/test3-vid2__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.9-test4-vid2,runs/_archive/local_global/v7.3.9/misc/test4-vid2__notime/frames,frames,no matching log
+PathPlanning/LocalGlobal/figs_v7.3.9-test4_vid1,runs/_archive/local_global/v7.3.9/misc/test4_vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT/figs_v7.4.1-vid2,runs/_archive/v1/v7.4.1/misc/vid2__notime/frames,frames,no matching log
+PathPlanning/DWAT/figs_v7.4.2-vid1,runs/_archive/v1/v7.4.2/misc/vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT/figs_v7.4.2-vid2,runs/_archive/v1/v7.4.2/misc/vid2__notime/frames,frames,no matching log
+PathPlanning/DWAT/figs_v7.4.3-vid1,runs/_archive/v1/v7.4.3/misc/vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT/figs_v7.4.3-vid2,runs/_archive/v1/v7.4.3/misc/vid2__notime/frames,frames,no matching log
+PathPlanning/DWAT/figs_v7.4.4-vid1,runs/_archive/v1/v7.4.4/misc/vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT/figs_v7.4.4-vid2,runs/_archive/v1/v7.4.4/misc/vid2__notime/frames,frames,no matching log
+PathPlanning/DWAT/figs_v7.4.4-vid2-temp,runs/_archive/v1/v7.4.4/misc/vid2-temp__notime/frames,frames,no matching log
+PathPlanning/DWAT/figs_v7.4.5-vid1,runs/_archive/v1/v7.4.5/misc/vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT/figs_v7.4.5-vid2,runs/_archive/v1/v7.4.5/misc/vid2__notime/frames,frames,no matching log
+PathPlanning/DWAT/figs_v7.4.5-vid2-temp,runs/_archive/v1/v7.4.5/misc/vid2-temp__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_report-2025-08-04,runs/_archive/v2/report-2025-08-04/misc/unnamed__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.1-vid1,runs/_archive/v2/v8.1/misc/vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.1-vid2,runs/_archive/v2/v8.1/misc/vid2__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.2-simple1,runs/_archive/v2/v8.2/misc/simple1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.2-vid1,runs/_archive/v2/v8.2/misc/vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.2-vid2,runs/_archive/v2/v8.2/misc/vid2__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.2.2-simple1,runs/_archive/v2/v8.2.2/misc/simple1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.2.2-vid1,runs/_archive/v2/v8.2.2/misc/vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.2.2-vid2,runs/_archive/v2/v8.2.2/misc/vid2__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.2.3-simple1,runs/_archive/v2/v8.2.3/misc/simple1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.2.3-simple1.mp4,runs/_archive/v2/v8.2.3/misc/simple1__notime/video.mp4,video,no matching log
+PathPlanning/DWAT_v2/figs_v8.2.3-simple2,runs/_archive/v2/v8.2.3/misc/simple2__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.2.3-simple2.mp4,runs/_archive/v2/v8.2.3/misc/simple2__notime/video.mp4,video,no matching log
+PathPlanning/DWAT_v2/figs_v8.2.3-simple3,runs/_archive/v2/v8.2.3/misc/simple3__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.2.3-simple3.mp4,runs/_archive/v2/v8.2.3/misc/simple3__notime/video.mp4,video,no matching log
+PathPlanning/DWAT_v2/figs_v8.2.3-simple4,runs/_archive/v2/v8.2.3/misc/simple4__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.2.3-simple4.mp4,runs/_archive/v2/v8.2.3/misc/simple4__notime/video.mp4,video,no matching log
+PathPlanning/DWAT_v2/figs_v8.2.3-vid1,runs/_archive/v2/v8.2.3/misc/vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.2.3-vid1.mp4,runs/_archive/v2/v8.2.3/misc/vid1__notime/video.mp4,video,no matching log
+PathPlanning/DWAT_v2/figs_v8.2.3-vid2,runs/_archive/v2/v8.2.3/misc/vid2__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.2.3-vid2.mp4,runs/_archive/v2/v8.2.3/misc/vid2__notime/video.mp4,video,no matching log
+PathPlanning/DWAT_v2/figs_v8.2.4-simple2,runs/_archive/v2/v8.2.4/misc/simple2__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.3-static-vid1,runs/_archive/v2/v8.3/misc/static-vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.3-static-vid2,runs/_archive/v2/v8.3/misc/static-vid2__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.3.2-static-vid1,runs/_archive/v2/v8.3.2/misc/static-vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.3.2-static-vid1.mp4,runs/_archive/v2/v8.3.2/misc/static-vid1__notime/video.mp4,video,no matching log
+PathPlanning/DWAT_v2/figs_v8.3.2-static-vid2,runs/_archive/v2/v8.3.2/misc/static-vid2__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.3.2-static-vid2.mp4,runs/_archive/v2/v8.3.2/misc/static-vid2__notime/video.mp4,video,no matching log
+PathPlanning/DWAT_v2/figs_v8.4.10-v2-vid1,runs/_archive/v2/v8.4.10/misc/v2-vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.4.11-static-vid1,runs/_archive/v2/v8.4.11/misc/static-vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.4.12-v2-vid1,runs/_archive/v2/v8.4.12/misc/v2-vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.4.12-v2-vid2,runs/_archive/v2/v8.4.12/misc/v2-vid2__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.4.12.2-v2-vid1,runs/_archive/v2/v8.4.12.2/misc/v2-vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.4.13-v2-vid1-uglyWorking,runs/_archive/v2/v8.4.13/misc/v2-vid1-uglyWorking__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.4.13-v2-vid1-uglyWorking.mp4,runs/_archive/v2/v8.4.13/misc/v2-vid1-uglyWorking__notime/video.mp4,video,no matching log
+PathPlanning/DWAT_v2/figs_v8.4.13-v2-vid2-uglyWorking,runs/_archive/v2/v8.4.13/misc/v2-vid2-uglyWorking__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.4.13-v2-vid2-uglyWorking.mp4,runs/_archive/v2/v8.4.13/misc/v2-vid2-uglyWorking__notime/video.mp4,video,no matching log
+PathPlanning/DWAT_v2/figs_v8.4.14-v2-vid1,runs/_archive/v2/v8.4.14/misc/v2-vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.4.14-v2-vid2,runs/_archive/v2/v8.4.14/misc/v2-vid2__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.4.15-v2-vid1,runs/_archive/v2/v8.4.15/misc/v2-vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.4.15-v2-vid2,runs/_archive/v2/v8.4.15/misc/v2-vid2__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.4.16-v2-vid1,runs/_archive/v2/v8.4.16/misc/v2-vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.4.17-v2-vid1,runs/_archive/v2/v8.4.17/misc/v2-vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.4.2-v2-vid1,runs/_archive/v2/v8.4.2/misc/v2-vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.4.4-v2-vid1,runs/_archive/v2/v8.4.4/misc/v2-vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.4.5-v2-vid1,runs/_archive/v2/v8.4.5/misc/v2-vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.4.6-v2-vid1,runs/_archive/v2/v8.4.6/misc/v2-vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.4.7-v2-vid1,runs/_archive/v2/v8.4.7/misc/v2-vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.4.8-v2-vid1,runs/_archive/v2/v8.4.8/misc/v2-vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.4.9-v2-vid1,runs/_archive/v2/v8.4.9/misc/v2-vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.5.1-video1,runs/_archive/v2/v8.5.1/video/video1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.5.3-video1,runs/_archive/v2/v8.5.3/video/video1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.5.5-video1,runs/_archive/v2/v8.5.5/video/video1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.5.7-video1,runs/_archive/v2/v8.5.7/video/video1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.5.7-video1-delete,runs/_archive/v2/v8.5.7/video/video1-delete__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.6.1-video1,runs/_archive/v2/v8.6.1/video/video1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.6.2-video1,runs/_archive/v2/v8.6.2/video/video1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.6.3-video1,runs/_archive/v2/v8.6.3/video/video1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.6.4-video1,runs/_archive/v2/v8.6.4/video/video1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2/figs_v8.6.4-video1-delete,runs/_archive/v2/v8.6.4/video/video1-delete__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2_split/figs_v8.2.3.1-video1-split,runs/_archive/v2_split/v8.2.3.1/video/video1-split__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2_split/figs_v8.2.3.2-video1-split,runs/_archive/v2_split/v8.2.3.2/video/video1-split__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2_split/figs_v8.2.3.3-video1-split,runs/_archive/v2_split/v8.2.3.3/video/video1-split__notime/frames,frames,no matching log
+PathPlanning/DWAT_v2_split/figs_v8.2.3.4-video1-split,runs/_archive/v2_split/v8.2.3.4/video/video1-split__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3/figs_v8.4-vid1.mp4,runs/_archive/v3/v8.4/misc/vid1__notime/video.mp4,video,no matching log
+PathPlanning/DWAT_v3/figs_v8.4-vid1_fail.1,runs/_archive/v3/v8.4/misc/vid1_fail.1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3/figs_v8.4-vid1_fail.2,runs/_archive/v3/v8.4/misc/vid1_fail.2__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3/figs_v8.4.2-vid1,runs/_archive/v3/v8.4.2/misc/vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3/figs_v8.4.3-vid1,runs/_archive/v3/v8.4.3/misc/vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3/figs_v8.4.3-vid1.mp4,runs/_archive/v3/v8.4.3/misc/vid1__notime/video.mp4,video,no matching log
+PathPlanning/DWAT_v3/figs_v8.5.2-vid1,runs/_archive/v3/v8.5.2/misc/vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3/figs_v8.5.4-vid1,runs/_archive/v3/v8.5.4/misc/vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3/figs_v8.5.6-vid1,runs/_archive/v3/v8.5.6/misc/vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3/figs_v8.5.8-vid1,runs/_archive/v3/v8.5.8/misc/vid1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3_split/figs_temp - Compare,runs/_archive/v3_split/temp /misc/ Compare__notime/frames,frames,no matching log
+Logs_split/figs_v10.1-video1_20251127_000528/log_details.json,runs/_archive/v3_split/v10.1/video/video1__20251127_000528/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v10.1-video1,runs/_archive/v3_split/v10.1/video/video1__20251127_000528/frames,frames,
+PathPlanning/DWAT_v3_split/figs_v10.1-video1.mp4,runs/_archive/v3_split/v10.1/video/video1__20251127_000528/video.mp4,video,
+Logs_split/figs_v10.2-video1_20251202_170952/log_details.json,runs/_archive/v3_split/v10.2/video/video1__20251202_170952/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v10.2-video1,runs/_archive/v3_split/v10.2/video/video1__20251202_170952/frames,frames,
+PathPlanning/DWAT_v3_split/figs_v10.2-video1.mp4,runs/_archive/v3_split/v10.2/video/video1__20251202_170952/video.mp4,video,
+Logs_split/figs_v10.3-video1_20251202_200701/log_details.json,runs/_archive/v3_split/v10.3/video/video1__20251202_200701/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v10.3-video1,runs/_archive/v3_split/v10.3/video/video1__20251202_200701/frames,frames,
+Logs_split/figs_v10.4-video1_20251202_222553/1. translational_speed.png,runs/_archive/v3_split/v10.4/video/video1__20251202_222553/1. translational_speed.png,log,
+Logs_split/figs_v10.4-video1_20251202_222553/2. rotational_speed.png,runs/_archive/v3_split/v10.4/video/video1__20251202_222553/2. rotational_speed.png,log,
+Logs_split/figs_v10.4-video1_20251202_222553/3. final_cost.png,runs/_archive/v3_split/v10.4/video/video1__20251202_222553/3. final_cost.png,log,
+Logs_split/figs_v10.4-video1_20251202_222553/4. to_goal_cost_before.png,runs/_archive/v3_split/v10.4/video/video1__20251202_222553/4. to_goal_cost_before.png,log,
+Logs_split/figs_v10.4-video1_20251202_222553/5. speed_cost_before.png,runs/_archive/v3_split/v10.4/video/video1__20251202_222553/5. speed_cost_before.png,log,
+Logs_split/figs_v10.4-video1_20251202_222553/6. obstacle_costs_before.png,runs/_archive/v3_split/v10.4/video/video1__20251202_222553/6. obstacle_costs_before.png,log,
+Logs_split/figs_v10.4-video1_20251202_222553/7. costs_after_normalization.png,runs/_archive/v3_split/v10.4/video/video1__20251202_222553/7. costs_after_normalization.png,log,
+Logs_split/figs_v10.4-video1_20251202_222553/8. position_components.png,runs/_archive/v3_split/v10.4/video/video1__20251202_222553/8. position_components.png,log,
+Logs_split/figs_v10.4-video1_20251202_222553/9. trajectory_2d.png,runs/_archive/v3_split/v10.4/video/video1__20251202_222553/9. trajectory_2d.png,log,
+Logs_split/figs_v10.4-video1_20251202_222553/log_details.csv,runs/_archive/v3_split/v10.4/video/video1__20251202_222553/log_details.csv,log,
+Logs_split/figs_v10.4-video1_20251202_222553/log_details.json,runs/_archive/v3_split/v10.4/video/video1__20251202_222553/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v10.4-video1,runs/_archive/v3_split/v10.4/video/video1__20251202_222553/frames,frames,
+Logs_split/figs_v10.4-video1-newlog_20251205_173431/1. translational_speed.png,runs/_archive/v3_split/v10.4/video/video1-newlog__20251205_173431/1. translational_speed.png,log,
+Logs_split/figs_v10.4-video1-newlog_20251205_173431/10. dynamic_cost_decomposition.png,runs/_archive/v3_split/v10.4/video/video1-newlog__20251205_173431/10. dynamic_cost_decomposition.png,log,
+Logs_split/figs_v10.4-video1-newlog_20251205_173431/2. rotational_speed.png,runs/_archive/v3_split/v10.4/video/video1-newlog__20251205_173431/2. rotational_speed.png,log,
+Logs_split/figs_v10.4-video1-newlog_20251205_173431/3. final_cost.png,runs/_archive/v3_split/v10.4/video/video1-newlog__20251205_173431/3. final_cost.png,log,
+Logs_split/figs_v10.4-video1-newlog_20251205_173431/4. to_goal_cost_before.png,runs/_archive/v3_split/v10.4/video/video1-newlog__20251205_173431/4. to_goal_cost_before.png,log,
+Logs_split/figs_v10.4-video1-newlog_20251205_173431/5. speed_cost_before.png,runs/_archive/v3_split/v10.4/video/video1-newlog__20251205_173431/5. speed_cost_before.png,log,
+Logs_split/figs_v10.4-video1-newlog_20251205_173431/6. obstacle_costs_before.png,runs/_archive/v3_split/v10.4/video/video1-newlog__20251205_173431/6. obstacle_costs_before.png,log,
+Logs_split/figs_v10.4-video1-newlog_20251205_173431/7. costs_after_normalization.png,runs/_archive/v3_split/v10.4/video/video1-newlog__20251205_173431/7. costs_after_normalization.png,log,
+Logs_split/figs_v10.4-video1-newlog_20251205_173431/8. position_components.png,runs/_archive/v3_split/v10.4/video/video1-newlog__20251205_173431/8. position_components.png,log,
+Logs_split/figs_v10.4-video1-newlog_20251205_173431/9. trajectory_2d.png,runs/_archive/v3_split/v10.4/video/video1-newlog__20251205_173431/9. trajectory_2d.png,log,
+Logs_split/figs_v10.4-video1-newlog_20251205_173431/cost_images,runs/_archive/v3_split/v10.4/video/video1-newlog__20251205_173431/cost_images,log,
+Logs_split/figs_v10.4-video1-newlog_20251205_173431/cost_matrices_595,runs/_archive/v3_split/v10.4/video/video1-newlog__20251205_173431/cost_matrices_595,log,
+Logs_split/figs_v10.4-video1-newlog_20251205_173431/cost_matrices_596,runs/_archive/v3_split/v10.4/video/video1-newlog__20251205_173431/cost_matrices_596,log,
+Logs_split/figs_v10.4-video1-newlog_20251205_173431/cost_matrices_597,runs/_archive/v3_split/v10.4/video/video1-newlog__20251205_173431/cost_matrices_597,log,
+Logs_split/figs_v10.4-video1-newlog_20251205_173431/cost_matrices_598,runs/_archive/v3_split/v10.4/video/video1-newlog__20251205_173431/cost_matrices_598,log,
+Logs_split/figs_v10.4-video1-newlog_20251205_173431/cost_matrices_599,runs/_archive/v3_split/v10.4/video/video1-newlog__20251205_173431/cost_matrices_599,log,
+Logs_split/figs_v10.4-video1-newlog_20251205_173431/log_details.csv,runs/_archive/v3_split/v10.4/video/video1-newlog__20251205_173431/log_details.csv,log,
+Logs_split/figs_v10.4-video1-newlog_20251205_173431/log_details.json,runs/_archive/v3_split/v10.4/video/video1-newlog__20251205_173431/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v10.4-video1-newlog,runs/_archive/v3_split/v10.4/video/video1-newlog__20251205_173431/frames,frames,
+Logs_split/figs_v10.4.1-video1-newlog_20251206_234958/log_details.json,runs/_archive/v3_split/v10.4.1/video/video1-newlog__20251206_234958/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v10.4.1-video1-newlog,runs/_archive/v3_split/v10.4.1/video/video1-newlog__20251206_234958/frames,frames,
+Logs_split/figs_v10.4.2-video1-newlog_20251207_004346/log_details.json,runs/_archive/v3_split/v10.4.2/video/video1-newlog__20251207_004346/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v10.4.2-video1-newlog,runs/_archive/v3_split/v10.4.2/video/video1-newlog__20251207_004346/frames,frames,
+PathPlanning/DWAT_v3_split/figs_v10.4.2-video1-newlog.mp4,runs/_archive/v3_split/v10.4.2/video/video1-newlog__20251207_004346/video.mp4,video,
+Logs_split/figs_v10.4.3-video1-newlog_20251207_015417/log_details.json,runs/_archive/v3_split/v10.4.3/video/video1-newlog__20251207_015417/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v10.4.3-video1-newlog,runs/_archive/v3_split/v10.4.3/video/video1-newlog__20251207_015417/frames,frames,
+Logs_split/figs_v10.4.4-video1-newlog_20251207_015016/log_details.json,runs/_archive/v3_split/v10.4.4/video/video1-newlog__20251207_015016/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v10.4.4-video1-newlog,runs/_archive/v3_split/v10.4.4/video/video1-newlog__20251207_015016/frames,frames,
+Logs_split/figs_v10.4.5-video1-newlog_20251207_032147/log_details.json,runs/_archive/v3_split/v10.4.5/video/video1-newlog__20251207_032147/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v10.4.5-video1-newlog,runs/_archive/v3_split/v10.4.5/video/video1-newlog__20251207_032147/frames,frames,
+Logs_split/figs_v10.5-video1_20251202_222618/log_details.json,runs/_archive/v3_split/v10.5/video/video1__20251202_222618/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v10.5-video1,runs/_archive/v3_split/v10.5/video/video1__20251202_222618/frames,frames,
+Logs_split/figs_v10.5-video1-newlog_20251205_172810/log_details.json,runs/_archive/v3_split/v10.5/video/video1-newlog__20251205_172810/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v10.5-video1-newlog,runs/_archive/v3_split/v10.5/video/video1-newlog__20251205_172810/frames,frames,
+Logs_split/figs_v10.6-video1_20251202_224429/log_details.json,runs/_archive/v3_split/v10.6/video/video1__20251202_224429/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v10.6-video1,runs/_archive/v3_split/v10.6/video/video1__20251202_224429/frames,frames,
+Logs_split/figs_v10.6-video1-newlog_20251205_175136/log_details.json,runs/_archive/v3_split/v10.6/video/video1-newlog__20251205_175136/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v10.6-video1-newlog,runs/_archive/v3_split/v10.6/video/video1-newlog__20251205_175136/frames,frames,
+PathPlanning/DWAT_v3_split/figs_v11.1-video1.mp4,runs/_archive/v3_split/v11.1/video/video1__notime/video.mp4,video,no matching log
+Logs_split/figs_v11.1.1-gemini1_20260105_170223/log_details.json,runs/_archive/v3_split/v11.1.1/misc/gemini1__20260105_170223/log_details.json,log,
+Logs_split/figs_v11.1.1-gemini1_20260105_173754/log_details.json,runs/_archive/v3_split/v11.1.1/misc/gemini1__20260105_173754/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.1.1-gemini1,runs/_archive/v3_split/v11.1.1/misc/gemini1__20260105_173754/frames,frames,attached to latest of 2 logs
+Logs_split/figs_v11.1.1-video1_20251207_195437/log_details.json,runs/_archive/v3_split/v11.1.1/video/video1__20251207_195437/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.1.1-video1,runs/_archive/v3_split/v11.1.1/video/video1__20251207_195437/frames,frames,
+Logs_split/figs_v11.1.1-video1.1_20251213_205643/log_details.json,runs/_archive/v3_split/v11.1.1/video/video1.1__20251213_205643/log_details.json,log,
+Logs_split/figs_v11.1.1-video1.1_20251213_210705/log_details.json,runs/_archive/v3_split/v11.1.1/video/video1.1__20251213_210705/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.1.1-video1.1,runs/_archive/v3_split/v11.1.1/video/video1.1__20251213_210705/frames,frames,attached to latest of 2 logs
+Logs_split/figs_v11.1.1.1-video1_20260113_180650/log_details.json,runs/_archive/v3_split/v11.1.1.1/video/video1__20260113_180650/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.1.1.1-video1,runs/_archive/v3_split/v11.1.1.1/video/video1__20260113_180650/frames,frames,
+Logs_split/figs_v11.1.2-video1_20251209_175259/log_details.json,runs/_archive/v3_split/v11.1.2/video/video1__20251209_175259/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.1.2-video1,runs/_archive/v3_split/v11.1.2/video/video1__20251209_175259/frames,frames,
+Logs_split/figs_v11.1.2-video1-corrected_20251210_181542/log_details.json,runs/_archive/v3_split/v11.1.2/video/video1-corrected__20251210_181542/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.1.2-video1-corrected,runs/_archive/v3_split/v11.1.2/video/video1-corrected__20251210_181542/frames,frames,
+Logs_split/figs_v11.1.2-video1.1_20251213_221149/log_details.json,runs/_archive/v3_split/v11.1.2/video/video1.1__20251213_221149/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.1.2-video1.1,runs/_archive/v3_split/v11.1.2/video/video1.1__20251213_221149/frames,frames,
+Logs_split/figs_v11.10.1-gemini1_20260115_123101/log_details.json,runs/_archive/v3_split/v11.10.1/misc/gemini1__20260115_123101/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.10.1-gemini1,runs/_archive/v3_split/v11.10.1/misc/gemini1__20260115_123101/frames,frames,
+PathPlanning/DWAT_v3_split/figs_v11.10.1-gemini1.mp4,runs/_archive/v3_split/v11.10.1/misc/gemini1__20260115_123101/video.mp4,video,
+Logs_split/figs_v11.10.1-gemini2_20260115_122522/log_details.json,runs/_archive/v3_split/v11.10.1/misc/gemini2__20260115_122522/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.10.1-gemini2,runs/_archive/v3_split/v11.10.1/misc/gemini2__20260115_122522/frames,frames,
+Logs_split/figs_v11.10.1-gemini3_20260115_122524/log_details.json,runs/_archive/v3_split/v11.10.1/misc/gemini3__20260115_122524/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.10.1-gemini3,runs/_archive/v3_split/v11.10.1/misc/gemini3__20260115_122524/frames,frames,
+PathPlanning/DWAT_v3_split/figs_v11.10.1-gemini6,runs/_archive/v3_split/v11.10.1/misc/gemini6__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3_split/figs_v11.10.1-scenario1,runs/_archive/v3_split/v11.10.1/synthetic/scenario1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3_split/figs_v11.10.1-scenario2,runs/_archive/v3_split/v11.10.1/synthetic/scenario2__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3_split/figs_v11.10.1-scenario3,runs/_archive/v3_split/v11.10.1/synthetic/scenario3__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3_split/figs_v11.10.1-scenario4,runs/_archive/v3_split/v11.10.1/synthetic/scenario4__notime/frames,frames,no matching log
+Logs_split/figs_v11.10.1-video1_20260114_164820/log_details.json,runs/_archive/v3_split/v11.10.1/video/video1__20260114_164820/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.10.1-video1,runs/_archive/v3_split/v11.10.1/video/video1__20260114_164820/frames,frames,
+PathPlanning/DWAT_v3_split/figs_v11.10.1-video1.mp4,runs/_archive/v3_split/v11.10.1/video/video1__20260114_164820/video.mp4,video,
+Logs_split/figs_v11.10.1-video1.1_20260115_142405/1. translational_speed.png,runs/_archive/v3_split/v11.10.1/video/video1.1__20260115_142405/1. translational_speed.png,log,
+Logs_split/figs_v11.10.1-video1.1_20260115_142405/10. dynamic_cost_decomposition.png,runs/_archive/v3_split/v11.10.1/video/video1.1__20260115_142405/10. dynamic_cost_decomposition.png,log,
+Logs_split/figs_v11.10.1-video1.1_20260115_142405/2. rotational_speed.png,runs/_archive/v3_split/v11.10.1/video/video1.1__20260115_142405/2. rotational_speed.png,log,
+Logs_split/figs_v11.10.1-video1.1_20260115_142405/3. final_cost.png,runs/_archive/v3_split/v11.10.1/video/video1.1__20260115_142405/3. final_cost.png,log,
+Logs_split/figs_v11.10.1-video1.1_20260115_142405/4. to_goal_cost_before.png,runs/_archive/v3_split/v11.10.1/video/video1.1__20260115_142405/4. to_goal_cost_before.png,log,
+Logs_split/figs_v11.10.1-video1.1_20260115_142405/5. speed_cost_before.png,runs/_archive/v3_split/v11.10.1/video/video1.1__20260115_142405/5. speed_cost_before.png,log,
+Logs_split/figs_v11.10.1-video1.1_20260115_142405/6. obstacle_costs_before.png,runs/_archive/v3_split/v11.10.1/video/video1.1__20260115_142405/6. obstacle_costs_before.png,log,
+Logs_split/figs_v11.10.1-video1.1_20260115_142405/7. costs_after_normalization.png,runs/_archive/v3_split/v11.10.1/video/video1.1__20260115_142405/7. costs_after_normalization.png,log,
+Logs_split/figs_v11.10.1-video1.1_20260115_142405/8. position_components.png,runs/_archive/v3_split/v11.10.1/video/video1.1__20260115_142405/8. position_components.png,log,
+Logs_split/figs_v11.10.1-video1.1_20260115_142405/9. trajectory_2d.png,runs/_archive/v3_split/v11.10.1/video/video1.1__20260115_142405/9. trajectory_2d.png,log,
+Logs_split/figs_v11.10.1-video1.1_20260115_142405/log_details.csv,runs/_archive/v3_split/v11.10.1/video/video1.1__20260115_142405/log_details.csv,log,
+Logs_split/figs_v11.10.1-video1.1_20260115_142405/log_details.json,runs/_archive/v3_split/v11.10.1/video/video1.1__20260115_142405/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.10.1-video1.1,runs/_archive/v3_split/v11.10.1/video/video1.1__20260115_142405/frames,frames,
+Logs_split/figs_v11.10.2-video1_20260114_170424/log_details.json,runs/_archive/v3_split/v11.10.2/video/video1__20260114_170424/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.10.2-video1,runs/_archive/v3_split/v11.10.2/video/video1__20260114_170424/frames,frames,
+PathPlanning/DWAT_v3_split/figs_v11.10.3-scenario1,runs/_archive/v3_split/v11.10.3/synthetic/scenario1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3_split/figs_v11.10.3-video1,runs/_archive/v3_split/v11.10.3/video/video1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3_split/figs_v11.10.4-scenario1,runs/_archive/v3_split/v11.10.4/synthetic/scenario1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3_split/figs_v11.10.4-scenario1-1,runs/_archive/v3_split/v11.10.4/synthetic/scenario1-1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3_split/figs_v11.10.4-scenario1-1.mp4,runs/_archive/v3_split/v11.10.4/synthetic/scenario1-1__notime/video.mp4,video,no matching log
+PathPlanning/DWAT_v3_split/figs_v11.10.4-scenario2,runs/_archive/v3_split/v11.10.4/synthetic/scenario2__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3_split/figs_v11.10.4-scenario2-1,runs/_archive/v3_split/v11.10.4/synthetic/scenario2-1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3_split/figs_v11.10.4-scenario2-1.mp4,runs/_archive/v3_split/v11.10.4/synthetic/scenario2-1__notime/video.mp4,video,no matching log
+PathPlanning/DWAT_v3_split/figs_v11.10.4-scenario3,runs/_archive/v3_split/v11.10.4/synthetic/scenario3__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3_split/figs_v11.10.4-scenario3-1,runs/_archive/v3_split/v11.10.4/synthetic/scenario3-1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3_split/figs_v11.10.4-scenario3-1.mp4,runs/_archive/v3_split/v11.10.4/synthetic/scenario3-1__notime/video.mp4,video,no matching log
+PathPlanning/DWAT_v3_split/figs_v11.10.4-scenario4,runs/_archive/v3_split/v11.10.4/synthetic/scenario4__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3_split/figs_v11.10.4-scenario4-1,runs/_archive/v3_split/v11.10.4/synthetic/scenario4-1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3_split/figs_v11.10.4-scenario4-1.mp4,runs/_archive/v3_split/v11.10.4/synthetic/scenario4-1__notime/video.mp4,video,no matching log
+PathPlanning/DWAT_v3_split/figs_v11.10.4-video1,runs/_archive/v3_split/v11.10.4/video/video1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v3_split/figs_v11.10.4-video1.mp4,runs/_archive/v3_split/v11.10.4/video/video1__notime/video.mp4,video,no matching log
+PathPlanning/DWAT_v3_split/figs_v11.10.4-video1.1,runs/_archive/v3_split/v11.10.4/video/video1.1__notime/frames,frames,no matching log
+Logs_split/figs_v11.11.1-video1_20260114_164128/log_details.json,runs/_archive/v3_split/v11.11.1/video/video1__20260114_164128/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.11.1-video1,runs/_archive/v3_split/v11.11.1/video/video1__20260114_164128/frames,frames,
+Logs_split/figs_v11.2.1-video1_20251207_193856/log_details.json,runs/_archive/v3_split/v11.2.1/video/video1__20251207_193856/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.2.1-video1,runs/_archive/v3_split/v11.2.1/video/video1__20251207_193856/frames,frames,
+Logs_split/figs_v11.3.1-video1_20251207_194045/log_details.json,runs/_archive/v3_split/v11.3.1/video/video1__20251207_194045/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.3.1-video1,runs/_archive/v3_split/v11.3.1/video/video1__20251207_194045/frames,frames,
+Logs_split/figs_v11.4.1-gemini1_20260105_175244/log_details.json,runs/_archive/v3_split/v11.4.1/misc/gemini1__20260105_175244/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.4.1-gemini1,runs/_archive/v3_split/v11.4.1/misc/gemini1__20260105_175244/frames,frames,
+Logs_split/figs_v11.4.1-gemini2_20260106_162353/log_details.json,runs/_archive/v3_split/v11.4.1/misc/gemini2__20260106_162353/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.4.1-gemini2,runs/_archive/v3_split/v11.4.1/misc/gemini2__20260106_162353/frames,frames,
+Logs_split/figs_v11.4.1-gemini3_20260106_162020/log_details.json,runs/_archive/v3_split/v11.4.1/misc/gemini3__20260106_162020/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.4.1-gemini3,runs/_archive/v3_split/v11.4.1/misc/gemini3__20260106_162020/frames,frames,
+Logs_split/figs_v11.4.1-video1-corrected_20251210_001344/log_details.json,runs/_archive/v3_split/v11.4.1/video/video1-corrected__20251210_001344/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.4.1-video1-corrected,runs/_archive/v3_split/v11.4.1/video/video1-corrected__20251210_001344/frames,frames,
+Logs_split/figs_v11.4.2-video1-corrected_20251210_030746/log_details.json,runs/_archive/v3_split/v11.4.2/video/video1-corrected__20251210_030746/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.4.2-video1-corrected,runs/_archive/v3_split/v11.4.2/video/video1-corrected__20251210_030746/frames,frames,
+Logs_split/figs_v11.4.3-video1-corrected_20251210_180928/log_details.json,runs/_archive/v3_split/v11.4.3/video/video1-corrected__20251210_180928/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.4.3-video1-corrected,runs/_archive/v3_split/v11.4.3/video/video1-corrected__20251210_180928/frames,frames,
+PathPlanning/DWAT_v3_split/figs_v11.5-video1-corrected.mp4,runs/_archive/v3_split/v11.5/video/video1-corrected__notime/video.mp4,video,no matching log
+Logs_split/figs_v11.5.1-video1-corrected_20251210_022413/1. translational_speed.png,runs/_archive/v3_split/v11.5.1/video/video1-corrected__20251210_022413/1. translational_speed.png,log,
+Logs_split/figs_v11.5.1-video1-corrected_20251210_022413/10. dynamic_cost_decomposition.png,runs/_archive/v3_split/v11.5.1/video/video1-corrected__20251210_022413/10. dynamic_cost_decomposition.png,log,
+Logs_split/figs_v11.5.1-video1-corrected_20251210_022413/2. rotational_speed.png,runs/_archive/v3_split/v11.5.1/video/video1-corrected__20251210_022413/2. rotational_speed.png,log,
+Logs_split/figs_v11.5.1-video1-corrected_20251210_022413/3. final_cost.png,runs/_archive/v3_split/v11.5.1/video/video1-corrected__20251210_022413/3. final_cost.png,log,
+Logs_split/figs_v11.5.1-video1-corrected_20251210_022413/4. to_goal_cost_before.png,runs/_archive/v3_split/v11.5.1/video/video1-corrected__20251210_022413/4. to_goal_cost_before.png,log,
+Logs_split/figs_v11.5.1-video1-corrected_20251210_022413/5. speed_cost_before.png,runs/_archive/v3_split/v11.5.1/video/video1-corrected__20251210_022413/5. speed_cost_before.png,log,
+Logs_split/figs_v11.5.1-video1-corrected_20251210_022413/6. obstacle_costs_before.png,runs/_archive/v3_split/v11.5.1/video/video1-corrected__20251210_022413/6. obstacle_costs_before.png,log,
+Logs_split/figs_v11.5.1-video1-corrected_20251210_022413/7. costs_after_normalization.png,runs/_archive/v3_split/v11.5.1/video/video1-corrected__20251210_022413/7. costs_after_normalization.png,log,
+Logs_split/figs_v11.5.1-video1-corrected_20251210_022413/8. position_components.png,runs/_archive/v3_split/v11.5.1/video/video1-corrected__20251210_022413/8. position_components.png,log,
+Logs_split/figs_v11.5.1-video1-corrected_20251210_022413/9. trajectory_2d.png,runs/_archive/v3_split/v11.5.1/video/video1-corrected__20251210_022413/9. trajectory_2d.png,log,
+Logs_split/figs_v11.5.1-video1-corrected_20251210_022413/log_details.csv,runs/_archive/v3_split/v11.5.1/video/video1-corrected__20251210_022413/log_details.csv,log,
+Logs_split/figs_v11.5.1-video1-corrected_20251210_022413/log_details.json,runs/_archive/v3_split/v11.5.1/video/video1-corrected__20251210_022413/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.5.1-video1-corrected,runs/_archive/v3_split/v11.5.1/video/video1-corrected__20251210_022413/frames,frames,
+Logs_split/figs_v11.5.1-video1.1_20251213_214352/log_details.json,runs/_archive/v3_split/v11.5.1/video/video1.1__20251213_214352/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.5.1-video1.1,runs/_archive/v3_split/v11.5.1/video/video1.1__20251213_214352/frames,frames,
+PathPlanning/DWAT_v3_split/figs_v11.6-video1.1.mp4,runs/_archive/v3_split/v11.6/video/video1.1__notime/video.mp4,video,no matching log
+Logs_split/figs_v11.6.1-video1-corrected_20251210_002806/log_details.json,runs/_archive/v3_split/v11.6.1/video/video1-corrected__20251210_002806/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.6.1-video1-corrected,runs/_archive/v3_split/v11.6.1/video/video1-corrected__20251210_002806/frames,frames,
+Logs_split/figs_v11.6.1-video1.1_20251213_212306/log_details.json,runs/_archive/v3_split/v11.6.1/video/video1.1__20251213_212306/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.6.1-video1.1,runs/_archive/v3_split/v11.6.1/video/video1.1__20251213_212306/frames,frames,
+Logs_split/figs_v11.6.2-video1_20251212_174038/log_details.json,runs/_archive/v3_split/v11.6.2/video/video1__20251212_174038/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.6.2-video1,runs/_archive/v3_split/v11.6.2/video/video1__20251212_174038/frames,frames,
+Logs_split/figs_v11.6.2-video1.1_20251213_221310/log_details.json,runs/_archive/v3_split/v11.6.2/video/video1.1__20251213_221310/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.6.2-video1.1,runs/_archive/v3_split/v11.6.2/video/video1.1__20251213_221310/frames,frames,
+Logs_split/figs_v11.6.3-video1.1_20251216_161841/log_details.json,runs/_archive/v3_split/v11.6.3/video/video1.1__20251216_161841/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.6.3-video1.1,runs/_archive/v3_split/v11.6.3/video/video1.1__20251216_161841/frames,frames,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/1. translational_speed.png,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/1. translational_speed.png,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/10. dynamic_cost_decomposition.png,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/10. dynamic_cost_decomposition.png,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/2. rotational_speed.png,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/2. rotational_speed.png,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/3. final_cost.png,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/3. final_cost.png,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/4. to_goal_cost_before.png,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/4. to_goal_cost_before.png,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/5. speed_cost_before.png,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/5. speed_cost_before.png,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/6. obstacle_costs_before.png,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/6. obstacle_costs_before.png,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/7. costs_after_normalization.png,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/7. costs_after_normalization.png,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/8. position_components.png,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/8. position_components.png,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/9. trajectory_2d.png,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/9. trajectory_2d.png,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/cost_images,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/cost_images,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/cost_matrices_1135,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/cost_matrices_1135,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/cost_matrices_1136,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/cost_matrices_1136,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/cost_matrices_1137,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/cost_matrices_1137,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/cost_matrices_1138,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/cost_matrices_1138,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/cost_matrices_1139,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/cost_matrices_1139,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/cost_matrices_1140,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/cost_matrices_1140,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/cost_matrices_1141,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/cost_matrices_1141,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/cost_matrices_1142,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/cost_matrices_1142,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/cost_matrices_1143,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/cost_matrices_1143,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/cost_matrices_1144,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/cost_matrices_1144,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/cost_matrices_1155,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/cost_matrices_1155,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/cost_matrices_1156,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/cost_matrices_1156,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/cost_matrices_1157,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/cost_matrices_1157,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/cost_matrices_1158,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/cost_matrices_1158,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/cost_matrices_1159,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/cost_matrices_1159,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/cost_matrices_1160,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/cost_matrices_1160,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/cost_matrices_1161,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/cost_matrices_1161,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/cost_matrices_1162,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/cost_matrices_1162,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/cost_matrices_1163,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/cost_matrices_1163,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/cost_matrices_1164,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/cost_matrices_1164,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/log_details.csv,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/log_details.csv,log,
+Logs_split/figs_v11.7.1-video1-corrected_20251210_182350/log_details.json,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.7.1-video1-corrected,runs/_archive/v3_split/v11.7.1/video/video1-corrected__20251210_182350/frames,frames,
+Logs_split/figs_v11.7.1.1-video1_20260113_181008/log_details.json,runs/_archive/v3_split/v11.7.1.1/video/video1__20260113_181008/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.7.1.1-video1,runs/_archive/v3_split/v11.7.1.1/video/video1__20260113_181008/frames,frames,
+Logs_split/figs_v11.7.2-video1_20251212_003650/log_details.json,runs/_archive/v3_split/v11.7.2/video/video1__20251212_003650/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.7.2-video1,runs/_archive/v3_split/v11.7.2/video/video1__20251212_003650/frames,frames,
+Logs_split/figs_v11.7.2.1-video1_20260113_180929/log_details.json,runs/_archive/v3_split/v11.7.2.1/video/video1__20260113_180929/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.7.2.1-video1,runs/_archive/v3_split/v11.7.2.1/video/video1__20260113_180929/frames,frames,
+Logs_split/figs_v11.8.1-video1_20260113_201738/log_details.json,runs/_archive/v3_split/v11.8.1/video/video1__20260113_201738/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.8.1-video1,runs/_archive/v3_split/v11.8.1/video/video1__20260113_201738/frames,frames,
+Logs_split/figs_v11.8.2-video1_20260113_203447/log_details.json,runs/_archive/v3_split/v11.8.2/video/video1__20260113_203447/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.8.2-video1,runs/_archive/v3_split/v11.8.2/video/video1__20260113_203447/frames,frames,
+Logs_split/figs_v11.8.3-video1_20260113_203944/log_details.json,runs/_archive/v3_split/v11.8.3/video/video1__20260113_203944/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.8.3-video1,runs/_archive/v3_split/v11.8.3/video/video1__20260113_203944/frames,frames,
+Logs_split/figs_v11.9.1-video1_20260113_224718/log_details.json,runs/_archive/v3_split/v11.9.1/video/video1__20260113_224718/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.9.1-video1,runs/_archive/v3_split/v11.9.1/video/video1__20260113_224718/frames,frames,
+Logs_split/figs_v11.9.2-video1_20260113_224153/log_details.json,runs/_archive/v3_split/v11.9.2/video/video1__20260113_224153/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v11.9.2-video1,runs/_archive/v3_split/v11.9.2/video/video1__20260113_224153/frames,frames,
+Logs_split/figs_v12.1-video1_20251212_002637/log_details.json,runs/_archive/v3_split/v12.1/video/video1__20251212_002637/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v12.1-video1,runs/_archive/v3_split/v12.1/video/video1__20251212_002637/frames,frames,
+Logs_split/figs_v12.1.2-video1_20251212_002944/log_details.json,runs/_archive/v3_split/v12.1.2/video/video1__20251212_002944/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v12.1.2-video1,runs/_archive/v3_split/v12.1.2/video/video1__20251212_002944/frames,frames,
+Logs_split/figs_v12.5-video1_20251212_010040/log_details.json,runs/_archive/v3_split/v12.5/video/video1__20251212_010040/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v12.5-video1,runs/_archive/v3_split/v12.5/video/video1__20251212_010040/frames,frames,
+Logs_split/figs_v9.2.3.1-video1-split_20251110_150655/log_details.json,runs/_archive/v3_split/v9.2.3.1/video/video1-split__20251110_150655/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v9.2.3.1-video1-split,runs/_archive/v3_split/v9.2.3.1/video/video1-split__20251110_150655/frames,frames,
+Logs_split/figs_v9.2.3.2-video1-split_20251110_153937/log_details.json,runs/_archive/v3_split/v9.2.3.2/video/video1-split__20251110_153937/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v9.2.3.2-video1-split,runs/_archive/v3_split/v9.2.3.2/video/video1-split__20251110_153937/frames,frames,
+Logs_split/figs_v9.2.3.3-video1_20251117_183935/log_details.json,runs/_archive/v3_split/v9.2.3.3/video/video1__20251117_183935/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v9.2.3.3-video1,runs/_archive/v3_split/v9.2.3.3/video/video1__20251117_183935/frames,frames,
+Logs_split/figs_v9.2.3.4-video1_20251118_135317/log_details.json,runs/_archive/v3_split/v9.2.3.4/video/video1__20251118_135317/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v9.2.3.4-video1,runs/_archive/v3_split/v9.2.3.4/video/video1__20251118_135317/frames,frames,
+Logs_split/figs_v9.2.3.5-video1_20251118_121907/log_details.json,runs/_archive/v3_split/v9.2.3.5/video/video1__20251118_121907/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v9.2.3.5-video1,runs/_archive/v3_split/v9.2.3.5/video/video1__20251118_121907/frames,frames,
+Logs_split/figs_v9.2.3.6-video1_20251118_124753/log_details.json,runs/_archive/v3_split/v9.2.3.6/video/video1__20251118_124753/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v9.2.3.6-video1,runs/_archive/v3_split/v9.2.3.6/video/video1__20251118_124753/frames,frames,
+Logs_split/figs_v9.2.4.1-video1-split_20251110_180729/log_details.json,runs/_archive/v3_split/v9.2.4.1/video/video1-split__20251110_180729/log_details.json,log,
+Logs_split/figs_v9.2.4.1-video1-split_20251110_182323/log_details.json,runs/_archive/v3_split/v9.2.4.1/video/video1-split__20251110_182323/log_details.json,log,
+Logs_split/figs_v9.2.4.1-video1-split_20251110_183840/log_details.json,runs/_archive/v3_split/v9.2.4.1/video/video1-split__20251110_183840/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v9.2.4.1-video1-split,runs/_archive/v3_split/v9.2.4.1/video/video1-split__20251110_183840/frames,frames,attached to latest of 3 logs
+Logs_split/figs_v9.2.4.10-video1_20251118_160208/log_details.json,runs/_archive/v3_split/v9.2.4.10/video/video1__20251118_160208/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v9.2.4.10-video1,runs/_archive/v3_split/v9.2.4.10/video/video1__20251118_160208/frames,frames,
+Logs_split/figs_v9.2.4.11-video1_20251118_160257/log_details.json,runs/_archive/v3_split/v9.2.4.11/video/video1__20251118_160257/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v9.2.4.11-video1,runs/_archive/v3_split/v9.2.4.11/video/video1__20251118_160257/frames,frames,
+Logs_split/figs_v9.2.4.2-video1-split_20251110_184025/log_details.json,runs/_archive/v3_split/v9.2.4.2/video/video1-split__20251110_184025/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v9.2.4.2-video1-split,runs/_archive/v3_split/v9.2.4.2/video/video1-split__20251110_184025/frames,frames,
+Logs_split/figs_v9.2.4.3-video1-split_20251110_183935/log_details.json,runs/_archive/v3_split/v9.2.4.3/video/video1-split__20251110_183935/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v9.2.4.3-video1-split,runs/_archive/v3_split/v9.2.4.3/video/video1-split__20251110_183935/frames,frames,
+Logs_split/figs_v9.2.4.4-video1_20251111_171326/log_details.json,runs/_archive/v3_split/v9.2.4.4/video/video1__20251111_171326/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v9.2.4.4-video1,runs/_archive/v3_split/v9.2.4.4/video/video1__20251111_171326/frames,frames,
+Logs_split/figs_v9.2.4.5-video1_20251111_174938/log_details.json,runs/_archive/v3_split/v9.2.4.5/video/video1__20251111_174938/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v9.2.4.5-video1,runs/_archive/v3_split/v9.2.4.5/video/video1__20251111_174938/frames,frames,
+Logs_split/figs_v9.2.4.6-video1_20251111_222912/log_details.json,runs/_archive/v3_split/v9.2.4.6/video/video1__20251111_222912/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v9.2.4.6-video1,runs/_archive/v3_split/v9.2.4.6/video/video1__20251111_222912/frames,frames,
+Logs_split/figs_v9.2.4.7-video1_20251113_171124/1. translational_speed.png,runs/_archive/v3_split/v9.2.4.7/video/video1__20251113_171124/1. translational_speed.png,log,
+Logs_split/figs_v9.2.4.7-video1_20251113_171124/2. rotational_speed.png,runs/_archive/v3_split/v9.2.4.7/video/video1__20251113_171124/2. rotational_speed.png,log,
+Logs_split/figs_v9.2.4.7-video1_20251113_171124/3. final_cost.png,runs/_archive/v3_split/v9.2.4.7/video/video1__20251113_171124/3. final_cost.png,log,
+Logs_split/figs_v9.2.4.7-video1_20251113_171124/4. to_goal_cost_before.png,runs/_archive/v3_split/v9.2.4.7/video/video1__20251113_171124/4. to_goal_cost_before.png,log,
+Logs_split/figs_v9.2.4.7-video1_20251113_171124/5. speed_cost_before.png,runs/_archive/v3_split/v9.2.4.7/video/video1__20251113_171124/5. speed_cost_before.png,log,
+Logs_split/figs_v9.2.4.7-video1_20251113_171124/6. obstacle_costs_before.png,runs/_archive/v3_split/v9.2.4.7/video/video1__20251113_171124/6. obstacle_costs_before.png,log,
+Logs_split/figs_v9.2.4.7-video1_20251113_171124/7. costs_after_normalization.png,runs/_archive/v3_split/v9.2.4.7/video/video1__20251113_171124/7. costs_after_normalization.png,log,
+Logs_split/figs_v9.2.4.7-video1_20251113_171124/8. position_components.png,runs/_archive/v3_split/v9.2.4.7/video/video1__20251113_171124/8. position_components.png,log,
+Logs_split/figs_v9.2.4.7-video1_20251113_171124/9. trajectory_2d.png,runs/_archive/v3_split/v9.2.4.7/video/video1__20251113_171124/9. trajectory_2d.png,log,
+Logs_split/figs_v9.2.4.7-video1_20251113_171124/cost_images,runs/_archive/v3_split/v9.2.4.7/video/video1__20251113_171124/cost_images,log,
+Logs_split/figs_v9.2.4.7-video1_20251113_171124/cost_matrices_2855,runs/_archive/v3_split/v9.2.4.7/video/video1__20251113_171124/cost_matrices_2855,log,
+Logs_split/figs_v9.2.4.7-video1_20251113_171124/cost_matrices_2856,runs/_archive/v3_split/v9.2.4.7/video/video1__20251113_171124/cost_matrices_2856,log,
+Logs_split/figs_v9.2.4.7-video1_20251113_171124/cost_matrices_2857,runs/_archive/v3_split/v9.2.4.7/video/video1__20251113_171124/cost_matrices_2857,log,
+Logs_split/figs_v9.2.4.7-video1_20251113_171124/cost_matrices_2858,runs/_archive/v3_split/v9.2.4.7/video/video1__20251113_171124/cost_matrices_2858,log,
+Logs_split/figs_v9.2.4.7-video1_20251113_171124/cost_matrices_2859,runs/_archive/v3_split/v9.2.4.7/video/video1__20251113_171124/cost_matrices_2859,log,
+Logs_split/figs_v9.2.4.7-video1_20251113_171124/cost_matrices_2860,runs/_archive/v3_split/v9.2.4.7/video/video1__20251113_171124/cost_matrices_2860,log,
+Logs_split/figs_v9.2.4.7-video1_20251113_171124/cost_matrices_2861,runs/_archive/v3_split/v9.2.4.7/video/video1__20251113_171124/cost_matrices_2861,log,
+Logs_split/figs_v9.2.4.7-video1_20251113_171124/cost_matrices_2862,runs/_archive/v3_split/v9.2.4.7/video/video1__20251113_171124/cost_matrices_2862,log,
+Logs_split/figs_v9.2.4.7-video1_20251113_171124/cost_matrices_2863,runs/_archive/v3_split/v9.2.4.7/video/video1__20251113_171124/cost_matrices_2863,log,
+Logs_split/figs_v9.2.4.7-video1_20251113_171124/cost_matrices_2864,runs/_archive/v3_split/v9.2.4.7/video/video1__20251113_171124/cost_matrices_2864,log,
+Logs_split/figs_v9.2.4.7-video1_20251113_171124/log_details.csv,runs/_archive/v3_split/v9.2.4.7/video/video1__20251113_171124/log_details.csv,log,
+Logs_split/figs_v9.2.4.7-video1_20251113_171124/log_details.json,runs/_archive/v3_split/v9.2.4.7/video/video1__20251113_171124/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v9.2.4.7-video1,runs/_archive/v3_split/v9.2.4.7/video/video1__20251113_171124/frames,frames,
+Logs_split/figs_v9.2.4.8-video1_20251117_153706/log_details.json,runs/_archive/v3_split/v9.2.4.8/video/video1__20251117_153706/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v9.2.4.8-video1,runs/_archive/v3_split/v9.2.4.8/video/video1__20251117_153706/frames,frames,
+Logs_split/figs_v9.2.4.9-video1_20251118_151556/log_details.json,runs/_archive/v3_split/v9.2.4.9/video/video1__20251118_151556/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v9.2.4.9-video1,runs/_archive/v3_split/v9.2.4.9/video/video1__20251118_151556/frames,frames,
+Logs_split/figs_v9.2.5.9-video1_20251119_213129/log_details.json,runs/_archive/v3_split/v9.2.5.9/video/video1__20251119_213129/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v9.2.5.9-video1,runs/_archive/v3_split/v9.2.5.9/video/video1__20251119_213129/frames,frames,
+PathPlanning/DWAT_v3_split/figs_v9.2.5.9-video1.mp4,runs/_archive/v3_split/v9.2.5.9/video/video1__20251119_213129/video.mp4,video,
+Logs_split/figs_v9.2.6.33-video1_20251125_172217/log_details.json,runs/_archive/v3_split/v9.2.6.33/video/video1__20251125_172217/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v9.2.6.33-video1,runs/_archive/v3_split/v9.2.6.33/video/video1__20251125_172217/frames,frames,
+Logs_split/figs_v9.2.6.44-video1_20251125_165649/log_details.json,runs/_archive/v3_split/v9.2.6.44/video/video1__20251125_165649/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v9.2.6.44-video1,runs/_archive/v3_split/v9.2.6.44/video/video1__20251125_165649/frames,frames,
+Logs_split/figs_v9.2.6.46-video1_20251125_163457/log_details.json,runs/_archive/v3_split/v9.2.6.46/video/video1__20251125_163457/log_details.json,log,
+PathPlanning/DWAT_v3_split/figs_v9.2.6.46-video1,runs/_archive/v3_split/v9.2.6.46/video/video1__20251125_163457/frames,frames,
+Logs/figs_v11.10.1-gemini6_20260120_171002/log_details.json,runs/_archive/v4_st/v11.10.1/misc/gemini6__20260120_171002/log_details.json,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/1. translational_speed.png,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/1. translational_speed.png,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/10. dynamic_cost_decomposition.png,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/10. dynamic_cost_decomposition.png,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/2. rotational_speed.png,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/2. rotational_speed.png,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/3. final_cost.png,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/3. final_cost.png,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/4. to_goal_cost_before.png,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/4. to_goal_cost_before.png,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/5. speed_cost_before.png,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/5. speed_cost_before.png,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/6. obstacle_costs_before.png,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/6. obstacle_costs_before.png,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/7. costs_after_normalization.png,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/7. costs_after_normalization.png,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/8. position_components.png,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/8. position_components.png,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/9. trajectory_2d.png,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/9. trajectory_2d.png,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/cost_images,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/cost_images,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/cost_matrices_395,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/cost_matrices_395,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/cost_matrices_396,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/cost_matrices_396,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/cost_matrices_397,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/cost_matrices_397,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/cost_matrices_398,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/cost_matrices_398,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/cost_matrices_399,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/cost_matrices_399,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/cost_matrices_400,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/cost_matrices_400,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/cost_matrices_401,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/cost_matrices_401,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/cost_matrices_402,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/cost_matrices_402,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/cost_matrices_403,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/cost_matrices_403,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/cost_matrices_404,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/cost_matrices_404,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/cost_matrices_630,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/cost_matrices_630,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/cost_matrices_631,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/cost_matrices_631,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/cost_matrices_632,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/cost_matrices_632,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/cost_matrices_633,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/cost_matrices_633,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/cost_matrices_634,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/cost_matrices_634,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/cost_matrices_635,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/cost_matrices_635,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/cost_matrices_636,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/cost_matrices_636,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/cost_matrices_637,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/cost_matrices_637,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/cost_matrices_638,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/cost_matrices_638,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/cost_matrices_639,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/cost_matrices_639,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/log_details.csv,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/log_details.csv,log,
+Logs/figs_v11.10.1-scenario1_20260130_193647/log_details.json,runs/_archive/v4_st/v11.10.1/synthetic/scenario1__20260130_193647/log_details.json,log,
+Logs/figs_v11.10.1-scenario2_20260130_193520/log_details.json,runs/_archive/v4_st/v11.10.1/synthetic/scenario2__20260130_193520/log_details.json,log,
+Logs/figs_v11.10.1-scenario3_20260130_193130/log_details.json,runs/_archive/v4_st/v11.10.1/synthetic/scenario3__20260130_193130/log_details.json,log,
+Logs/figs_v11.10.1-scenario4_20260130_193511/log_details.json,runs/_archive/v4_st/v11.10.1/synthetic/scenario4__20260130_193511/log_details.json,log,
+Logs/figs_v11.10.3-scenario1_20260204_171841/log_details.json,runs/_archive/v4_st/v11.10.3/synthetic/scenario1__20260204_171841/log_details.json,log,
+Logs/figs_v11.10.3-video1_20260204_181101/1. translational_speed.png,runs/_archive/v4_st/v11.10.3/video/video1__20260204_181101/1. translational_speed.png,log,
+Logs/figs_v11.10.3-video1_20260204_181101/10. dynamic_cost_decomposition.png,runs/_archive/v4_st/v11.10.3/video/video1__20260204_181101/10. dynamic_cost_decomposition.png,log,
+Logs/figs_v11.10.3-video1_20260204_181101/2. rotational_speed.png,runs/_archive/v4_st/v11.10.3/video/video1__20260204_181101/2. rotational_speed.png,log,
+Logs/figs_v11.10.3-video1_20260204_181101/3. final_cost.png,runs/_archive/v4_st/v11.10.3/video/video1__20260204_181101/3. final_cost.png,log,
+Logs/figs_v11.10.3-video1_20260204_181101/4. to_goal_cost_before.png,runs/_archive/v4_st/v11.10.3/video/video1__20260204_181101/4. to_goal_cost_before.png,log,
+Logs/figs_v11.10.3-video1_20260204_181101/5. speed_cost_before.png,runs/_archive/v4_st/v11.10.3/video/video1__20260204_181101/5. speed_cost_before.png,log,
+Logs/figs_v11.10.3-video1_20260204_181101/6. obstacle_costs_before.png,runs/_archive/v4_st/v11.10.3/video/video1__20260204_181101/6. obstacle_costs_before.png,log,
+Logs/figs_v11.10.3-video1_20260204_181101/7. costs_after_normalization.png,runs/_archive/v4_st/v11.10.3/video/video1__20260204_181101/7. costs_after_normalization.png,log,
+Logs/figs_v11.10.3-video1_20260204_181101/8. position_components.png,runs/_archive/v4_st/v11.10.3/video/video1__20260204_181101/8. position_components.png,log,
+Logs/figs_v11.10.3-video1_20260204_181101/9. trajectory_2d.png,runs/_archive/v4_st/v11.10.3/video/video1__20260204_181101/9. trajectory_2d.png,log,
+Logs/figs_v11.10.3-video1_20260204_181101/cost_images,runs/_archive/v4_st/v11.10.3/video/video1__20260204_181101/cost_images,log,
+Logs/figs_v11.10.3-video1_20260204_181101/cost_matrices_835,runs/_archive/v4_st/v11.10.3/video/video1__20260204_181101/cost_matrices_835,log,
+Logs/figs_v11.10.3-video1_20260204_181101/cost_matrices_836,runs/_archive/v4_st/v11.10.3/video/video1__20260204_181101/cost_matrices_836,log,
+Logs/figs_v11.10.3-video1_20260204_181101/cost_matrices_837,runs/_archive/v4_st/v11.10.3/video/video1__20260204_181101/cost_matrices_837,log,
+Logs/figs_v11.10.3-video1_20260204_181101/cost_matrices_838,runs/_archive/v4_st/v11.10.3/video/video1__20260204_181101/cost_matrices_838,log,
+Logs/figs_v11.10.3-video1_20260204_181101/cost_matrices_839,runs/_archive/v4_st/v11.10.3/video/video1__20260204_181101/cost_matrices_839,log,
+Logs/figs_v11.10.3-video1_20260204_181101/cost_matrices_840,runs/_archive/v4_st/v11.10.3/video/video1__20260204_181101/cost_matrices_840,log,
+Logs/figs_v11.10.3-video1_20260204_181101/cost_matrices_841,runs/_archive/v4_st/v11.10.3/video/video1__20260204_181101/cost_matrices_841,log,
+Logs/figs_v11.10.3-video1_20260204_181101/cost_matrices_842,runs/_archive/v4_st/v11.10.3/video/video1__20260204_181101/cost_matrices_842,log,
+Logs/figs_v11.10.3-video1_20260204_181101/cost_matrices_843,runs/_archive/v4_st/v11.10.3/video/video1__20260204_181101/cost_matrices_843,log,
+Logs/figs_v11.10.3-video1_20260204_181101/cost_matrices_844,runs/_archive/v4_st/v11.10.3/video/video1__20260204_181101/cost_matrices_844,log,
+Logs/figs_v11.10.3-video1_20260204_181101/log_details.csv,runs/_archive/v4_st/v11.10.3/video/video1__20260204_181101/log_details.csv,log,
+Logs/figs_v11.10.3-video1_20260204_181101/log_details.json,runs/_archive/v4_st/v11.10.3/video/video1__20260204_181101/log_details.json,log,
+Logs/figs_v11.10.4-scenario1_20260206_162601/log_details.json,runs/_archive/v4_st/v11.10.4/synthetic/scenario1__20260206_162601/log_details.json,log,
+Logs/figs_v11.10.4-scenario1-1_20260317_000106/log_details.json,runs/_archive/v4_st/v11.10.4/synthetic/scenario1-1__20260317_000106/log_details.json,log,
+Logs/figs_v11.10.4-scenario2_20260302_150730/log_details.json,runs/_archive/v4_st/v11.10.4/synthetic/scenario2__20260302_150730/log_details.json,log,
+Logs/figs_v11.10.4-scenario2-1_20260317_000126/log_details.json,runs/_archive/v4_st/v11.10.4/synthetic/scenario2-1__20260317_000126/log_details.json,log,
+Logs/figs_v11.10.4-scenario3_20260302_150511/log_details.json,runs/_archive/v4_st/v11.10.4/synthetic/scenario3__20260302_150511/log_details.json,log,
+Logs/figs_v11.10.4-scenario3-1_20260317_000105/log_details.json,runs/_archive/v4_st/v11.10.4/synthetic/scenario3-1__20260317_000105/log_details.json,log,
+Logs/figs_v11.10.4-scenario4_20260302_163427/log_details.json,runs/_archive/v4_st/v11.10.4/synthetic/scenario4__20260302_163427/log_details.json,log,
+Logs/figs_v11.10.4-scenario4-1_20260317_000332/log_details.json,runs/_archive/v4_st/v11.10.4/synthetic/scenario4-1__20260317_000332/log_details.json,log,
+Logs/figs_v11.10.4-video1_20260206_164521/log_details.json,runs/_archive/v4_st/v11.10.4/video/video1__20260206_164521/log_details.json,log,
+Logs/figs_v11.10.4-video1.1_20260302_154142/log_details.json,runs/_archive/v4_st/v11.10.4/video/video1.1__20260302_154142/log_details.json,log,
+Logs/figs_v20.1-gemini1-test_20260108_170244/1. translational_speed.png,runs/_archive/v4_st/v20.1/misc/gemini1-test__20260108_170244/1. translational_speed.png,log,
+Logs/figs_v20.1-gemini1-test_20260108_170244/10. dynamic_cost_decomposition.png,runs/_archive/v4_st/v20.1/misc/gemini1-test__20260108_170244/10. dynamic_cost_decomposition.png,log,
+Logs/figs_v20.1-gemini1-test_20260108_170244/2. rotational_speed.png,runs/_archive/v4_st/v20.1/misc/gemini1-test__20260108_170244/2. rotational_speed.png,log,
+Logs/figs_v20.1-gemini1-test_20260108_170244/3. final_cost.png,runs/_archive/v4_st/v20.1/misc/gemini1-test__20260108_170244/3. final_cost.png,log,
+Logs/figs_v20.1-gemini1-test_20260108_170244/4. to_goal_cost_before.png,runs/_archive/v4_st/v20.1/misc/gemini1-test__20260108_170244/4. to_goal_cost_before.png,log,
+Logs/figs_v20.1-gemini1-test_20260108_170244/5. speed_cost_before.png,runs/_archive/v4_st/v20.1/misc/gemini1-test__20260108_170244/5. speed_cost_before.png,log,
+Logs/figs_v20.1-gemini1-test_20260108_170244/6. obstacle_costs_before.png,runs/_archive/v4_st/v20.1/misc/gemini1-test__20260108_170244/6. obstacle_costs_before.png,log,
+Logs/figs_v20.1-gemini1-test_20260108_170244/7. costs_after_normalization.png,runs/_archive/v4_st/v20.1/misc/gemini1-test__20260108_170244/7. costs_after_normalization.png,log,
+Logs/figs_v20.1-gemini1-test_20260108_170244/8. position_components.png,runs/_archive/v4_st/v20.1/misc/gemini1-test__20260108_170244/8. position_components.png,log,
+Logs/figs_v20.1-gemini1-test_20260108_170244/9. trajectory_2d.png,runs/_archive/v4_st/v20.1/misc/gemini1-test__20260108_170244/9. trajectory_2d.png,log,
+Logs/figs_v20.1-gemini1-test_20260108_170244/log_details.csv,runs/_archive/v4_st/v20.1/misc/gemini1-test__20260108_170244/log_details.csv,log,
+Logs/figs_v20.1-gemini1-test_20260108_170244/log_details.json,runs/_archive/v4_st/v20.1/misc/gemini1-test__20260108_170244/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.1-gemini1-test,runs/_archive/v4_st/v20.1/misc/gemini1-test__20260108_170244/frames,frames,
+Logs/figs_v20.1-gemini2-test_20260108_155934/log_details.json,runs/_archive/v4_st/v20.1/misc/gemini2-test__20260108_155934/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.1-gemini2-test,runs/_archive/v4_st/v20.1/misc/gemini2-test__20260108_155934/frames,frames,
+Logs/figs_v20.1-video1.1-test_20260112_201644/log_details.json,runs/_archive/v4_st/v20.1/video/video1.1-test__20260112_201644/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.1-video1.1-test,runs/_archive/v4_st/v20.1/video/video1.1-test__20260112_201644/frames,frames,
+Logs/figs_v20.2-video1.1_20260115_161550/1. translational_speed.png,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/1. translational_speed.png,log,
+Logs/figs_v20.2-video1.1_20260115_161550/10. dynamic_cost_decomposition.png,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/10. dynamic_cost_decomposition.png,log,
+Logs/figs_v20.2-video1.1_20260115_161550/2. rotational_speed.png,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/2. rotational_speed.png,log,
+Logs/figs_v20.2-video1.1_20260115_161550/3. final_cost.png,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/3. final_cost.png,log,
+Logs/figs_v20.2-video1.1_20260115_161550/4. to_goal_cost_before.png,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/4. to_goal_cost_before.png,log,
+Logs/figs_v20.2-video1.1_20260115_161550/5. speed_cost_before.png,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/5. speed_cost_before.png,log,
+Logs/figs_v20.2-video1.1_20260115_161550/6. obstacle_costs_before.png,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/6. obstacle_costs_before.png,log,
+Logs/figs_v20.2-video1.1_20260115_161550/7. costs_after_normalization.png,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/7. costs_after_normalization.png,log,
+Logs/figs_v20.2-video1.1_20260115_161550/8. position_components.png,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/8. position_components.png,log,
+Logs/figs_v20.2-video1.1_20260115_161550/9. trajectory_2d.png,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/9. trajectory_2d.png,log,
+Logs/figs_v20.2-video1.1_20260115_161550/cost_images,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/cost_images,log,
+Logs/figs_v20.2-video1.1_20260115_161550/cost_matrices_65,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/cost_matrices_65,log,
+Logs/figs_v20.2-video1.1_20260115_161550/cost_matrices_66,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/cost_matrices_66,log,
+Logs/figs_v20.2-video1.1_20260115_161550/cost_matrices_67,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/cost_matrices_67,log,
+Logs/figs_v20.2-video1.1_20260115_161550/cost_matrices_68,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/cost_matrices_68,log,
+Logs/figs_v20.2-video1.1_20260115_161550/cost_matrices_69,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/cost_matrices_69,log,
+Logs/figs_v20.2-video1.1_20260115_161550/cost_matrices_70,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/cost_matrices_70,log,
+Logs/figs_v20.2-video1.1_20260115_161550/cost_matrices_71,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/cost_matrices_71,log,
+Logs/figs_v20.2-video1.1_20260115_161550/cost_matrices_72,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/cost_matrices_72,log,
+Logs/figs_v20.2-video1.1_20260115_161550/cost_matrices_73,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/cost_matrices_73,log,
+Logs/figs_v20.2-video1.1_20260115_161550/cost_matrices_74,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/cost_matrices_74,log,
+Logs/figs_v20.2-video1.1_20260115_161550/log_details.csv,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/log_details.csv,log,
+Logs/figs_v20.2-video1.1_20260115_161550/log_details.json,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.2-video1.1,runs/_archive/v4_st/v20.2/video/video1.1__20260115_161550/frames,frames,
+Logs/figs_v20.3.1-video1.1_20260115_193950/log_details.json,runs/_archive/v4_st/v20.3.1/video/video1.1__20260115_193950/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.3.1-video1.1,runs/_archive/v4_st/v20.3.1/video/video1.1__20260115_193950/frames,frames,
+Logs/figs_v20.3.2-video1.1_20260115_193946/log_details.json,runs/_archive/v4_st/v20.3.2/video/video1.1__20260115_193946/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.3.2-video1.1,runs/_archive/v4_st/v20.3.2/video/video1.1__20260115_193946/frames,frames,
+Logs/figs_v20.3.3-video1.1_20260115_194958/log_details.json,runs/_archive/v4_st/v20.3.3/video/video1.1__20260115_194958/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.3.3-video1.1,runs/_archive/v4_st/v20.3.3/video/video1.1__20260115_194958/frames,frames,
+Logs/figs_v20.3.4-gemini1_20260115_201343/log_details.json,runs/_archive/v4_st/v20.3.4/misc/gemini1__20260115_201343/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.3.4-gemini1,runs/_archive/v4_st/v20.3.4/misc/gemini1__20260115_201343/frames,frames,
+Logs/figs_v20.3.4-gemini2_20260115_201001/log_details.json,runs/_archive/v4_st/v20.3.4/misc/gemini2__20260115_201001/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.3.4-gemini2,runs/_archive/v4_st/v20.3.4/misc/gemini2__20260115_201001/frames,frames,
+Logs/figs_v20.3.4-gemini3_20260115_201531/log_details.json,runs/_archive/v4_st/v20.3.4/misc/gemini3__20260115_201531/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.3.4-gemini3,runs/_archive/v4_st/v20.3.4/misc/gemini3__20260115_201531/frames,frames,
+Logs/figs_v20.3.4-video1.1_20260115_200511/1. translational_speed.png,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/1. translational_speed.png,log,
+Logs/figs_v20.3.4-video1.1_20260115_200511/10. dynamic_cost_decomposition.png,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/10. dynamic_cost_decomposition.png,log,
+Logs/figs_v20.3.4-video1.1_20260115_200511/2. rotational_speed.png,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/2. rotational_speed.png,log,
+Logs/figs_v20.3.4-video1.1_20260115_200511/3. final_cost.png,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/3. final_cost.png,log,
+Logs/figs_v20.3.4-video1.1_20260115_200511/4. to_goal_cost_before.png,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/4. to_goal_cost_before.png,log,
+Logs/figs_v20.3.4-video1.1_20260115_200511/5. speed_cost_before.png,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/5. speed_cost_before.png,log,
+Logs/figs_v20.3.4-video1.1_20260115_200511/6. obstacle_costs_before.png,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/6. obstacle_costs_before.png,log,
+Logs/figs_v20.3.4-video1.1_20260115_200511/7. costs_after_normalization.png,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/7. costs_after_normalization.png,log,
+Logs/figs_v20.3.4-video1.1_20260115_200511/8. position_components.png,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/8. position_components.png,log,
+Logs/figs_v20.3.4-video1.1_20260115_200511/9. trajectory_2d.png,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/9. trajectory_2d.png,log,
+Logs/figs_v20.3.4-video1.1_20260115_200511/cost_images,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/cost_images,log,
+Logs/figs_v20.3.4-video1.1_20260115_200511/cost_matrices_860,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/cost_matrices_860,log,
+Logs/figs_v20.3.4-video1.1_20260115_200511/cost_matrices_861,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/cost_matrices_861,log,
+Logs/figs_v20.3.4-video1.1_20260115_200511/cost_matrices_862,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/cost_matrices_862,log,
+Logs/figs_v20.3.4-video1.1_20260115_200511/cost_matrices_863,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/cost_matrices_863,log,
+Logs/figs_v20.3.4-video1.1_20260115_200511/cost_matrices_864,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/cost_matrices_864,log,
+Logs/figs_v20.3.4-video1.1_20260115_200511/cost_matrices_865,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/cost_matrices_865,log,
+Logs/figs_v20.3.4-video1.1_20260115_200511/cost_matrices_866,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/cost_matrices_866,log,
+Logs/figs_v20.3.4-video1.1_20260115_200511/cost_matrices_867,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/cost_matrices_867,log,
+Logs/figs_v20.3.4-video1.1_20260115_200511/cost_matrices_868,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/cost_matrices_868,log,
+Logs/figs_v20.3.4-video1.1_20260115_200511/dynamic_obs_log.txt,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/dynamic_obs_log.txt,log,
+Logs/figs_v20.3.4-video1.1_20260115_200511/log_details.csv,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/log_details.csv,log,
+Logs/figs_v20.3.4-video1.1_20260115_200511/log_details.json,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.3.4-video1.1,runs/_archive/v4_st/v20.3.4/video/video1.1__20260115_200511/frames,frames,
+Logs/figs_v20.4-gemini1_20260119_112438/log_details.json,runs/_archive/v4_st/v20.4/misc/gemini1__20260119_112438/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.4-gemini1,runs/_archive/v4_st/v20.4/misc/gemini1__20260119_112438/frames,frames,
+Logs/figs_v20.4-gemini2_20260119_111953/log_details.json,runs/_archive/v4_st/v20.4/misc/gemini2__20260119_111953/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.4-gemini2,runs/_archive/v4_st/v20.4/misc/gemini2__20260119_111953/frames,frames,
+Logs/figs_v20.4-gemini3_20260119_112013/log_details.json,runs/_archive/v4_st/v20.4/misc/gemini3__20260119_112013/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.4-gemini3,runs/_archive/v4_st/v20.4/misc/gemini3__20260119_112013/frames,frames,
+Logs/figs_v20.4-gemini4_20260119_171137/log_details.json,runs/_archive/v4_st/v20.4/misc/gemini4__20260119_171137/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.4-gemini4,runs/_archive/v4_st/v20.4/misc/gemini4__20260119_171137/frames,frames,
+Logs/figs_v20.4-gemini5_20260119_172053/log_details.json,runs/_archive/v4_st/v20.4/misc/gemini5__20260119_172053/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.4-gemini5,runs/_archive/v4_st/v20.4/misc/gemini5__20260119_172053/frames,frames,
+Logs/figs_v20.4-gemini6_20260119_172003/log_details.json,runs/_archive/v4_st/v20.4/misc/gemini6__20260119_172003/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.4-gemini6,runs/_archive/v4_st/v20.4/misc/gemini6__20260119_172003/frames,frames,
+Logs/figs_v20.4-scenario1_20260303_164947/log_details.json,runs/_archive/v4_st/v20.4/synthetic/scenario1__20260303_164947/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.4-scenario1,runs/_archive/v4_st/v20.4/synthetic/scenario1__20260303_164947/frames,frames,
+Logs/figs_v20.4-scenario2_20260303_164642/log_details.json,runs/_archive/v4_st/v20.4/synthetic/scenario2__20260303_164642/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.4-scenario2,runs/_archive/v4_st/v20.4/synthetic/scenario2__20260303_164642/frames,frames,
+Logs/figs_v20.4-scenario3_20260303_164534/log_details.json,runs/_archive/v4_st/v20.4/synthetic/scenario3__20260303_164534/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.4-scenario3,runs/_archive/v4_st/v20.4/synthetic/scenario3__20260303_164534/frames,frames,
+Logs/figs_v20.4-scenario4_20260303_164824/log_details.json,runs/_archive/v4_st/v20.4/synthetic/scenario4__20260303_164824/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.4-scenario4,runs/_archive/v4_st/v20.4/synthetic/scenario4__20260303_164824/frames,frames,
+Logs/figs_v20.4.2-scenario1_20260129_164545/log_details.json,runs/_archive/v4_st/v20.4.2/synthetic/scenario1__20260129_164545/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.4.2-scenario1,runs/_archive/v4_st/v20.4.2/synthetic/scenario1__20260129_164545/frames,frames,
+Logs/figs_v20.4.2-scenario2_20260129_164242/log_details.json,runs/_archive/v4_st/v20.4.2/synthetic/scenario2__20260129_164242/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.4.2-scenario2,runs/_archive/v4_st/v20.4.2/synthetic/scenario2__20260129_164242/frames,frames,
+Logs/figs_v20.4.2-scenario3_20260129_164318/log_details.json,runs/_archive/v4_st/v20.4.2/synthetic/scenario3__20260129_164318/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.4.2-scenario3,runs/_archive/v4_st/v20.4.2/synthetic/scenario3__20260129_164318/frames,frames,
+Logs/figs_v20.4.2-scenario4_20260129_164251/log_details.json,runs/_archive/v4_st/v20.4.2/synthetic/scenario4__20260129_164251/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.4.2-scenario4,runs/_archive/v4_st/v20.4.2/synthetic/scenario4__20260129_164251/frames,frames,
+Logs/figs_v20.5-scenario1_20260311_164237/log_details.json,runs/_archive/v4_st/v20.5/synthetic/scenario1__20260311_164237/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.5-scenario1,runs/_archive/v4_st/v20.5/synthetic/scenario1__20260311_164237/frames,frames,
+Logs/figs_v20.5-scenario1-1_20260312_170404/log_details.json,runs/_archive/v4_st/v20.5/synthetic/scenario1-1__20260312_170404/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.5-scenario1-1,runs/_archive/v4_st/v20.5/synthetic/scenario1-1__20260312_170404/frames,frames,
+PathPlanning/DWAT_v4_st/figs_v20.5-scenario1-1.mp4,runs/_archive/v4_st/v20.5/synthetic/scenario1-1__20260312_170404/video.mp4,video,
+Logs/figs_v20.5-scenario2_20260311_165235/log_details.json,runs/_archive/v4_st/v20.5/synthetic/scenario2__20260311_165235/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.5-scenario2,runs/_archive/v4_st/v20.5/synthetic/scenario2__20260311_165235/frames,frames,
+Logs/figs_v20.5-scenario2-1_20260312_185210/log_details.json,runs/_archive/v4_st/v20.5/synthetic/scenario2-1__20260312_185210/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.5-scenario2-1,runs/_archive/v4_st/v20.5/synthetic/scenario2-1__20260312_185210/frames,frames,
+PathPlanning/DWAT_v4_st/figs_v20.5-scenario2-1.mp4,runs/_archive/v4_st/v20.5/synthetic/scenario2-1__20260312_185210/video.mp4,video,
+Logs/figs_v20.5-scenario3_20260311_164815/log_details.json,runs/_archive/v4_st/v20.5/synthetic/scenario3__20260311_164815/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.5-scenario3,runs/_archive/v4_st/v20.5/synthetic/scenario3__20260311_164815/frames,frames,
+Logs/figs_v20.5-scenario3-1_20260312_191122/log_details.json,runs/_archive/v4_st/v20.5/synthetic/scenario3-1__20260312_191122/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.5-scenario3-1,runs/_archive/v4_st/v20.5/synthetic/scenario3-1__20260312_191122/frames,frames,
+PathPlanning/DWAT_v4_st/figs_v20.5-scenario3-1.mp4,runs/_archive/v4_st/v20.5/synthetic/scenario3-1__20260312_191122/video.mp4,video,
+Logs/figs_v20.5-scenario4_20260311_165258/log_details.json,runs/_archive/v4_st/v20.5/synthetic/scenario4__20260311_165258/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.5-scenario4,runs/_archive/v4_st/v20.5/synthetic/scenario4__20260311_165258/frames,frames,
+Logs/figs_v20.5-scenario4-1_20260312_191225/log_details.json,runs/_archive/v4_st/v20.5/synthetic/scenario4-1__20260312_191225/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.5-scenario4-1,runs/_archive/v4_st/v20.5/synthetic/scenario4-1__20260312_191225/frames,frames,
+PathPlanning/DWAT_v4_st/figs_v20.5-scenario4-1.mp4,runs/_archive/v4_st/v20.5/synthetic/scenario4-1__20260312_191225/video.mp4,video,
+PathPlanning/DWAT_v4_st/figs_v20.5-video1,runs/_archive/v4_st/v20.5/video/video1__notime/frames,frames,no matching log
+PathPlanning/DWAT_v4_st/figs_v20.5-video1.mp4,runs/_archive/v4_st/v20.5/video/video1__notime/video.mp4,video,no matching log
+Logs/figs_v20.5-video1-1_20260312_191529/log_details.json,runs/_archive/v4_st/v20.5/video/video1-1__20260312_191529/log_details.json,log,
+Logs/figs_v20.5-video3_20260312_201300/log_details.json,runs/_archive/v4_st/v20.5/video/video3__20260312_201300/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.5-video3,runs/_archive/v4_st/v20.5/video/video3__20260312_201300/frames,frames,
+Logs/figs_v20.6-scenario1_20260320_150547/log_details.json,runs/_archive/v4_st/v20.6/synthetic/scenario1__20260320_150547/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.6-scenario1,runs/_archive/v4_st/v20.6/synthetic/scenario1__20260320_150547/frames,frames,
+Logs/figs_v20.6.1-scenario1_20260319_163437/log_details.json,runs/_archive/v4_st/v20.6.1/synthetic/scenario1__20260319_163437/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.6.1-scenario1,runs/_archive/v4_st/v20.6.1/synthetic/scenario1__20260319_163437/frames,frames,
+Logs/figs_v20.6.1-scenario2_20260319_163446/log_details.json,runs/_archive/v4_st/v20.6.1/synthetic/scenario2__20260319_163446/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.6.1-scenario2,runs/_archive/v4_st/v20.6.1/synthetic/scenario2__20260319_163446/frames,frames,
+Logs/figs_v20.6.1-scenario3_20260319_163414/log_details.json,runs/_archive/v4_st/v20.6.1/synthetic/scenario3__20260319_163414/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.6.1-scenario3,runs/_archive/v4_st/v20.6.1/synthetic/scenario3__20260319_163414/frames,frames,
+Logs/figs_v20.6.1-scenario4_20260319_164014/log_details.json,runs/_archive/v4_st/v20.6.1/synthetic/scenario4__20260319_164014/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.6.1-scenario4,runs/_archive/v4_st/v20.6.1/synthetic/scenario4__20260319_164014/frames,frames,
+Logs/figs_v20.7.1-scenario1_20260324_141947/log_details.json,runs/_archive/v4_st/v20.7.1/synthetic/scenario1__20260324_141947/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.7.1-scenario1,runs/_archive/v4_st/v20.7.1/synthetic/scenario1__20260324_141947/frames,frames,
+Logs/figs_v20.7.1-scenario2_20260324_152433/log_details.json,runs/_archive/v4_st/v20.7.1/synthetic/scenario2__20260324_152433/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.7.1-scenario2,runs/_archive/v4_st/v20.7.1/synthetic/scenario2__20260324_152433/frames,frames,
+Logs/figs_v20.7.1-scenario3_20260324_152404/log_details.json,runs/_archive/v4_st/v20.7.1/synthetic/scenario3__20260324_152404/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.7.1-scenario3,runs/_archive/v4_st/v20.7.1/synthetic/scenario3__20260324_152404/frames,frames,
+Logs/figs_v20.7.1-scenario4_20260324_152455/log_details.json,runs/_archive/v4_st/v20.7.1/synthetic/scenario4__20260324_152455/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.7.1-scenario4,runs/_archive/v4_st/v20.7.1/synthetic/scenario4__20260324_152455/frames,frames,
+Logs/figs_v20.7.2-scenario1_20260325_165235/log_details.json,runs/_archive/v4_st/v20.7.2/synthetic/scenario1__20260325_165235/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.7.2-scenario1,runs/_archive/v4_st/v20.7.2/synthetic/scenario1__20260325_165235/frames,frames,
+Logs/figs_v20.7.2-scenario2_20260325_165354/log_details.json,runs/_archive/v4_st/v20.7.2/synthetic/scenario2__20260325_165354/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.7.2-scenario2,runs/_archive/v4_st/v20.7.2/synthetic/scenario2__20260325_165354/frames,frames,
+Logs/figs_v20.7.2-scenario3_20260325_165323/log_details.json,runs/_archive/v4_st/v20.7.2/synthetic/scenario3__20260325_165323/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.7.2-scenario3,runs/_archive/v4_st/v20.7.2/synthetic/scenario3__20260325_165323/frames,frames,
+Logs/figs_v20.7.2-scenario4_20260325_165420/log_details.json,runs/_archive/v4_st/v20.7.2/synthetic/scenario4__20260325_165420/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.7.2-scenario4,runs/_archive/v4_st/v20.7.2/synthetic/scenario4__20260325_165420/frames,frames,
+Logs/figs_v20.7.3-scenario1_20260326_135206/log_details.json,runs/_archive/v4_st/v20.7.3/synthetic/scenario1__20260326_135206/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.7.3-scenario1,runs/_archive/v4_st/v20.7.3/synthetic/scenario1__20260326_135206/frames,frames,
+Logs/figs_v20.7.3-scenario2_20260330_121719/log_details.json,runs/_archive/v4_st/v20.7.3/synthetic/scenario2__20260330_121719/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.7.3-scenario2,runs/_archive/v4_st/v20.7.3/synthetic/scenario2__20260330_121719/frames,frames,
+Logs/figs_v20.7.3-scenario3_20260325_170207/log_details.json,runs/_archive/v4_st/v20.7.3/synthetic/scenario3__20260325_170207/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.7.3-scenario3,runs/_archive/v4_st/v20.7.3/synthetic/scenario3__20260325_170207/frames,frames,
+Logs/figs_v20.7.3-scenario3-delete_20260410_101858/log_details.json,runs/_archive/v4_st/v20.7.3/synthetic/scenario3-delete__20260410_101858/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.7.3-scenario3-delete,runs/_archive/v4_st/v20.7.3/synthetic/scenario3-delete__20260410_101858/frames,frames,
+Logs/figs_v20.7.3-scenario4_20260330_121731/log_details.json,runs/_archive/v4_st/v20.7.3/synthetic/scenario4__20260330_121731/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.7.3-scenario4,runs/_archive/v4_st/v20.7.3/synthetic/scenario4__20260330_121731/frames,frames,
+Logs/figs_v20.7.3-scenario4-delete_20260410_101232/log_details.json,runs/_archive/v4_st/v20.7.3/synthetic/scenario4-delete__20260410_101232/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.7.3-scenario4-delete,runs/_archive/v4_st/v20.7.3/synthetic/scenario4-delete__20260410_101232/frames,frames,
+Logs/figs_v20.7.3-video1_20260325_180723/log_details.json,runs/_archive/v4_st/v20.7.3/video/video1__20260325_180723/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.7.3-video1,runs/_archive/v4_st/v20.7.3/video/video1__20260325_180723/frames,frames,
+Logs/figs_v20.7.4-scenario3_20260413_163704/log_details.json,runs/_archive/v4_st/v20.7.4/synthetic/scenario3__20260413_163704/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.7.4-scenario3,runs/_archive/v4_st/v20.7.4/synthetic/scenario3__20260413_163704/frames,frames,
+Logs/figs_v20.7.4-video1_20260413_172515/log_details.json,runs/_archive/v4_st/v20.7.4/video/video1__20260413_172515/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.7.4-video1,runs/_archive/v4_st/v20.7.4/video/video1__20260413_172515/frames,frames,
+PathPlanning/DWAT_v4_st/figs_v20.7.4-video1.mp4,runs/_archive/v4_st/v20.7.4/video/video1__20260413_172515/video.mp4,video,
+Logs/figs_v20.7.5-scenario1_20260420_170817/log_details.json,runs/_archive/v4_st/v20.7.5/synthetic/scenario1__20260420_170817/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.7.5-scenario1,runs/_archive/v4_st/v20.7.5/synthetic/scenario1__20260420_170817/frames,frames,
+PathPlanning/DWAT_v4_st/figs_v20.7.5-scenario1.mp4,runs/_archive/v4_st/v20.7.5/synthetic/scenario1__20260420_170817/video.mp4,video,
+Logs/figs_v20.7.5-scenario2_20260420_171537/log_details.json,runs/_archive/v4_st/v20.7.5/synthetic/scenario2__20260420_171537/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.7.5-scenario2,runs/_archive/v4_st/v20.7.5/synthetic/scenario2__20260420_171537/frames,frames,
+PathPlanning/DWAT_v4_st/figs_v20.7.5-scenario2.mp4,runs/_archive/v4_st/v20.7.5/synthetic/scenario2__20260420_171537/video.mp4,video,
+Logs/figs_v20.7.5-scenario3_20260420_164834/log_details.json,runs/_archive/v4_st/v20.7.5/synthetic/scenario3__20260420_164834/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.7.5-scenario3,runs/_archive/v4_st/v20.7.5/synthetic/scenario3__20260420_164834/frames,frames,
+PathPlanning/DWAT_v4_st/figs_v20.7.5-scenario3.mp4,runs/_archive/v4_st/v20.7.5/synthetic/scenario3__20260420_164834/video.mp4,video,
+Logs/figs_v20.7.5-scenario4_20260420_172017/log_details.json,runs/_archive/v4_st/v20.7.5/synthetic/scenario4__20260420_172017/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.7.5-scenario4,runs/_archive/v4_st/v20.7.5/synthetic/scenario4__20260420_172017/frames,frames,
+PathPlanning/DWAT_v4_st/figs_v20.7.5-scenario4.mp4,runs/_archive/v4_st/v20.7.5/synthetic/scenario4__20260420_172017/video.mp4,video,
+Logs/figs_v20.7.5-video1_20260420_180648/log_details.json,runs/_archive/v4_st/v20.7.5/video/video1__20260420_180648/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.7.5-video1,runs/_archive/v4_st/v20.7.5/video/video1__20260420_180648/frames,frames,
+PathPlanning/DWAT_v4_st/figs_v20.7.5-video1.mp4,runs/_archive/v4_st/v20.7.5/video/video1__20260420_180648/video.mp4,video,
+Logs/figs_v20.7.5-video3_20260420_182901/log_details.json,runs/_archive/v4_st/v20.7.5/video/video3__20260420_182901/log_details.json,log,
+Logs/figs_v20.7.5-video3_20260421_165830/log_details.json,runs/_archive/v4_st/v20.7.5/video/video3__20260421_165830/log_details.json,log,
+PathPlanning/DWAT_v4_st/figs_v20.7.5-video3,runs/_archive/v4_st/v20.7.5/video/video3__20260421_165830/frames,frames,attached to latest of 2 logs
+PathPlanning/DWAT_v4_st/figs_v20.7.5-video3.mp4,runs/_archive/v4_st/v20.7.5/video/video3__20260421_165830/video.mp4,video,attached to latest of 2 logs
+Logs_LG/dwa_log_details_20250221_180112,runs/_archive/local_global/logs/dwa_log_details_20250221_180112,wholesale,
+Logs_LG/dwa_log_details_20250226_171545,runs/_archive/local_global/logs/dwa_log_details_20250226_171545,wholesale,
+Logs_LG/dwa_log_details_20250306_155027,runs/_archive/local_global/logs/dwa_log_details_20250306_155027,wholesale,
+Logs_LG/dwa_log_details_20250402_182258,runs/_archive/local_global/logs/dwa_log_details_20250402_182258,wholesale,
+Logs_LG/dwa_log_details_20250402_210204,runs/_archive/local_global/logs/dwa_log_details_20250402_210204,wholesale,
+Logs_LG/dwa_log_details_20250405_184251,runs/_archive/local_global/logs/dwa_log_details_20250405_184251,wholesale,
+Logs_LG/dwa_log_details_20250406_090920,runs/_archive/local_global/logs/dwa_log_details_20250406_090920,wholesale,
+Logs_LG/dwa_log_details_20250527_125227,runs/_archive/local_global/logs/dwa_log_details_20250527_125227,wholesale,
+Logs_LG/dwa_log_details_20250528_155846_v7.3.2,runs/_archive/local_global/logs/dwa_log_details_20250528_155846_v7.3.2,wholesale,
+Logs_LG/dwa_log_details_20250528_155846_v7.3.2-test,runs/_archive/local_global/logs/dwa_log_details_20250528_155846_v7.3.2-test,wholesale,
+Logs_LG/dwa_log_details_20250528_232326_v7.3.3,runs/_archive/local_global/logs/dwa_log_details_20250528_232326_v7.3.3,wholesale,
+Logs_LG/dwa_log_details_20250529_134708_v7.3.4,runs/_archive/local_global/logs/dwa_log_details_20250529_134708_v7.3.4,wholesale,
+Logs_LG/dwa_log_details_20250529_173543_v7.3.5,runs/_archive/local_global/logs/dwa_log_details_20250529_173543_v7.3.5,wholesale,
+Logs_LG/dwa_log_details_20250529_182410_v7.3.6,runs/_archive/local_global/logs/dwa_log_details_20250529_182410_v7.3.6,wholesale,
+Logs_LG/dwa_log_details_20250606_181933,runs/_archive/local_global/logs/dwa_log_details_20250606_181933,wholesale,
+Logs_LG/dwa_log_details_20250606_182733,runs/_archive/local_global/logs/dwa_log_details_20250606_182733,wholesale,
+Logs_LG/dwa_log_details_20250609_160420,runs/_archive/local_global/logs/dwa_log_details_20250609_160420,wholesale,
+Logs_LG/dwa_log_details_20250609_164039,runs/_archive/local_global/logs/dwa_log_details_20250609_164039,wholesale,
+Logs_LG/dwa_log_details_20250616_113800_v7.3.7-test3,runs/_archive/local_global/logs/dwa_log_details_20250616_113800_v7.3.7-test3,wholesale,
+Logs_LG/dwa_log_details_20250616_142317,runs/_archive/local_global/logs/dwa_log_details_20250616_142317,wholesale,
+Logs_LG/dwa_log_details_20250616_160427,runs/_archive/local_global/logs/dwa_log_details_20250616_160427,wholesale,
+Logs_LG/dwa_log_details_20250616_161339_v7.3.7-test6,runs/_archive/local_global/logs/dwa_log_details_20250616_161339_v7.3.7-test6,wholesale,
+Logs_LG/dwa_log_details_20250618_112847_v7.3.8-test1_collision,runs/_archive/local_global/logs/dwa_log_details_20250618_112847_v7.3.8-test1_collision,wholesale,
+Logs_LG/dwa_log_details_20250618_122101_v7.3.8-test1,runs/_archive/local_global/logs/dwa_log_details_20250618_122101_v7.3.8-test1,wholesale,
+Logs_LG/dwa_log_details_20250618_161746-v7.3.8,runs/_archive/local_global/logs/dwa_log_details_20250618_161746-v7.3.8,wholesale,
+Logs_LG/dwa_log_details_20250618_162048_v7.3.8-test2,runs/_archive/local_global/logs/dwa_log_details_20250618_162048_v7.3.8-test2,wholesale,
+Logs_LG/dwa_log_details_20250618_165856_v7.3.8-test3,runs/_archive/local_global/logs/dwa_log_details_20250618_165856_v7.3.8-test3,wholesale,
+Logs_LG/dwa_log_details_20250619_125137_v7.3.8-test2.9_vid1,runs/_archive/local_global/logs/dwa_log_details_20250619_125137_v7.3.8-test2.9_vid1,wholesale,
+Logs_LG/dwa_log_details_20250620_113302,runs/_archive/local_global/logs/dwa_log_details_20250620_113302,wholesale,
+Logs_LG/dwa_log_details_20250621_151414_v7.3.9-test1-vid1,runs/_archive/local_global/logs/dwa_log_details_20250621_151414_v7.3.9-test1-vid1,wholesale,
+Logs_LG/dwa_log_details_20250621_152832_v7.3.9-test1-vid2,runs/_archive/local_global/logs/dwa_log_details_20250621_152832_v7.3.9-test1-vid2,wholesale,
+Logs_LG/dwa_log_details_20250621_154706_v7.3.9-test2-vid2,runs/_archive/local_global/logs/dwa_log_details_20250621_154706_v7.3.9-test2-vid2,wholesale,
+Logs_LG/dwa_log_details_20250621_154854_v7.3.9-test2-vid1,runs/_archive/local_global/logs/dwa_log_details_20250621_154854_v7.3.9-test2-vid1,wholesale,
+Logs_LG/dwa_log_details_20250623_181158,runs/_archive/local_global/logs/dwa_log_details_20250623_181158,wholesale,
+Logs_LG/dwa_log_details_20250624_162941_v7.3.9-test4-vid2,runs/_archive/local_global/logs/dwa_log_details_20250624_162941_v7.3.9-test4-vid2,wholesale,
+Logs_LG/dwa_log_details_20250624_163007_v7.3.9-test4-vid1,runs/_archive/local_global/logs/dwa_log_details_20250624_163007_v7.3.9-test4-vid1,wholesale,
+Logs/v10_log_to_df.py,tools/legacy/v10_log_to_df.py,script,
+Logs_split/log_to_df.py,tools/legacy/log_to_df.py,script,
+Logs_split/log_to_df_split.py,tools/legacy/log_to_df_split.py,script,
+Logs_split/log_to_figures.py,tools/legacy/log_to_figures.py,script,
+Logs_split/log_to_figures_split.py,tools/legacy/log_to_figures_split.py,script,
+Logs_split/plot_velocity_spaces.py,tools/legacy/plot_velocity_spaces.py,script,
+runs/_archive/v3_split/legacy_log/figs_v7.4.1-vid2_20250630_140449/log_details.json,runs/_archive/v1/v7.4.1/misc/vid2__20250630_140449/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.2-vid1_20250630_164909/log_details.json,runs/_archive/v1/v7.4.2/misc/vid1__20250630_164909/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.2-vid2_20250630_165348/log_details.json,runs/_archive/v1/v7.4.2/misc/vid2__20250630_165348/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.3-vid1_20250701_134656/log_details.json,runs/_archive/v1/v7.4.3/misc/vid1__20250701_134656/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.3-vid2_20250701_135300/1. translational_speed.png,runs/_archive/v1/v7.4.3/misc/vid2__20250701_135300/1. translational_speed.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.3-vid2_20250701_135300/2. rotational_speed.png,runs/_archive/v1/v7.4.3/misc/vid2__20250701_135300/2. rotational_speed.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.3-vid2_20250701_135300/3. final_cost.png,runs/_archive/v1/v7.4.3/misc/vid2__20250701_135300/3. final_cost.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.3-vid2_20250701_135300/4. to_goal_cost_before.png,runs/_archive/v1/v7.4.3/misc/vid2__20250701_135300/4. to_goal_cost_before.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.3-vid2_20250701_135300/5. speed_cost_before.png,runs/_archive/v1/v7.4.3/misc/vid2__20250701_135300/5. speed_cost_before.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.3-vid2_20250701_135300/6. obstacle_cost_before.png,runs/_archive/v1/v7.4.3/misc/vid2__20250701_135300/6. obstacle_cost_before.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.3-vid2_20250701_135300/7. costs_after_normalization.png,runs/_archive/v1/v7.4.3/misc/vid2__20250701_135300/7. costs_after_normalization.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.3-vid2_20250701_135300/8. position_components.png,runs/_archive/v1/v7.4.3/misc/vid2__20250701_135300/8. position_components.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.3-vid2_20250701_135300/9. trajectory_2d.png,runs/_archive/v1/v7.4.3/misc/vid2__20250701_135300/9. trajectory_2d.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.3-vid2_20250701_135300/cost_images,runs/_archive/v1/v7.4.3/misc/vid2__20250701_135300/cost_images,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.3-vid2_20250701_135300/cost_matrices_1365,runs/_archive/v1/v7.4.3/misc/vid2__20250701_135300/cost_matrices_1365,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.3-vid2_20250701_135300/cost_matrices_1366,runs/_archive/v1/v7.4.3/misc/vid2__20250701_135300/cost_matrices_1366,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.3-vid2_20250701_135300/cost_matrices_1367,runs/_archive/v1/v7.4.3/misc/vid2__20250701_135300/cost_matrices_1367,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.3-vid2_20250701_135300/cost_matrices_1368,runs/_archive/v1/v7.4.3/misc/vid2__20250701_135300/cost_matrices_1368,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.3-vid2_20250701_135300/cost_matrices_1369,runs/_archive/v1/v7.4.3/misc/vid2__20250701_135300/cost_matrices_1369,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.3-vid2_20250701_135300/cost_matrices_1370,runs/_archive/v1/v7.4.3/misc/vid2__20250701_135300/cost_matrices_1370,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.3-vid2_20250701_135300/cost_matrices_1371,runs/_archive/v1/v7.4.3/misc/vid2__20250701_135300/cost_matrices_1371,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.3-vid2_20250701_135300/cost_matrices_1372,runs/_archive/v1/v7.4.3/misc/vid2__20250701_135300/cost_matrices_1372,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.3-vid2_20250701_135300/cost_matrices_1373,runs/_archive/v1/v7.4.3/misc/vid2__20250701_135300/cost_matrices_1373,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.3-vid2_20250701_135300/cost_matrices_1374,runs/_archive/v1/v7.4.3/misc/vid2__20250701_135300/cost_matrices_1374,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.3-vid2_20250701_135300/log_details.csv,runs/_archive/v1/v7.4.3/misc/vid2__20250701_135300/log_details.csv,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.3-vid2_20250701_135300/log_details.json,runs/_archive/v1/v7.4.3/misc/vid2__20250701_135300/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid1_20250701_174903/1. translational_speed.png,runs/_archive/v1/v7.4.4/misc/vid1__20250701_174903/1. translational_speed.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid1_20250701_174903/2. rotational_speed.png,runs/_archive/v1/v7.4.4/misc/vid1__20250701_174903/2. rotational_speed.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid1_20250701_174903/3. final_cost.png,runs/_archive/v1/v7.4.4/misc/vid1__20250701_174903/3. final_cost.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid1_20250701_174903/4. to_goal_cost_before.png,runs/_archive/v1/v7.4.4/misc/vid1__20250701_174903/4. to_goal_cost_before.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid1_20250701_174903/5. speed_cost_before.png,runs/_archive/v1/v7.4.4/misc/vid1__20250701_174903/5. speed_cost_before.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid1_20250701_174903/6. obstacle_cost_before.png,runs/_archive/v1/v7.4.4/misc/vid1__20250701_174903/6. obstacle_cost_before.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid1_20250701_174903/7. costs_after_normalization.png,runs/_archive/v1/v7.4.4/misc/vid1__20250701_174903/7. costs_after_normalization.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid1_20250701_174903/8. position_components.png,runs/_archive/v1/v7.4.4/misc/vid1__20250701_174903/8. position_components.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid1_20250701_174903/9. trajectory_2d.png,runs/_archive/v1/v7.4.4/misc/vid1__20250701_174903/9. trajectory_2d.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid1_20250701_174903/log_details.csv,runs/_archive/v1/v7.4.4/misc/vid1__20250701_174903/log_details.csv,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid1_20250701_174903/log_details.json,runs/_archive/v1/v7.4.4/misc/vid1__20250701_174903/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid2-temp_20250701_174442/log_details.json,runs/_archive/v1/v7.4.4/misc/vid2-temp__20250701_174442/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid2_20250701_175055/1. translational_speed.png,runs/_archive/v1/v7.4.4/misc/vid2__20250701_175055/1. translational_speed.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid2_20250701_175055/2. rotational_speed.png,runs/_archive/v1/v7.4.4/misc/vid2__20250701_175055/2. rotational_speed.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid2_20250701_175055/3. final_cost.png,runs/_archive/v1/v7.4.4/misc/vid2__20250701_175055/3. final_cost.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid2_20250701_175055/4. to_goal_cost_before.png,runs/_archive/v1/v7.4.4/misc/vid2__20250701_175055/4. to_goal_cost_before.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid2_20250701_175055/5. speed_cost_before.png,runs/_archive/v1/v7.4.4/misc/vid2__20250701_175055/5. speed_cost_before.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid2_20250701_175055/6. obstacle_cost_before.png,runs/_archive/v1/v7.4.4/misc/vid2__20250701_175055/6. obstacle_cost_before.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid2_20250701_175055/7. costs_after_normalization.png,runs/_archive/v1/v7.4.4/misc/vid2__20250701_175055/7. costs_after_normalization.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid2_20250701_175055/8. position_components.png,runs/_archive/v1/v7.4.4/misc/vid2__20250701_175055/8. position_components.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid2_20250701_175055/9. trajectory_2d.png,runs/_archive/v1/v7.4.4/misc/vid2__20250701_175055/9. trajectory_2d.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid2_20250701_175055/cost_images,runs/_archive/v1/v7.4.4/misc/vid2__20250701_175055/cost_images,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid2_20250701_175055/cost_matrices_1335,runs/_archive/v1/v7.4.4/misc/vid2__20250701_175055/cost_matrices_1335,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid2_20250701_175055/cost_matrices_1336,runs/_archive/v1/v7.4.4/misc/vid2__20250701_175055/cost_matrices_1336,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid2_20250701_175055/cost_matrices_1337,runs/_archive/v1/v7.4.4/misc/vid2__20250701_175055/cost_matrices_1337,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid2_20250701_175055/cost_matrices_1338,runs/_archive/v1/v7.4.4/misc/vid2__20250701_175055/cost_matrices_1338,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid2_20250701_175055/cost_matrices_1339,runs/_archive/v1/v7.4.4/misc/vid2__20250701_175055/cost_matrices_1339,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid2_20250701_175055/cost_matrices_1340,runs/_archive/v1/v7.4.4/misc/vid2__20250701_175055/cost_matrices_1340,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid2_20250701_175055/cost_matrices_1341,runs/_archive/v1/v7.4.4/misc/vid2__20250701_175055/cost_matrices_1341,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid2_20250701_175055/cost_matrices_1342,runs/_archive/v1/v7.4.4/misc/vid2__20250701_175055/cost_matrices_1342,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid2_20250701_175055/cost_matrices_1343,runs/_archive/v1/v7.4.4/misc/vid2__20250701_175055/cost_matrices_1343,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid2_20250701_175055/cost_matrices_1344,runs/_archive/v1/v7.4.4/misc/vid2__20250701_175055/cost_matrices_1344,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid2_20250701_175055/log_details.csv,runs/_archive/v1/v7.4.4/misc/vid2__20250701_175055/log_details.csv,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.4-vid2_20250701_175055/log_details.json,runs/_archive/v1/v7.4.4/misc/vid2__20250701_175055/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.5-vid1_20250702_115019/log_details.json,runs/_archive/v1/v7.4.5/misc/vid1__20250702_115019/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.5-vid2-temp_20250702_113700/log_details.json,runs/_archive/v1/v7.4.5/misc/vid2-temp__20250702_113700/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v7.4.5-vid2_20250702_115133/log_details.json,runs/_archive/v1/v7.4.5/misc/vid2__20250702_115133/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.1-vid1_20250702_173818/log_details.json,runs/_archive/v1/v8.1/misc/vid1__20250702_173818/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.1-vid2_20250702_175305/log_details.json,runs/_archive/v1/v8.1/misc/vid2__20250702_175305/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2-simple1_20250703_171410/log_details.json,runs/_archive/v1/v8.2/misc/simple1__20250703_171410/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2-vid1_20250702_180910/log_details.json,runs/_archive/v1/v8.2/misc/vid1__20250702_180910/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2-vid2_20250702_181518/log_details.json,runs/_archive/v1/v8.2/misc/vid2__20250702_181518/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.2-simple1_20250703_174234/log_details.json,runs/_archive/v1/v8.2.2/misc/simple1__20250703_174234/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.2-vid1_20250703_181233/log_details.json,runs/_archive/v1/v8.2.2/misc/vid1__20250703_181233/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.2-vid2_20250703_181223/log_details.json,runs/_archive/v1/v8.2.2/misc/vid2__20250703_181223/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3-simple1_20250704_155719/log_details.json,runs/_archive/v1/v8.2.3/misc/simple1__20250704_155719/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3-simple2_20250704_160354/log_details.json,runs/_archive/v1/v8.2.3/misc/simple2__20250704_160354/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3-simple3_20250715_162126/log_details.json,runs/_archive/v1/v8.2.3/misc/simple3__20250715_162126/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3-simple4_20250715_162445/log_details.json,runs/_archive/v1/v8.2.3/misc/simple4__20250715_162445/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3-vid1-delete_20250911_161050/log_details.json,runs/_archive/v1/v8.2.3/misc/vid1-delete__20250911_161050/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3-vid1-delete_20250911_162714/log_details.json,runs/_archive/v1/v8.2.3/misc/vid1-delete__20250911_162714/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3-vid1-delete_20250917_113957/log_details.json,runs/_archive/v1/v8.2.3/misc/vid1-delete__20250917_113957/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3-vid1_20250704_161957/1. translational_speed.png,runs/_archive/v1/v8.2.3/misc/vid1__20250704_161957/1. translational_speed.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3-vid1_20250704_161957/2. rotational_speed.png,runs/_archive/v1/v8.2.3/misc/vid1__20250704_161957/2. rotational_speed.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3-vid1_20250704_161957/3. final_cost.png,runs/_archive/v1/v8.2.3/misc/vid1__20250704_161957/3. final_cost.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3-vid1_20250704_161957/4. to_goal_cost_before.png,runs/_archive/v1/v8.2.3/misc/vid1__20250704_161957/4. to_goal_cost_before.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3-vid1_20250704_161957/5. speed_cost_before.png,runs/_archive/v1/v8.2.3/misc/vid1__20250704_161957/5. speed_cost_before.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3-vid1_20250704_161957/6. obstacle_cost_before.png,runs/_archive/v1/v8.2.3/misc/vid1__20250704_161957/6. obstacle_cost_before.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3-vid1_20250704_161957/7. costs_after_normalization.png,runs/_archive/v1/v8.2.3/misc/vid1__20250704_161957/7. costs_after_normalization.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3-vid1_20250704_161957/8. position_components.png,runs/_archive/v1/v8.2.3/misc/vid1__20250704_161957/8. position_components.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3-vid1_20250704_161957/9. trajectory_2d.png,runs/_archive/v1/v8.2.3/misc/vid1__20250704_161957/9. trajectory_2d.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3-vid1_20250704_161957/log_details.csv,runs/_archive/v1/v8.2.3/misc/vid1__20250704_161957/log_details.csv,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3-vid1_20250704_161957/log_details.json,runs/_archive/v1/v8.2.3/misc/vid1__20250704_161957/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3-vid2_20250704_162303/log_details.json,runs/_archive/v1/v8.2.3/misc/vid2__20250704_162303/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3-video1-split-delete_20251105_142006/log_details.json,runs/_archive/v1/v8.2.3/video/video1-split-delete__20251105_142006/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3-video1-split_20251105_141517/log_details.json,runs/_archive/v1/v8.2.3/video/video1-split__20251105_141517/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3.2-video1-split_20251105_150249/log_details.json,runs/_archive/v1/v8.2.3.2/video/video1-split__20251105_150249/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3.3-video1-split_20251105_151948/log_details.json,runs/_archive/v1/v8.2.3.3/video/video1-split__20251105_151948/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.3.4-video1-split_20251105_160929/log_details.json,runs/_archive/v1/v8.2.3.4/video/video1-split__20251105_160929/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.2.4-simple2_20250711_134744/log_details.json,runs/_archive/v1/v8.2.4/misc/simple2__20250711_134744/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.3-static-vid1_20250715_000610/log_details.json,runs/_archive/v1/v8.3/misc/static-vid1__20250715_000610/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.3-static-vid2_20250715_001252/log_details.json,runs/_archive/v1/v8.3/misc/static-vid2__20250715_001252/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.3.2-static-vid1_20250715_014742/log_details.json,runs/_archive/v1/v8.3.2/misc/static-vid1__20250715_014742/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.3.2-static-vid2_20250715_002912/log_details.json,runs/_archive/v1/v8.3.2/misc/static-vid2__20250715_002912/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.3.2-video1-delete_20251105_135743/log_details.json,runs/_archive/v1/v8.3.2/video/video1-delete__20251105_135743/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4-vid1_20250721_120349/log_details.json,runs/_archive/v1/v8.4/misc/vid1__20250721_120349/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4-vid1_20250721_121623/log_details.json,runs/_archive/v1/v8.4/misc/vid1__20250721_121623/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4-vid1_20250721_151157/log_details.json,runs/_archive/v1/v8.4/misc/vid1__20250721_151157/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.10-v2-vid1_20250804_161708/log_details.json,runs/_archive/v1/v8.4.10/misc/v2-vid1__20250804_161708/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.11-static-vid1-to-delete_20250820_180405/log_details.json,runs/_archive/v1/v8.4.11/misc/static-vid1-to-delete__20250820_180405/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.11-static-vid1_20250804_172641/log_details.json,runs/_archive/v1/v8.4.11/misc/static-vid1__20250804_172641/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.12-v2-vid1_20250821_173109/log_details.json,runs/_archive/v1/v8.4.12/misc/v2-vid1__20250821_173109/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.12-v2-vid2_20250825_115741/log_details.json,runs/_archive/v1/v8.4.12/misc/v2-vid2__20250825_115741/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.12.2-v2-vid1_20250825_115158/log_details.json,runs/_archive/v1/v8.4.12.2/misc/v2-vid1__20250825_115158/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.13-v2-vid1_20250825_173944/log_details.json,runs/_archive/v1/v8.4.13/misc/v2-vid1__20250825_173944/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.13-v2-vid2_20250825_175831/log_details.json,runs/_archive/v1/v8.4.13/misc/v2-vid2__20250825_175831/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.14-v2-vid1_20250826_114425/log_details.json,runs/_archive/v1/v8.4.14/misc/v2-vid1__20250826_114425/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.14-v2-vid2_20250826_115527/log_details.json,runs/_archive/v1/v8.4.14/misc/v2-vid2__20250826_115527/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.15-v2-vid1_20250827_150836/log_details.json,runs/_archive/v1/v8.4.15/misc/v2-vid1__20250827_150836/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.15-v2-vid2_20250827_153446/log_details.json,runs/_archive/v1/v8.4.15/misc/v2-vid2__20250827_153446/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.16-v2-vid1_20250827_144916/log_details.json,runs/_archive/v1/v8.4.16/misc/v2-vid1__20250827_144916/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.17-v2-vid1_20250827_145807/log_details.json,runs/_archive/v1/v8.4.17/misc/v2-vid1__20250827_145807/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.2-v2-vid1_20250730_181011/log_details.json,runs/_archive/v1/v8.4.2/misc/v2-vid1__20250730_181011/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.2-vid1_20250730_174033/log_details.json,runs/_archive/v1/v8.4.2/misc/vid1__20250730_174033/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.3-vid1_20250730_175558/log_details.json,runs/_archive/v1/v8.4.3/misc/vid1__20250730_175558/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.4-v2-vid1_20250731_171404/log_details.csv,runs/_archive/v1/v8.4.4/misc/v2-vid1__20250731_171404/log_details.csv,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.4-v2-vid1_20250731_171404/log_details.json,runs/_archive/v1/v8.4.4/misc/v2-vid1__20250731_171404/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.5-v2-vid1_20250802_161929/log_details.json,runs/_archive/v1/v8.4.5/misc/v2-vid1__20250802_161929/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.6-v2-vid1_20250802_162508/1. translational_speed.png,runs/_archive/v1/v8.4.6/misc/v2-vid1__20250802_162508/1. translational_speed.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.6-v2-vid1_20250802_162508/2. rotational_speed.png,runs/_archive/v1/v8.4.6/misc/v2-vid1__20250802_162508/2. rotational_speed.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.6-v2-vid1_20250802_162508/3. final_cost.png,runs/_archive/v1/v8.4.6/misc/v2-vid1__20250802_162508/3. final_cost.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.6-v2-vid1_20250802_162508/4. to_goal_cost_before.png,runs/_archive/v1/v8.4.6/misc/v2-vid1__20250802_162508/4. to_goal_cost_before.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.6-v2-vid1_20250802_162508/5. speed_cost_before.png,runs/_archive/v1/v8.4.6/misc/v2-vid1__20250802_162508/5. speed_cost_before.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.6-v2-vid1_20250802_162508/6. obstacle_cost_before.png,runs/_archive/v1/v8.4.6/misc/v2-vid1__20250802_162508/6. obstacle_cost_before.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.6-v2-vid1_20250802_162508/7. costs_after_normalization.png,runs/_archive/v1/v8.4.6/misc/v2-vid1__20250802_162508/7. costs_after_normalization.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.6-v2-vid1_20250802_162508/8. position_components.png,runs/_archive/v1/v8.4.6/misc/v2-vid1__20250802_162508/8. position_components.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.6-v2-vid1_20250802_162508/9. trajectory_2d.png,runs/_archive/v1/v8.4.6/misc/v2-vid1__20250802_162508/9. trajectory_2d.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.6-v2-vid1_20250802_162508/log_details.csv,runs/_archive/v1/v8.4.6/misc/v2-vid1__20250802_162508/log_details.csv,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.6-v2-vid1_20250802_162508/log_details.json,runs/_archive/v1/v8.4.6/misc/v2-vid1__20250802_162508/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.7-v2-vid1_20250804_011145/1. translational_speed.png,runs/_archive/v1/v8.4.7/misc/v2-vid1__20250804_011145/1. translational_speed.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.7-v2-vid1_20250804_011145/2. rotational_speed.png,runs/_archive/v1/v8.4.7/misc/v2-vid1__20250804_011145/2. rotational_speed.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.7-v2-vid1_20250804_011145/3. final_cost.png,runs/_archive/v1/v8.4.7/misc/v2-vid1__20250804_011145/3. final_cost.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.7-v2-vid1_20250804_011145/4. to_goal_cost_before.png,runs/_archive/v1/v8.4.7/misc/v2-vid1__20250804_011145/4. to_goal_cost_before.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.7-v2-vid1_20250804_011145/5. speed_cost_before.png,runs/_archive/v1/v8.4.7/misc/v2-vid1__20250804_011145/5. speed_cost_before.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.7-v2-vid1_20250804_011145/6. obstacle_cost_before.png,runs/_archive/v1/v8.4.7/misc/v2-vid1__20250804_011145/6. obstacle_cost_before.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.7-v2-vid1_20250804_011145/7. costs_after_normalization.png,runs/_archive/v1/v8.4.7/misc/v2-vid1__20250804_011145/7. costs_after_normalization.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.7-v2-vid1_20250804_011145/8. position_components.png,runs/_archive/v1/v8.4.7/misc/v2-vid1__20250804_011145/8. position_components.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.7-v2-vid1_20250804_011145/9. trajectory_2d.png,runs/_archive/v1/v8.4.7/misc/v2-vid1__20250804_011145/9. trajectory_2d.png,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.7-v2-vid1_20250804_011145/log_details.csv,runs/_archive/v1/v8.4.7/misc/v2-vid1__20250804_011145/log_details.csv,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.7-v2-vid1_20250804_011145/log_details.json,runs/_archive/v1/v8.4.7/misc/v2-vid1__20250804_011145/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.8-v2-vid1_20250804_012920/log_details.csv,runs/_archive/v1/v8.4.8/misc/v2-vid1__20250804_012920/log_details.csv,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.8-v2-vid1_20250804_012920/log_details.json,runs/_archive/v1/v8.4.8/misc/v2-vid1__20250804_012920/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.4.9-v2-vid1_20250804_141449/log_details.json,runs/_archive/v1/v8.4.9/misc/v2-vid1__20250804_141449/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.5.1-video1_20250917_160502/log_details.json,runs/_archive/v1/v8.5.1/video/video1__20250917_160502/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.5.2-vid1_20250917_160819/log_details.json,runs/_archive/v1/v8.5.2/misc/vid1__20250917_160819/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.5.3-video1_20250917_163558/log_details.json,runs/_archive/v1/v8.5.3/video/video1__20250917_163558/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.5.4-vid1_20250917_162446/log_details.json,runs/_archive/v1/v8.5.4/misc/vid1__20250917_162446/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.5.5-video1_20250917_165134/log_details.json,runs/_archive/v1/v8.5.5/video/video1__20250917_165134/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.5.6-vid1_20250917_164132/log_details.json,runs/_archive/v1/v8.5.6/misc/vid1__20250917_164132/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.5.7-video1-delete_20251015_144016/log_details.json,runs/_archive/v1/v8.5.7/video/video1-delete__20251015_144016/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.5.7-video1_20250917_185101/log_details.json,runs/_archive/v1/v8.5.7/video/video1__20250917_185101/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.5.8-vid1_20250917_181120/log_details.json,runs/_archive/v1/v8.5.8/misc/vid1__20250917_181120/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.6.1-video1_20250918_170147/log_details.json,runs/_archive/v1/v8.6.1/video/video1__20250918_170147/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.6.2-video1_20250918_170710/log_details.json,runs/_archive/v1/v8.6.2/video/video1__20250918_170710/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.6.2-video1_20250918_172916/log_details.json,runs/_archive/v1/v8.6.2/video/video1__20250918_172916/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.6.3-video1_20250918_171201/log_details.json,runs/_archive/v1/v8.6.3/video/video1__20250918_171201/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.6.3-video1_20250918_174257/log_details.json,runs/_archive/v1/v8.6.3/video/video1__20250918_174257/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.6.4-video1_20250918_171654/log_details.json,runs/_archive/v1/v8.6.4/video/video1__20250918_171654/log_details.json,log,legacy_log fold-in
+runs/_archive/v3_split/legacy_log/figs_v8.6.4-video1_20250918_174740/log_details.json,runs/_archive/v1/v8.6.4/video/video1__20250918_174740/log_details.json,log,legacy_log fold-in
+PathPlanning/LocalGlobal/config_and_results/figs_v2-5,runs/_archive/local_global/_collections/figs_v2-5,collection,loose result collection
+PathPlanning/LocalGlobal/config_and_results/figs_v6-7,runs/_archive/local_global/_collections/figs_v6-7,collection,loose result collection
+PathPlanning/LocalGlobal/demo_video_for_annual_meeting,runs/_archive/local_global/_collections/demo_video_for_annual_meeting,collection,loose result collection
+PathPlanning/DynamicWindowApproach/figs,runs/_archive/dwa_baseline/figs,collection,loose result collection
+PathPlanning/DWAT/figs_v7.4.1-vid1.png,runs/_archive/v1/_collections/figs_v7.4.1-vid1.png,collection,loose result collection
+PathPlanning/DWAT_v5_modular/results/figs_v20.7.5-modular-video4-frame_1900.png,runs/v20.7.5/video/video4__20260521_130908/frame_1900.png,collection,loose result collection
