@@ -20,9 +20,19 @@ outside it.
 | `DWAT_v3_split/` | 2025-11-10 | `runs/_archive/v3_split/` | v9.x - v12.x |
 | `dwa_cost_debug/` | — | — | scratch cost-visualisation scripts |
 
-`DWAT_v4_st/` here holds only `dwa_astar.py`, the v4-era standalone runner:
-nothing imports it and it looks like an entry point, so it was moved out of the
-live directory on 2026-09-05. The rest of `DWAT_v4_st/` is still live.
+`DWAT_v4_st/` here holds the two non-algorithm parts of that generation, moved
+out of the live directory on 2026-09-05:
+
+- `dwa_astar.py` — the v4-era standalone runner. Nothing imports it and it
+  looks like an entry point, which is the confusion worth removing.
+- `map_config/` — v4-era scenario files. Nothing live reads them: v5 builds its
+  maps in `map_creation.py` and never calls `MapManager.load_map_config`, and
+  the only consumers are archived scripts plus the two `tools/legacy/log_v20_*`
+  reference scripts. Five of the thirteen (`map_config_video3.json`,
+  `scenario_1..4.json`) were content-identical to live v5 scenarios; the other
+  eight exist only here.
+
+The rest of `DWAT_v4_st/` is still live.
 
 Still live, and therefore **not** here:
 

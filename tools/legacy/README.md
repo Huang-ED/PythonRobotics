@@ -35,10 +35,13 @@ do the same here, or costs will mismatch"* at the points where the
 recomputation has to mirror an implementation detail exactly. Any new
 cost-breakdown tool should start by reading those.
 
-**Why it no longer runs:** the log path is hardcoded to
-`Logs/figs_v20.3.4-video1.1_20260115_200511/log_details.csv`. `Logs/` was
+**Why it no longer runs:** two stale inputs. The log path is hardcoded to
+`Logs/figs_v20.3.4-video1.1_20260115_200511/log_details.csv` — `Logs/` was
 folded into `runs/` on 2026-09-04, and the pipeline stopped emitting `.csv`
-before that. It imports fine; it just cannot find its input.
+before that. It also loads
+`PathPlanning/DWAT_v4_st/map_config/map_config_video1.1.json`, which moved to
+`PathPlanning/_archive/DWAT_v4_st/map_config/` on 2026-09-05. It imports fine;
+it just cannot find either input.
 
 ### `log_v20_dynamic_obs_velocity.py`
 
@@ -51,7 +54,9 @@ at step N" without re-running the planner.
 that only resolved when the file sat inside `DWAT_v4_st/`. It now raises
 `ModuleNotFoundError`. The fix is a one-line change to
 `from PathPlanning.DWAT_v4_st.map_manager import MapManager`, but nothing else
-has been checked, so treat it as unverified.
+has been checked, so treat it as unverified. Its scenario input,
+`map_config_video1.1.json`, is now at
+`PathPlanning/_archive/DWAT_v4_st/map_config/`.
 
 ## Older still
 
@@ -65,6 +70,20 @@ generation, whose code is in `PathPlanning/_archive/DWAT_v3_split/`.
 | `log_to_figures.py`, `log_to_figures_split.py` | per-iteration cost figures |
 | `plot_velocity_spaces.py` | velocity-space visualisation |
 | `v10_log_to_df.py` | the v10 variant of the DataFrame loader |
+
+## The scenario files these scripts load
+
+Both `log_v20_*` scripts read a v4-era scenario from what was
+`PathPlanning/DWAT_v4_st/map_config/`; it is now
+`PathPlanning/_archive/DWAT_v4_st/map_config/`, archived on 2026-09-05 because
+nothing live reads it — v5 builds maps in `map_creation.py` and never calls
+`MapManager.load_map_config`.
+
+Five of its thirteen files (`map_config_video3.json`, `scenario_1..4.json`)
+were content-identical to live v5 scenarios and are kept only for completeness.
+The other eight — `map_config_gemini1..6`, `map_config_video1`,
+`map_config_video1.1` — have no v5 equivalent, and `map_config_video1.1.json`
+is the one both scripts above expect.
 
 ## Not here, but moved at the same time
 
