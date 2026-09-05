@@ -74,6 +74,12 @@ rather than being re-derived per script.
 
 ## legacy/
 
-Log-processing helpers that used to sit loose among the run folders in `Logs/`
-and `Logs_split/`. Moved here so those directories contain only runs. They
-reference the pre-migration layout and are kept for reference, not for use.
+Retired log-analysis scripts, kept as **reference for writing new ones** rather
+than to be run: they show which quantities were extracted and how they were
+recomputed to match the planner, which is the part that is expensive to
+re-derive. All of them predate the `runs/` layout and none still work as-is.
+
+`log_v20_dwa_cost_calc.py` is the one to read before building any new
+cost-breakdown tool — it reconstructs the full (v, omega) cost surface from a
+log, split into its individual terms. See `tools/legacy/README.md` for what
+each script did and exactly why it no longer runs.

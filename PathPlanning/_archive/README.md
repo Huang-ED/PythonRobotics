@@ -20,10 +20,20 @@ outside it.
 | `DWAT_v3_split/` | 2025-11-10 | `runs/_archive/v3_split/` | v9.x - v12.x |
 | `dwa_cost_debug/` | — | — | scratch cost-visualisation scripts |
 
+`DWAT_v4_st/` here holds only `dwa_astar.py`, the v4-era standalone runner:
+nothing imports it and it looks like an entry point, so it was moved out of the
+live directory on 2026-09-05. The rest of `DWAT_v4_st/` is still live.
+
 Still live, and therefore **not** here:
 
-- `DWAT_v4_st/` — `dwa_consistent.py` and `map_manager.py` are imported by v5.
-- `DWAT_v5_modular/` — the current pipeline.
+- `PathPlanning/DWAT_v4_st/` — five modules the v5 runner depends on:
+  `dwa_average_weighted_side.py` (15 algorithm configs select it, including
+  v20.7.8-2), `dwa_average_weighted_side_no_time_decay.py` (1 config),
+  `dwa_consistent.py` (supplies `Config`; 2 configs), `map_manager.py` and
+  `theta_star.py` (both imported by `map_creation.py`).
+- `PathPlanning/DWAT_v5_modular/` — the current pipeline.
+
+Retired *analysis* scripts live in `tools/legacy/`, not here — see its README.
 
 ## On the upstream directories
 
