@@ -450,6 +450,40 @@ COMBINED_SUITES = {
     # would then be reacting to a pile-up, not to traffic. A 10 s stagger keeps
     # all three well inside the ~50 s detection horizon, so the ego still faces
     # them at once, while leaving the targets room to clear one another.
+    # Crowded video3 scenes: meetings 16-30 s apart, i.e. deliberately inside the
+    # ~50 s detection horizon, so encounters overlap instead of resolving one at
+    # a time. Geometry is heavily constrained by the coastline -- a navigability
+    # sweep over (t_meet, course, speed) found only 973 legal targets, and of
+    # those only 2 seven-ship combinations keep the targets clear of each other.
+    # The t=155-180 pinch is excluded: the obstacle-free run clears it by 1.21
+    # units against a ~1.22 threshold, so anything placed there tests the pinch.
+    #
+    # v3crowd6 and v3crowd7 reach the goal. v3crowd5 does NOT -- it is kept as a
+    # regression case for a path-tracking failure (see results/v3crowd_suite).
+    "v3crowd5": [
+        dict(name="T1_cross_stbd_045",    course_rel_deg=  45.0, speed=0.40, t_meet=38.0),
+        dict(name="T2_head_on",           course_rel_deg= 180.0, speed=0.40, t_meet=60.0),
+        dict(name="T3_cross_stbd_090",    course_rel_deg=  90.0, speed=0.20, t_meet=90.0),
+        dict(name="T4_overtake",          course_rel_deg=   0.0, speed=0.40, t_meet=114.0),
+        dict(name="T5_cross_port_135",    course_rel_deg=-135.0, speed=0.20, t_meet=142.0),
+    ],
+    "v3crowd6": [
+        dict(name="T1_cross_stbd_090",    course_rel_deg=  90.0, speed=0.25, t_meet=34.0),
+        dict(name="T2_cross_stbd_135",    course_rel_deg= 135.0, speed=0.35, t_meet=58.0),
+        dict(name="T3_head_on",           course_rel_deg= 180.0, speed=0.30, t_meet=78.0),
+        dict(name="T4_overtake",          course_rel_deg=   0.0, speed=0.45, t_meet=108.0),
+        dict(name="T5_cross_port_135",    course_rel_deg=-135.0, speed=0.20, t_meet=130.0),
+        dict(name="T6_cross_port_135",    course_rel_deg=-135.0, speed=0.25, t_meet=146.0),
+    ],
+    "v3crowd7": [
+        dict(name="T1_cross_stbd_045",    course_rel_deg=  45.0, speed=0.35, t_meet=36.0),
+        dict(name="T2_cross_stbd_135",    course_rel_deg= 135.0, speed=0.25, t_meet=52.0),
+        dict(name="T3_cross_stbd_135",    course_rel_deg= 135.0, speed=0.40, t_meet=72.0),
+        dict(name="T4_head_on",           course_rel_deg= 180.0, speed=0.20, t_meet=92.0),
+        dict(name="T5_overtake",          course_rel_deg=   0.0, speed=0.40, t_meet=114.0),
+        dict(name="T6_cross_port_135",    course_rel_deg=-135.0, speed=0.30, t_meet=132.0),
+        dict(name="T7_cross_port_135",    course_rel_deg=-135.0, speed=0.20, t_meet=148.0),
+    ],
     "ow_simultaneous": [
         dict(name="stbd_bow",         course_rel_deg=135.0,  speed=0.40, t_meet=80.0),
         dict(name="ahead",            course_rel_deg=180.0,  speed=0.40, t_meet=90.0),

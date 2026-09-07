@@ -1,0 +1,112 @@
+[
+  {
+    "meeting_point": [
+      60.4,
+      74.64
+    ],
+    "t_meet_s": 38.0,
+    "ego_heading_deg": -122.6,
+    "ego_speed": 0.5,
+    "spawn": [
+      57.12,
+      89.48
+    ],
+    "target_course_deg": -77.6,
+    "course_rel_deg": 45.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.357,
+    "rel_bearing_deg": 52.5,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 0.0,
+    "name": "T1_cross_stbd_045"
+  },
+  {
+    "meeting_point": [
+      54.51,
+      65.35
+    ],
+    "t_meet_s": 60.0,
+    "ego_heading_deg": -122.2,
+    "ego_speed": 0.5,
+    "spawn": [
+      41.71,
+      45.05
+    ],
+    "target_course_deg": 57.8,
+    "course_rel_deg": 180.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.9,
+    "rel_bearing_deg": 0.0,
+    "sector": "head-on (R14)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 32.2,
+    "name": "T2_head_on"
+  },
+  {
+    "meeting_point": [
+      46.96,
+      52.46
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -114.7,
+    "ego_speed": 0.5,
+    "spawn": [
+      30.61,
+      59.99
+    ],
+    "target_course_deg": -24.7,
+    "course_rel_deg": 90.0,
+    "target_speed": 0.2,
+    "closing_speed": 0.539,
+    "rel_bearing_deg": 21.8,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 43.6,
+    "name": "T3_cross_stbd_090"
+  },
+  {
+    "meeting_point": [
+      45.63,
+      41.04
+    ],
+    "t_meet_s": 114.0,
+    "ego_heading_deg": -60.9,
+    "ego_speed": 0.5,
+    "spawn": [
+      23.43,
+      80.87
+    ],
+    "target_course_deg": -60.9,
+    "course_rel_deg": 0.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.1,
+    "rel_bearing_deg": 360.0,
+    "sector": "overtaking, ego overtakes (R13, give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 0.0,
+    "name": "T4_overtake"
+  },
+  {
+    "meeting_point": [
+      57.47,
+      34.03
+    ],
+    "t_meet_s": 142.0,
+    "ego_heading_deg": -25.2,
+    "ego_speed": 0.5,
+    "spawn": [
+      84.19,
+      43.64
+    ],
+    "target_course_deg": -160.2,
+    "course_rel_deg": -135.0,
+    "target_speed": 0.2,
+    "closing_speed": 0.657,
+    "rel_bearing_deg": 347.6,
+    "sector": "crossing from port (R17, ego stand-on)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 103.9,
+    "name": "T5_cross_port_135"
+  }
+]

@@ -1,0 +1,156 @@
+[
+  {
+    "meeting_point": [
+      60.94,
+      75.48
+    ],
+    "t_meet_s": 36.0,
+    "ego_heading_deg": -122.6,
+    "ego_speed": 0.5,
+    "spawn": [
+      58.24,
+      87.79
+    ],
+    "target_course_deg": -77.6,
+    "course_rel_deg": 45.0,
+    "target_speed": 0.35,
+    "closing_speed": 0.354,
+    "rel_bearing_deg": 44.4,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 0.0,
+    "name": "T1_cross_stbd_045"
+  },
+  {
+    "meeting_point": [
+      56.64,
+      68.73
+    ],
+    "t_meet_s": 52.0,
+    "ego_heading_deg": -122.3,
+    "ego_speed": 0.5,
+    "spawn": [
+      43.96,
+      65.87
+    ],
+    "target_course_deg": 12.7,
+    "course_rel_deg": 135.0,
+    "target_speed": 0.25,
+    "closing_speed": 0.699,
+    "rel_bearing_deg": 14.6,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 16.3,
+    "name": "T2_cross_stbd_135"
+  },
+  {
+    "meeting_point": [
+      51.29,
+      60.28
+    ],
+    "t_meet_s": 72.0,
+    "ego_heading_deg": -122.6,
+    "ego_speed": 0.5,
+    "spawn": [
+      23.17,
+      54.09
+    ],
+    "target_course_deg": 12.4,
+    "course_rel_deg": 135.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.832,
+    "rel_bearing_deg": 19.9,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 42.0,
+    "name": "T3_cross_stbd_135"
+  },
+  {
+    "meeting_point": [
+      46.56,
+      51.55
+    ],
+    "t_meet_s": 92.0,
+    "ego_heading_deg": -113.3,
+    "ego_speed": 0.5,
+    "spawn": [
+      39.29,
+      34.64
+    ],
+    "target_course_deg": 66.7,
+    "course_rel_deg": 180.0,
+    "target_speed": 0.2,
+    "closing_speed": 0.7,
+    "rel_bearing_deg": 0.0,
+    "sector": "head-on (R14)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 56.3,
+    "name": "T4_head_on"
+  },
+  {
+    "meeting_point": [
+      45.63,
+      41.04
+    ],
+    "t_meet_s": 114.0,
+    "ego_heading_deg": -60.9,
+    "ego_speed": 0.5,
+    "spawn": [
+      23.43,
+      80.87
+    ],
+    "target_course_deg": -60.9,
+    "course_rel_deg": 0.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.1,
+    "rel_bearing_deg": 360.0,
+    "sector": "overtaking, ego overtakes (R13, give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 0.0,
+    "name": "T5_overtake"
+  },
+  {
+    "meeting_point": [
+      52.94,
+      36.16
+    ],
+    "t_meet_s": 132.0,
+    "ego_heading_deg": -25.1,
+    "ego_speed": 0.5,
+    "spawn": [
+      90.18,
+      49.62
+    ],
+    "target_course_deg": -160.1,
+    "course_rel_deg": -135.0,
+    "target_speed": 0.3,
+    "closing_speed": 0.743,
+    "rel_bearing_deg": 343.4,
+    "sector": "crossing from port (R17, ego stand-on)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 98.4,
+    "name": "T6_cross_port_135"
+  },
+  {
+    "meeting_point": [
+      60.18,
+      32.75
+    ],
+    "t_meet_s": 148.0,
+    "ego_heading_deg": -25.7,
+    "ego_speed": 0.5,
+    "spawn": [
+      88.12,
+      42.53
+    ],
+    "target_course_deg": -160.7,
+    "course_rel_deg": -135.0,
+    "target_speed": 0.2,
+    "closing_speed": 0.657,
+    "rel_bearing_deg": 347.6,
+    "sector": "crossing from port (R17, ego stand-on)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 109.9,
+    "name": "T7_cross_port_135"
+  }
+]
