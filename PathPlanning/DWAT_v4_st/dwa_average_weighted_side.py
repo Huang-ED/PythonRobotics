@@ -943,22 +943,39 @@ def check_collision_at_current_position_circle_approximation(x, ob, ob_radii, co
         return False, None, float('inf')
 
     robot_pos = np.array([x[0], x[1]])
-    
-    # Always use circle-circle collision detection
-    distances = np.linalg.norm(ob - robot_pos, axis=1)
-    
-    # Determine effective robot radius based on robot type
-    if config.robot_type == RobotType.rectangle:
-        # Use diagonal approximation (same as in DWA distance calculation)
-        effective_robot_radius = math.sqrt((config.robot_length/2)**2 + (config.robot_width/2)**2)
+    ob = np.asarray(ob, dtype=float)
+    ob_radii = np.asarray(ob_radii, dtype=float)
+
+    # This must use the SAME hull as calc_trajectory_clearance_and_collision.
+    # If the planner clears a gap with one hull and contact is declared with
+    # another, the ego collides on a path its own planner certified -- which is
+    # not a planning failure but a disagreement between two checks.
+    #
+    # The two disc forms below are algebraically identical
+    # (sqrt(L^2 + W^2)/2 == sqrt((L/2)^2 + (W/2)^2)); they agreed before the
+    # capsule was introduced and must keep agreeing after it.
+    shape = getattr(config, "robot_collision_shape", "disc")
+    if config.robot_type == RobotType.rectangle and shape == "capsule":
+        half = max(0.5 * (config.robot_length - config.robot_width), 0.0)
+        axis = np.array([math.cos(x[2]), math.sin(x[2])])
+        to_ob = ob - robot_pos
+        proj = np.clip(to_ob @ axis, -half, half)
+        perp = to_ob - proj[:, None] * axis
+        distances = np.hypot(perp[:, 0], perp[:, 1])
+        effective_robot_radius = 0.5 * config.robot_width
     else:
-        # Use actual robot radius
-        effective_robot_radius = config.robot_radius
+        distances = np.linalg.norm(ob - robot_pos, axis=1)
+        if config.robot_type == RobotType.rectangle:
+            # Use diagonal approximation (same as in DWA distance calculation)
+            effective_robot_radius = math.sqrt((config.robot_length/2)**2 + (config.robot_width/2)**2)
+        else:
+            # Use actual robot radius
+            effective_robot_radius = config.robot_radius
 
     # Check collision for each obstacle with its specific radius
     for i in range(len(ob)):
         collision_threshold = ob_radii[i] + effective_robot_radius
         if distances[i] <= collision_threshold:
-            return True, i, distances[i]
-            
+            return True, i, float(distances[i])
+
     return False, None, float('inf')
