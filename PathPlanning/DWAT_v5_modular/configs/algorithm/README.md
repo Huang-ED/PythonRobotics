@@ -51,6 +51,42 @@ because the filename is unique across the tree; a directory-qualified name
 (`_superseded/v20.7.5`) works too. Filenames must therefore stay unique — hence
 `predT5-ramped` rather than a second `predT5.json`.
 
+## Changes to shared code must stay config-restorable
+
+Any earlier behaviour can be recovered by selecting a different config, which is
+why this tree — not a git branch — is how versions are kept. That only works
+while the code still *implements* the old behaviour, so a change to shared code
+(`DWAT_v4_st/*.py`, `map_creation.py`, `output_display.py`) must either:
+
+- be behaviour-preserving, and be verified as such; or
+- sit behind a key whose **default reproduces the previous behaviour**.
+
+A straight replacement breaks the property silently: no config can bring back a
+formula that is no longer in the code, and the only route back becomes git
+archaeology.
+
+Worked examples, all verified:
+
+| change | how the old behaviour survives |
+|---|---|
+| Theta* obstacle map vectorised | same `d <= rr` predicate; bit-identical output |
+| `global_planner_resolution` | absent from a scenario ⇒ `1.0`, the historical value |
+| large occupancy maps drawn as an image | threshold above the largest existing map |
+| capsule ego hull | `robot_collision_shape` absent ⇒ `"disc"` |
+
+**Check it by re-running, not by reading.** Re-run an existing scenario on the
+new code and diff the trajectory against its recorded run — `log_details.json`
+stores the full resolved config and the trajectory, so this is a few lines:
+
+```python
+a = json.load(open(f'{old_run}/log_details.json'))['trajectory']
+b = json.load(open(f'{new_run}/log_details.json'))['trajectory']
+assert np.abs(np.array(a) - np.array(b)).max() == 0
+```
+
+Last verified 2026-09-12 on `openwater_baseline` (v20.7.8-2, 1534 steps) and
+`scene_export` (v20.9.1, 260 steps): both bit-identical.
+
 **Do not rename or move a config without moving its `runs/` directory too.**
 `run_paths.version_from_config` derives the run directory from the config path,
 so a move without the matching `runs/` move orphans every existing run.
