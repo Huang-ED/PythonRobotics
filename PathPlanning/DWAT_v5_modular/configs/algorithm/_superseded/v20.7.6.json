@@ -27,5 +27,6 @@
   "robot_radius": 0.5,
   "obstacle_radius": 0.5,
   "robot_width": 0.5,
-  "robot_length": 1.2
+  "robot_length": 1.2,
+  "side_clearance_barrier_type": "quadratic"
 }

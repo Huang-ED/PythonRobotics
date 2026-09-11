@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any, Dict
 
-_dwa_module = importlib.import_module("PathPlanning.DWAT_v4_st.dwa_consistent")
+_dwa_module = importlib.import_module("PathPlanning.DWAT_v4_st.dwa_average_weighted_side")
 Config = _dwa_module.Config
 RobotType = _dwa_module.RobotType
 
@@ -154,7 +154,11 @@ def main() -> int:
 
     dwa_module = algorithm_config.pop(
         "dwa_module",
-        "PathPlanning.DWAT_v4_st.dwa_consistent",
+        # The historical default. It was switched to dwa_consistent in 0278417
+        # alongside the v20.8.1 trial, which was abandoned ("not working well")
+        # without the default being switched back -- silently repointing every
+        # config that omits this key, i.e. v20.7.5, at the abandoned branch.
+        "PathPlanning.DWAT_v4_st.dwa_average_weighted_side",
     )
     config = apply_algorithm_overrides(Config(), algorithm_config)
     runtime = load_runtime_options(run_config)
