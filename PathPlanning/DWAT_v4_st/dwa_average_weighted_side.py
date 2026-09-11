@@ -113,6 +113,14 @@ class Config:
         self.robot_width = 0.5  # [m] for collision check
         self.robot_length = 1.2  # [m] for collision check
 
+        # How a rectangular ego is modelled when checking dynamic obstacles:
+        #   "disc"    -> circumscribed circle, radius sqrt(L^2 + W^2)/2 (historical)
+        #   "capsule" -> oriented segment of length (L - W), radius W/2
+        # "disc" is the default so every existing result stays reproducible; it
+        # is only badly wrong for long thin hulls. See calc_trajectory_clearance
+        # _and_collision.
+        self.robot_collision_shape = "disc"
+
 
     @property
     def robot_type(self):
@@ -819,7 +827,31 @@ def calc_trajectory_clearance_and_collision(trajectory, ob_pos, ob_radii, ob_vel
     # 5. Check Collision & Clearance
     ob_radii_expanded = np.array(ob_radii)[:, np.newaxis] # (N, 1)
     
-    if config.robot_type == RobotType.rectangle:
+    shape = getattr(config, "robot_collision_shape", "disc")
+    if config.robot_type == RobotType.rectangle and shape == "capsule":
+        # Oriented capsule: a segment of length (L - W) along the heading, with
+        # radius W/2. Same overall length and width as the rectangle, only the
+        # corners rounded off.
+        #
+        # The "disc" branch below bounds the rectangle by its circumscribed
+        # circle, radius sqrt(L^2 + W^2)/2, which ignores the heading entirely
+        # and so treats the hull as being as wide as it is long. The error grows
+        # with aspect ratio: negligible for a 1.2 x 0.5 m robot, but it inflates
+        # a 248 x 32 m ship into a 250 m-wide disc and leaves it no admissible
+        # move in a harbour. Ships are the most elongated vehicles there are,
+        # which is why this branch exists.
+        half = max(0.5 * (config.robot_length - config.robot_width), 0.0)
+        yaw = trajectory[:, 2]
+        axis = np.stack([np.cos(yaw), np.sin(yaw)], axis=-1)[np.newaxis, :, :]
+
+        # Offset of each obstacle from the hull centre, projected onto the
+        # heading and clamped to the segment: the nearest point on the axis.
+        to_ob = predicted_ob_pos - robot_pos                      # (N, T, 2)
+        proj = np.clip(np.sum(to_ob * axis, axis=2), -half, half)  # (N, T)
+        perp = to_ob - proj[:, :, np.newaxis] * axis
+        axis_dist = np.hypot(perp[:, :, 0], perp[:, :, 1])
+        clearance_matrix = axis_dist - (ob_radii_expanded + 0.5 * config.robot_width)
+    elif config.robot_type == RobotType.rectangle:
         # Diagonal approximation
         robot_radius = math.sqrt(config.robot_length**2 + config.robot_width**2) / 2.0
         clearance_matrix = dist_matrix - (ob_radii_expanded + robot_radius)
