@@ -13,6 +13,7 @@ import math
 
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.spatial import cKDTree
 
 show_animation = True
 
@@ -273,18 +274,16 @@ class ThetaStarPlanner:
         print("x_width:", self.x_width)
         print("y_width:", self.y_width)
 
-        # obstacle map generation
-        self.obstacle_map = [[False for _ in range(self.y_width)]
-                             for _ in range(self.x_width)]
-        for ix in range(self.x_width):
-            x = self.calc_grid_position(ix, self.min_x)
-            for iy in range(self.y_width):
-                y = self.calc_grid_position(iy, self.min_y)
-                for iox, ioy in self.ob:
-                    d = math.hypot(iox - x, ioy - y)
-                    if d <= self.rr:
-                        self.obstacle_map[ix][iy] = True
-                        break
+        # Obstacle map generation: a cell is blocked when any obstacle lies
+        # within self.rr of its centre. Written as a nearest-neighbour query
+        # rather than the equivalent triple loop over
+        # (x_width x y_width x len(ob)) -- on a harbour-sized map in metres
+        # that product reaches 1e9+ and the loop never finishes.
+        xs = self.calc_grid_position(np.arange(self.x_width), self.min_x)
+        ys = self.calc_grid_position(np.arange(self.y_width), self.min_y)
+        grid = np.stack(np.meshgrid(xs, ys, indexing="ij"), axis=-1).reshape(-1, 2)
+        nearest, _ = cKDTree(np.asarray(self.ob, dtype=float)).query(grid)
+        self.obstacle_map = (nearest <= self.rr).reshape(self.x_width, self.y_width)
         # for xi in range(self.x_width):
         #     for yi in range(self.y_width):
         #         ob_status = np.any(

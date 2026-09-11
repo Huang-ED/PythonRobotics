@@ -137,6 +137,7 @@ def write_scene_config(path: str,
                        occupancy_cell_anchor: str = "center",
                        enable_map_boundary_obstacles: bool = False,
                        on_finish: str = "hold",
+                       group: str = None,
                        source: dict = None) -> dict:
     """Write the scenario JSON that DWAT_v5_modular's map_creation consumes."""
     radii = np.asarray(radii, dtype=float).reshape(-1)
@@ -170,6 +171,12 @@ def write_scene_config(path: str,
     }
     if start_yaw is not None:
         scene['start_yaw'] = float(start_yaw)
+
+    if group is not None:
+        # Every scenario carries a group: it selects the configs/scenarios/
+        # subdirectory the file belongs to and decides where the run output
+        # lands under runs/.
+        scene = {'group': group, **scene}
 
     os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
     with open(path, 'w') as f:

@@ -10,6 +10,46 @@ from ..DWAT_v4_st import dwa_consistent as dwa
 from .models import MapContext, OutputArtifacts, RuntimeOptions, SimulationResult
 
 
+# One Circle per occupied cell is fine for a 100x100 hand-authored map, but a
+# harbour rasterised in metres has tens of thousands of them, and every artist
+# is re-rasterised on every savefig -- which is what rendering a video does a
+# few hundred times. Above this many cells, draw the occupancy grid as a single
+# image instead. The circles are the cells inflated by robot_radius, so the
+# image is the same information without the inflation.
+#
+# Deliberately above the largest hand-authored scenario (scene_export_100, 5284
+# cells) so every pre-existing scenario keeps rendering exactly as before; only
+# the metric harbour maps, which are an order of magnitude larger, switch over.
+MAX_OBSTACLE_PATCHES = 8000
+
+
+def _draw_static_map(map_manager: Any, config: Any) -> None:
+    static = map_manager.static_obstacles
+    boundary = map_manager.boundary_obstacles
+    occupancy = getattr(map_manager, "occupancy", None)
+
+    if occupancy is not None and static.shape[0] > MAX_OBSTACLE_PATCHES:
+        res = float(map_manager.occupancy_resolution)
+        ox, oy = map_manager.occupancy_origin
+        plt.imshow(
+            np.asarray(occupancy).T,
+            origin="lower",
+            extent=[ox, ox + occupancy.shape[0] * res,
+                    oy, oy + occupancy.shape[1] * res],
+            cmap="gray_r",
+            vmin=0,
+            vmax=1,
+            interpolation="nearest",
+            zorder=0,
+        )
+        return
+
+    for (x_s, y_s) in static:
+        plt.gca().add_patch(plt.Circle((x_s, y_s), config.robot_radius, color="darkgrey"))
+    for (x_b, y_b) in boundary:
+        plt.gca().add_patch(plt.Circle((x_b, y_b), config.robot_radius, color="k"))
+
+
 class SimulationRenderer:
     def __init__(self, runtime: RuntimeOptions):
         self.runtime = runtime
@@ -46,15 +86,7 @@ class SimulationRenderer:
             self.fig_dir.mkdir(parents=True, exist_ok=False)
 
         if not reuse_existing_figure:
-            if map_ctx.map_manager.static_obstacles.shape[0] > 0:
-                for (x_s, y_s) in map_ctx.map_manager.static_obstacles:
-                    circle = plt.Circle((x_s, y_s), config.robot_radius, color="darkgrey")
-                    plt.gca().add_patch(circle)
-
-            if map_ctx.map_manager.boundary_obstacles.shape[0] > 0:
-                for (x_b, y_b) in map_ctx.map_manager.boundary_obstacles:
-                    circle = plt.Circle((x_b, y_b), config.robot_radius, color="k")
-                    plt.gca().add_patch(circle)
+            _draw_static_map(map_ctx.map_manager, config)
 
             plt.plot(map_ctx.start[0], map_ctx.start[1], "or", zorder=10)
             plt.plot(map_ctx.goal[0], map_ctx.goal[1], "sr", zorder=10)
@@ -68,8 +100,10 @@ class SimulationRenderer:
 
         plt.grid(True)
         plt.axis("equal")
-        plt.xlim(-1, map_ctx.map_manager.map_size[0])
-        plt.ylim(-1, map_ctx.map_manager.map_size[1])
+        origin = getattr(map_ctx.map_manager, "occupancy_origin", None)
+        x_lo, y_lo = (-1, -1) if origin is None else (origin[0], origin[1])
+        plt.xlim(x_lo, map_ctx.map_manager.map_size[0])
+        plt.ylim(y_lo, map_ctx.map_manager.map_size[1])
 
         plt.gcf().canvas.mpl_connect(
             "key_release_event",

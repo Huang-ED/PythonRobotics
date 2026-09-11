@@ -222,7 +222,17 @@ def _plan_global_path(
     start: np.ndarray,
     goal: np.ndarray,
     show_global_search_animation: bool,
+    planner_resolution: float = 1.0,
 ) -> Tuple[np.ndarray, List[float], List[float]]:
+    """Plan the sparse global route with Theta*.
+
+    ``planner_resolution`` is the global search grid spacing in world units. It
+    is a property of the world, not of the planner tuning: hand-authored
+    scenarios live on a 1-unit grid, but a scenario in real metres spans
+    kilometres, where a 1 m search grid is both far finer than the route needs
+    and large enough to exhaust memory. Scenarios set it via
+    ``global_planner_resolution``; the default reproduces the historical value.
+    """
     if map_manager.astar_obstacles.shape[0] > 0:
         ob_min_x = map_manager.astar_obstacles[:, 0].min()
         ob_min_y = map_manager.astar_obstacles[:, 1].min()
@@ -241,7 +251,7 @@ def _plan_global_path(
 
     planner = theta_star.ThetaStarPlanner(
         ob=astar_ob,
-        resolution=1.0,
+        resolution=planner_resolution,
         rr=max(config.robot_width, config.robot_length),
         min_x=min(ob_min_x, start[0] - 2, goal[0] - 2),
         min_y=min(ob_min_y, start[1] - 2, goal[1] - 2),
@@ -315,6 +325,7 @@ def create_map_context(
         start=map_manager.start_position,
         goal=map_manager.goal_position,
         show_global_search_animation=show_global_search_animation,
+        planner_resolution=float(scenario.get("global_planner_resolution", 1.0)),
     )
     map_manager.set_road_map(road_map)
 
