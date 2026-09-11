@@ -129,23 +129,41 @@ Straight-line start→goal is 12.24 km, so at `dt = 2 s` the planner is 17% over
 direct against the human's 22%. **This is the proposed `ais_v1.2`** and is not
 adopted: it roughly doubles every run's cost and changes the reference case.
 
-**3 — `ny_synth_00`, a 147 m ship, finds no admissible trajectory: the
-algorithm assumes the ego can stop.** The admissibility test keeps a candidate
-only if `dist > v²/(2a) + v·dt` — the ego must be able to brake to rest short of
-the nearest obstacle on the curve. At the abort it is making 3.30 m/s with
-`max_accel` 0.0612 m/s², so it needs 54 s and 90 m to stop, and the dynamic
-window will not let it drop below 2.69 m/s in a single step:
+**3 — `ny_synth_00`, a 147 m ship, aborts after 1.61 km.** Instrumenting the
+failing call settles what actually stopped it, and it is not what the error
+string suggests:
+
+| at the abort | |
+|---|---|
+| candidates in the dynamic window | 451 |
+| passed the braking-admissibility test | **164 (36%)** |
+| rejected by it | 287 (64%) |
+| of the 164 survivors, scored finite | **0** |
+
+So the run raised `No best trajectory found` — **every admissible candidate was
+predicted to collide inside the 120 s horizon** — not `No admissible (v, ω)
+pairs`. The two are different guards and only the first is reachable here; see
+[`../OPEN_PROBLEMS.md` §1](../OPEN_PROBLEMS.md). That distinction matters
+because the case the fallback `no_admissible_fallback: "least_bad"` already
+handles in `dwa_ramped.py` is exactly this one.
+
+**The braking test is still wrong, but it is a pruning problem, not the abort.**
+It keeps a candidate only if `dist > v²/(2a) + v·dt` — the ego must be able to
+brake to rest short of the nearest obstacle on the curve. This ship is making
+3.30 m/s with `max_accel` 0.0612 m/s², needing 54 s and 90 m to stop, and the
+dynamic window will not let it drop below 2.69 m/s in one step:
 
 | | |
 |---|---|
-| braking room required at the slowest speed the window allows (2.69 m/s) | 86.2 m |
-| braking room required at the fastest (3.34 m/s) | 124.8 m |
-| clearance actually available | 18.0 m |
+| along-curve distance available (`closest_obstacle_on_curve`) | 97–100 m |
+| braking room required at 2.69 m/s (window floor) | 86.2 m — passes |
+| braking room required at 3.34 m/s (window ceiling) | 124.8 m — rejected |
 
-Every candidate is rejected and the run aborts after 1.61 km. This is the one
-finding that is not a tuning matter: it is an assumption in the algorithm that
-does not hold for the vehicles the dataset contains. See
-`../../configs/README_ais.md`. **Open, and the subject of `ais_v2`.**
+That is the 64% it prunes: every candidate that does not slow down. Requiring a
+147 m ship to stop is an assumption that does not hold for the vehicles this
+dataset contains, and it throws away the manoeuvres a real ship would use — but
+what ends the run is the horizon collision check, not this. **Open, and the
+subject of `ais_v2`;** see `../../configs/README_ais.md`.
 
 **4 — `ny_hist_366962130` aborts 168.5 m from its goal, and neither cause is
 the algorithm.** It covers 8.61 km of an 8.68 km trip, stops, holds station for
@@ -170,9 +188,21 @@ the disc:
 | capsule, half-beam 3.165 m | +4.27 m | 4.20 m | admissible |
 
 So this case says nothing about braking: creeping at 0.4 m/s requires only
-4.20 m of stopping room, which the true hull clears. It is worth keeping
-precisely because it failed for two reasons that both present as "the planner
-gave up", and neither is the planner.
+4.20 m of stopping room, which the true hull clears.
+
+Instrumenting the failing call confirms both readings and adds a third
+ingredient. Of 451 candidates, **44 (10%) passed admissibility** — essentially
+the `v = 0` row, which always passes — and the along-curve distance the test
+sees has median **2.49 m**, matching the phantom's disc gap of 2.43 m exactly.
+All 44 survivors then scored `inf`: standing still is not safe either, because
+16 *live* vessels are predicted forward over the 120 s horizon and one of them
+closes on a stationary ego. The ego is genuinely cornered — it cannot go
+forward past a ship that does not exist, and it cannot hold station. Aborting
+is the worst of the three options; keeping the least-bad candidate and
+re-planning is what `least_bad` exists to do.
+
+It is worth keeping precisely because it failed for three reasons that all
+present as "the planner gave up", and none of them is the planner.
 
 ## Fixed along the way
 

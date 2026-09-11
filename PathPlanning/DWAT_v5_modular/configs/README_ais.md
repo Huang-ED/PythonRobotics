@@ -82,10 +82,20 @@ when `dist > v²/(2a) + v·dt` — it requires the ego to be able to *stop*. At
 0.3 m/s² that is 79 m, which a 29 m towing vessel can hold in these channels.
 
 A deep-draft ship cannot. True surge deceleration for a 248 m vessel is around
-0.05 m/s², demanding 400 m of clear water; measured on the Anchorage Channel
-approach that rejects every candidate and the run aborts with "No best
-trajectory found". **If you change the ego to a large vessel, this parameter has
-to be justified explicitly, or the admissibility test has to change.**
+0.05 m/s², demanding 400 m of clear water — more than the Anchorage Channel is
+wide.
+
+Be careful what this costs you, though: it prunes, it does not usually abort.
+Measured at `ny_synth_00`'s failing step, the test rejected **287 of 451**
+candidates (64%) — every one that did not slow down — while 164 survived. The
+run then stopped because all 164 were predicted to collide inside the horizon,
+which is the *other* guard, `No best trajectory found`. The two are distinct
+code paths and only one of them is this test; see
+[`../results/OPEN_PROBLEMS.md` §1](../results/OPEN_PROBLEMS.md).
+
+**If you change the ego to a large vessel, this parameter has to be justified
+explicitly, or the admissibility test has to change** — but expect that to
+recover manoeuvres, not to stop the aborts on its own.
 
 ## The `dt` ceiling — the open issue
 

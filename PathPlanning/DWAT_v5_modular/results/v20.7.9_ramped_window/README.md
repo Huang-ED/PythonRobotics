@@ -43,11 +43,11 @@ Two error strings, two distinct code paths, and the distinction matters:
 
 | message | fires when | in these cases |
 |---|---|---|
-| `No admissible (v, ω) pairs` ([dwa_average_weighted_side.py:513][a]) | the admissibility `continue` rejected everything | predT5, iteration 875 |
-| `No best trajectory found` ([:530][b]) | candidates were admissible but every `final_cost` was `inf` | predT30, iteration 0 |
+| `No admissible (v, ω) pairs` ([dwa_average_weighted_side.py:534][a]) | the admissibility `continue` rejected everything | predT5, iteration 875 |
+| `No best trajectory found` ([:551][b]) | candidates were admissible but every `final_cost` was `inf` | predT30, iteration 0 |
 
-[a]: ../../../DWAT_v4_st/dwa_average_weighted_side.py#L513
-[b]: ../../../DWAT_v4_st/dwa_average_weighted_side.py#L530
+[a]: ../../../DWAT_v4_st/dwa_average_weighted_side.py#L534
+[b]: ../../../DWAT_v4_st/dwa_average_weighted_side.py#L551
 
 ## 2. Shortening the horizon is not the fix
 
