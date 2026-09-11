@@ -126,16 +126,13 @@ property: pick a closed-form or single-rollout criterion, never a tree.
 prediction horizon is insufficient. It fails under both versions, and that is the
 intended outcome. Nothing disputes this.
 
-⚠️ **"Those cases were already unavoidable collisions when v20.7.8-2 aborted"** —
-stronger than what is established. The README's position is narrower and
-deliberately so: the baseline's abort fired at **0.065 u** clearance, a fraction
-of a second from contact, so it was *a report that no certifiable move remained,
-not a successful avoidance*. But whether the baseline could still have escaped
-from that state is recorded as **untested**. It needs one run: v20.7.8-2 at
-`predT5` with `least_bad` enabled and the narrow window kept. Until that is run,
-"unavoidable" is a plausible belief, not a finding. **This is a cheap experiment
-and worth doing** — it is the difference between "v20.7.9 removed a warning" and
-"v20.7.9 removed a save".
+❌ **"Those cases were already unavoidable collisions when v20.7.8-2 aborted"** —
+**tested 2026-09-12, and false.** An escape existed at the abort state: full
+speed with a 32% starboard turn holds **+0.0173 u** of clearance, where braking
+straight ahead — what v20.7.9 actually does — gives **−0.5060 u**. The
+baseline's abort was a *save*, the last moment from which the situation was
+still recoverable, not merely a report. So v20.7.9 removed a save, not only a
+warning. Full command grid below.
 
 ❌ **"So it's not too bad" does not follow**, and the README pre-empts exactly
 this inference: the missing Guard A is **not `predT5`-only**. `v = 0` is always
@@ -267,10 +264,10 @@ Same problem seen from two ends, versus genuinely separate work:
 | 2 | **`on_start` for replayed tracks** | not started | **Independent.** Scene-input correctness; 17 of 78 vessels are phantoms in one AIS scene. Unrelated to feasibility. |
 | 3 | **`ais_v1.2` — per-ego `dt`** | evidenced, not adopted | **Independent** (config-only), but *measured against* 1 and 2, so re-baseline first. |
 | 4 | **Guard B fallback for the AIS configs** | exists in `dwa_ramped`, absent from `dwa_average_weighted_side` | **Same problem as v20.7.9's.** Both AIS aborts are Guard B. Porting `least_bad` is the smallest possible fix. |
-| 5 | **Restore Guard A in a form a wide window cannot bypass** | open | **Same problem as `ais_v2`.** Evaluate admissibility against *predicted* obstacle positions and the braking test stops being a static-world rule. |
+| 5 | **Restore Guard A in a form a wide window cannot bypass** | open, **upgraded** | **Same problem as `ais_v2`.** Evaluate admissibility against *predicted* obstacle positions and the braking test stops being a static-world rule. |
 | 6 | **Replace braking feasibility with turn/CPA** | open | **The synthesis of 4, 5 and §6.** This is `ais_v2` and the stern-sector guard at once. |
 | 7 | **Stern-sector cost term** | open | **Overlaps 6.** If feasibility becomes CPA-based, "slowing while overtaken" may fall out without a bespoke term. Do not build it first. |
-| 8 | **`v20.7.8-2 predT5 + least_bad`, narrow window** | not run | **Cheap and decisive** for §4. One run. |
+| 8 | **`v20.7.8-2 predT5 + least_bad`, narrow window** | **✅ done 2026-09-12** | Answered, though not as intended — see below. The abort **was a save**. |
 
 So: **items 4, 5, 6 and 7 are one problem, not four.** They are the same
 feasibility test viewed from the open-water suite, the AIS suite and the COLREGs
@@ -281,6 +278,63 @@ different guards, and `ais_v2` and "the stern-sector guard" are the same piece o
 work under two names.
 
 ---
+
+### Item 8: run 2026-09-12 — and the answer is **no, it was avoidable**
+
+Two configs isolate `least_bad` from the window widening
+(`v20.7.9/predT5-narrow-control.json` and `…-leastbad.json`, differing in one
+key). Both were run against `owenc_overtaken_ego`.
+
+**Result 1 — the control is exact.** `dwa_ramped` with `v_window_ramp_time: 0.0`
+and `ramped_rollout: false` reproduces `v20.7.8-2/predT5` **bit-identically**:
+876 steps, max |diff| = 0.000e+00, same Guard A abort at iteration 875. The
+ramped module is a strict superset of the baseline — now verified rather than
+assumed, which makes it a usable vehicle for ablations of this kind.
+
+**Result 2 — the experiment as designed cannot answer the question.** Enabling
+`least_bad` changed *nothing*: also 876 steps, also bit-identical, same abort.
+That is §1 confirmed empirically. The baseline aborts on **Guard A**, and
+`least_bad` only ever catches **Guard B**, so adding it to a run that fails on
+Guard A is a no-op. The premise of the experiment was wrong.
+
+**Result 3 — the question was answered directly instead**, by backward
+reachability from the cornered state rather than by running a planner. Take the
+baseline's own state at iteration 875 and ask whether *any* constant command
+escapes, using the planner's own `motion()` (validated bit-exact against the last
+five logged steps) and the target's actual motion (validated to 4.9e-13 against
+the recorded collision position):
+
+| command from the abort state | min clearance over 3 s |
+|---|---|
+| **best of a 241 × 26 grid — `v = 0.500`, `ω = −0.227` (32% starboard)** | **+0.0173 u** |
+| hard turn to starboard | +0.0034 u |
+| hold course | −0.0004 u |
+| brake straight ahead (what v20.7.9 does) | **−0.5060 u** |
+| hard turn to port | −0.6694 u |
+
+**An escape existed.** The abort was a *save* — it fired at the last moment from
+which the situation was still recoverable, with 0.6 s and 0.0563 u of clearance
+left. The margin is thin (0.017 u against a 1.15 u threshold), and it is a lower
+bound: a re-planning controller can do at least as well as the best constant
+command.
+
+**And the escape is exactly what the feasibility test forbids.** At `v = 0.490`
+the braking rule demands `dist > v²/(2a) + v·dt` = **0.649 u** while only
+**0.0563 u** is available, so every candidate carrying speed is rejected and
+Guard A fires. But the only manoeuvre that survives needs `v = 0.500` — *more*
+speed — plus a turn. The ego is at 0.490 against a target closing at 0.600: it
+cannot outrun it and it cannot stop. Turning at full speed is the whole of its
+escape set, and the test discards that set first.
+
+This is the sharpest available evidence for item 6 (§7). It is no longer an
+argument from ship physics; it is a measured case in which the static-world
+braking rule throws away the unique surviving manoeuvre, after which the planner
+correctly reports that it has none.
+
+**Consequences.** Item 8 is closed. Item 5 is upgraded: Guard A reports a real,
+recoverable emergency rather than an inevitability, so restoring it in a form the
+wide window cannot bypass matters more than previously judged — and `least_bad`
+is confirmed to be no substitute for it.
 
 ## 8. Suggested order
 

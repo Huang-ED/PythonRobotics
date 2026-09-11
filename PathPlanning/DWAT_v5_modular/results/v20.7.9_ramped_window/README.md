@@ -200,18 +200,51 @@ state and the loss becomes observable. "`predT5` is supposed to fail" therefore
 does **not** contain the problem: the guard is missing from the shipping config
 too, where it has simply never been called on.
 
-**The baseline's abort was not a save.** It fired at 0.065 u clearance, a
-fraction of a second from contact, with a faster ship overlapping from astern.
-It was a *report* that no certifiable move remained, not a successful
-avoidance. So v20.7.9 did not cause a crash that v20.7.8-2 prevented — it
-removed the warning that one was imminent. Whether the baseline could still
-have escaped from that state is **untested**; it would need a run of
-v20.7.8-2 at `predT5` with `least_bad` enabled and the narrow window kept.
+**The baseline's abort WAS a save — tested 2026-09-12.** This section
+originally recorded the question as untested and guessed the answer was "not a
+save". That guess was wrong.
 
-That is a narrower claim than "v20.7.9 fails worse", and it is the accurate
-one. It is still a regression: a planner that cannot tell you it is out of
-options is worse than one that can, and silent contact is the worst possible
-way to find out.
+Backward reachability from the baseline's own state at iteration 875, using this
+module's `motion()` (validated bit-exact against the last five logged steps) and
+the target's actual motion (validated to 4.9e-13 against the recorded collision
+position), over a 241 × 26 grid of constant commands and a 3 s horizon:
+
+| command from the abort state | min clearance |
+|---|---|
+| **best — `v = 0.500`, `ω = −0.227` (32% starboard)** | **+0.0173 u** |
+| hard turn to starboard | +0.0034 u |
+| hold course | −0.0004 u |
+| brake straight ahead (what this prototype does) | **−0.5060 u** |
+| hard turn to port | −0.6694 u |
+
+An escape existed. The abort fired at the last moment from which the situation
+was still recoverable — 0.6 s and 0.0563 u of clearance from contact. The margin
+is thin and this is a lower bound, since a re-planning controller can do at least
+as well as the best constant command.
+
+So **v20.7.9 removed a save, not merely a warning.** That is a stronger claim
+than this section previously made, and it raises the priority of restoring
+Guard A.
+
+The attempted ablation (`v20.7.9/predT5-narrow-control.json` and
+`…-leastbad.json`) also produced two facts worth keeping:
+
+- **The control is exact.** `v_window_ramp_time: 0.0` + `ramped_rollout: false`
+  reproduces `v20.7.8-2/predT5` **bit-identically** (876 steps, max |diff| =
+  0.000e+00). This module is a strict superset of the baseline — verified, not
+  assumed — so it can carry ablations of this kind.
+- **`least_bad` is no substitute for Guard A.** Enabling it changed nothing: also
+  876 steps, also bit-identical, same abort. It catches Guard B only, so on a
+  Guard A failure it is a no-op. The two guards are not interchangeable; see
+  `../OPEN_PROBLEMS.md` §1.
+
+**The escape is the manoeuvre the admissibility test forbids.** At `v = 0.490`
+the braking rule demands `dist > 0.649 u` while 0.0563 u is available, so every
+candidate carrying speed is rejected. But the only surviving manoeuvre needs
+*more* speed plus a turn: the ego is at 0.490 against a target closing at 0.600,
+so it can neither outrun nor stop. Turning at full speed is its entire escape
+set, and the test discards that set first. This is the clearest measured evidence
+that the braking-distance constraint is the defect, not the symptom.
 
 **It was the window widening, not `no_admissible_fallback`, that did this.**
 The fallback only catches the *other* guard (`No best trajectory found`).
