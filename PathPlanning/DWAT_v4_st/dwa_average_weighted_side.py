@@ -81,6 +81,19 @@ class Config:
         self.predict_time_to_goal = 1.0  # [s]
         self.predict_time_obstacle = 30.0  # [s]
 
+        # --- v20.7.9 prototype knobs -------------------------------------
+        # Defaults below reproduce the classic behaviour exactly; only the
+        # dwa_ramped module reads them. See DWAT_v4_st/dwa_ramped.py.
+        # Seconds of acceleration authority used to size the v window.
+        # 0.0 -> classic one-dt dynamic window.
+        self.v_window_ramp_time = 0.0  # [s]
+        # Treat a sampled (v, omega) as a setpoint approached at max_accel /
+        # max_delta_yaw_rate, instead of a velocity applied instantly.
+        self.ramped_rollout = False
+        # What to do when every candidate scores inf:
+        # "raise" -> ValueError (classic), "least_bad" -> keep the safest one.
+        self.no_admissible_fallback = "raise"
+
         self.obstacle_max_angle = np.pi / 180 * 180  # [rad] max angle to consider obstacles in front
 
         self.enable_map_boundary_obstacles = False  # add obstacles along the outer map border

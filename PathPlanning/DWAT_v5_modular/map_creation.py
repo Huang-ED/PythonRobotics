@@ -54,9 +54,21 @@ def find_config_by_name(name: str, search_root: Path) -> Optional[Path]:
     Returns None if there is no match. Raises if the name is ambiguous, rather
     than silently picking one of two different configs.
     """
-    stem = Path(name).name
-    if not stem.endswith(".json"):
-        stem += ".json"
+    rel = Path(name)
+    if not rel.name.endswith(".json"):
+        rel = rel.with_name(rel.name + ".json")
+
+    # A directory-qualified name ("v20.7.9/predT5-ramped",
+    # "encounters/owenc_head_on") is already unambiguous. Honour it before
+    # falling back to the bare-filename search, so that the "Pass a fuller
+    # path" advice below is actually actionable -- the search discards the
+    # directory, so without this a fuller path could not resolve an ambiguity.
+    if rel.parent != Path("."):
+        direct = search_root / rel
+        if direct.is_file():
+            return direct.resolve()
+
+    stem = rel.name
     hits = sorted(search_root.rglob(stem))
     if not hits:
         return None

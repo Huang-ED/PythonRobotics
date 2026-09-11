@@ -116,6 +116,30 @@ python -m PathPlanning.DWAT_v5_modular.main \
     --scenario v3crowd7 --algorithm-config v20.7.8-2 --run-config video
 ```
 
+## Checked against v20.7.9 (2026-09-10)
+
+`v20.7.9` is the ramped-window prototype that fixes the two
+`owenc_overtaken_ego*` iteration-0 aborts
+(`../v20.7.9_ramped_window/README.md`). These scenes were re-run under it
+because its two known approximations — a one-`dt` yaw window and a
+constant-velocity arc in `closest_obstacle_on_curve` — are harmless with one
+target in an empty basin but could bite with several at close quarters.
+
+They do not. Min clearance is surface-to-surface across all targets:
+
+| scene | v20.7.8-2 | v20.7.9 |
+|---|---|---|
+| `v3crowd5` | FAIL 137.4 s, min clear 0.57 | FAIL 137.3 s, min clear 0.55 |
+| `v3crowd6` | goal 214.5 s, 0.68 | goal 214.7 s, 0.69 |
+| `v3crowd7` | goal 214.0 s, 0.68 | goal 213.9 s, 0.68 |
+
+`v3crowd5` fails identically — same `_choose_local_goal` error at the same
+moment. That is expected: it is a path-following divergence, and v20.7.9
+changes only candidate *scoring*. **v20.7.9 neither fixes nor worsens
+`v3crowd5`.**
+
+Runs are under `runs/v20.7.9/combined/`.
+
 ## Where the runs are
 
 `runs/` is git-ignored, so these are local paths.
