@@ -117,11 +117,33 @@ of the AIS traffic (`source.ego_mmsi` in the scenario JSON). Beam is absent from
 AIS everywhere in this dataset and is taken as L/3 for a tug. Changing `--ego`
 in the adapter means changing these too.
 
-One caveat for large vessels: when `robot_type` is `rectangle` the dynamic
-collision check models the ego as a disc of radius `sqrt(L² + B²)/2`, ignoring
-`robot_radius`. The error grows with aspect ratio — negligible for a 29 × 10 m
-tug, but it inflates a 248 × 32 m ship to a 250 m-diameter disc. The static
-check uses `robot_radius` instead, so the two disagree.
+One caveat for large vessels: when `robot_type` is `rectangle` the ego hull is
+described in three places, and `robot_radius` is used by none of them.
+
+| site | models the ego as |
+|---|---|
+| `calc_trajectory_clearance_and_collision` — cost and collision along a candidate | disc, or **capsule** when `robot_collision_shape` is set |
+| `check_collision_at_current_position_circle_approximation` — the contact monitor | the same, since `b128c9b` |
+| `closest_obstacle_on_curve` — feeds the braking-admissibility test | disc, always |
+
+The first two **must** agree. While they did not, the planner certified a 9.7 m
+abeam pass as clear — correctly, for a 6.33 m beam — and the monitor then
+declared a collision against the 10.013 m circumscribed radius, on the very
+trajectory the planner had just approved. See
+`../results/ny_ais_suite/README.md`.
+
+The third disagreeing is conservative rather than unsafe — an inflated hull
+shortens the distance handed to the admissibility test, so it rejects more
+candidates than a slender ship needs it to, never fewer — but conservative is
+not free. In `ny_hist_366962130` it is the whole difference between a gap of
++2.43 m (disc) and +4.27 m (capsule) against a 4.20 m braking requirement, and
+so between aborting 168.5 m short of the goal and creeping through. It is left
+alone for now because it is the function `ais_v2` rewrites anyway, but it is a
+live defect, not a rounding choice.
+
+The disc is what makes any of this matter. It treats a vessel as being as wide
+as it is long, so the error grows with aspect ratio — negligible for a
+29 × 10 m tug, but it inflates a 248 × 32 m ship to a 250 m-diameter circle.
 
 ## `obstacle_radius` is tied to the map
 

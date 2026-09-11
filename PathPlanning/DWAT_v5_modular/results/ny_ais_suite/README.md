@@ -7,9 +7,10 @@ shoreline. Tuning lineage **`ais_v1.1`** (`../../configs/README_ais.md`).
 
 The point of the dataset is that it supplies geometry nobody designed. Eight
 cases produced four clean transits and four failures, and **every one of the
-four failures identified something real** — two a bug in how configs were
-derived, one a hull model that does not survive being applied to a ship, one an
-open question about the algorithm itself.
+four failures identified something real** — two a `dt` that should have been
+derived from the ego and was not, one an assumption the algorithm makes that
+ships do not satisfy, one a replay artefact that puts vessels on the map before
+they exist.
 
 ## Reproducing
 
@@ -68,7 +69,7 @@ vessel, but a voyage that never happened, and therefore no baseline.
 | case | ego | outcome | steps | duration | path | ship clear | shore clear | human |
 |---|---|---|---|---|---|---|---|---|
 | `ny_hist_215804000` | 15 m @ 5.5 m/s | **goal** | 194 | 32.2 min | 9.76 km | 84.5 m | — | 54.0 min / 9.98 km |
-| `ny_hist_366962130` | 19 m @ 5.2 m/s | collision | 154 | 25.5 min | 7.15 km | **4.0 m** | 7.2 m | 38.0 min / 8.84 km |
+| `ny_hist_366962130` | 19 m @ 5.2 m/s | no-admissible | 209 | 34.7 min | 8.61 km | **2.9 m** | 7.2 m | 38.0 min / 8.84 km |
 | `ny_hist_367782880` | 15 m @ 12.8 m/s | grounding | 61 | 10.0 min | 7.50 km | 365.1 m | **1.3 m** | 28.0 min / 14.98 km |
 | `ny_hist_367791550` | 24 m @ 14.7 m/s | grounding | 54 | 8.8 min | 4.02 km | 109.8 m | **2.7 m** | 26.0 min / 15.47 km |
 | `ny_synth_00` | 147 m @ 3.3 m/s | no-admissible | 52 | 8.5 min | 1.61 km | 18.4 m | 100.9 m | — |
@@ -76,9 +77,12 @@ vessel, but a voyage that never happened, and therefore no baseline.
 | `ny_synth_02` | 30 m @ 3.8 m/s | **goal** | 96 | 15.8 min | 3.40 km | 56.8 m | — | — |
 | `ny_synth_03` | 29 m @ 4.1 m/s | **goal** | 183 | 30.3 min | 7.30 km | 56.0 m | 16.1 m | — |
 
-**4 of 8 reach the goal.** Every case beats its human baseline on time, which
-says less than it looks: the speed cost rewards running at `max_speed`, and the
-recorded vessels had their own reasons to go slower.
+**4 of 8 reach the goal, and no case strikes another vessel.** The two failure
+modes left are grounding and abort. Every case beats its human baseline on time,
+which says less than it looks twice over: the speed cost rewards running at
+`max_speed` and the recorded vessels had their own reasons to go slower, and in
+any case three of the four `hist` runs stop early without finishing, so their
+durations are not comparable to a completed passage at all.
 
 ### Reading the outcome column
 
@@ -125,17 +129,50 @@ Straight-line start→goal is 12.24 km, so at `dt = 2 s` the planner is 17% over
 direct against the human's 22%. **This is the proposed `ais_v1.2`** and is not
 adopted: it roughly doubles every run's cost and changes the reference case.
 
-**3 — `ny_synth_00`, a 147 m hull, finds no admissible trajectory.** The
-admissibility test keeps a candidate only if `dist > v²/(2a) + v·dt`, i.e. it
-requires the ego to be able to *stop*. Large ships cannot. This is the one
+**3 — `ny_synth_00`, a 147 m ship, finds no admissible trajectory: the
+algorithm assumes the ego can stop.** The admissibility test keeps a candidate
+only if `dist > v²/(2a) + v·dt` — the ego must be able to brake to rest short of
+the nearest obstacle on the curve. At the abort it is making 3.30 m/s with
+`max_accel` 0.0612 m/s², so it needs 54 s and 90 m to stop, and the dynamic
+window will not let it drop below 2.69 m/s in a single step:
+
+| | |
+|---|---|
+| braking room required at the slowest speed the window allows (2.69 m/s) | 86.2 m |
+| braking room required at the fastest (3.34 m/s) | 124.8 m |
+| clearance actually available | 18.0 m |
+
+Every candidate is rejected and the run aborts after 1.61 km. This is the one
 finding that is not a tuning matter: it is an assumption in the algorithm that
 does not hold for the vehicles the dataset contains. See
-`../../configs/README_ais.md`. **Open.**
+`../../configs/README_ais.md`. **Open, and the subject of `ais_v2`.**
 
-**4 — `ny_hist_366962130` contacts a 248 m vessel at 4.0 m.** Not yet
-diagnosed. The capsule hull is correct here, so this is a genuine avoidance
-failure rather than a geometry artefact, and it is the most interesting
-remaining case.
+**4 — `ny_hist_366962130` aborts 168.5 m from its goal, and neither cause is
+the algorithm.** It covers 8.61 km of an 8.68 km trip, stops, holds station for
+22 control steps while the cost climbs, and gives up. Two artefacts compound.
+
+*A vessel that is not there.* The blocker is a 25 m craft sitting directly
+between the ego and the goal, 147.7 m from it. Its AIS track does not begin
+until t = 2700 s — **620 s after the run ends**. `DynamicObstacle._query_time`
+clamps simulation time into each recording's own `[t_start, t_end]`, so a track
+that has not started yet is replayed as an obstacle parked at its first fix.
+**17 of the 78 vessels in this scene are parked at entry points they never
+reach during the run**, five of them within 200 m of the ego's path.
+
+*A hull the admissibility test does not share.* Even taking the phantom at face
+value, the ego could have crept past it. The margin turns entirely on which
+hull `closest_obstacle_on_curve` uses — and it is the one hull site still on
+the disc:
+
+| hull used | gap to the blocker | slowest forward candidate needs | verdict |
+|---|---|---|---|
+| disc, 10.013 m | +2.43 m | 4.20 m | rejected → abort |
+| capsule, half-beam 3.165 m | +4.27 m | 4.20 m | admissible |
+
+So this case says nothing about braking: creeping at 0.4 m/s requires only
+4.20 m of stopping room, which the true hull clears. It is worth keeping
+precisely because it failed for two reasons that both present as "the planner
+gave up", and neither is the planner.
 
 ## Fixed along the way
 
@@ -156,6 +193,19 @@ collision — where the capsule correctly reads 74 m of clear water. The error
 scales with aspect ratio, so it is invisible on a 1.2 × 0.5 m lab robot and
 disabling on a ship. It is behind `robot_collision_shape`, default `disc`, so
 every pre-existing scenario is unaffected.
+
+The change has to be made in **both** collision checks. Applying it only to the
+planner (`calc_trajectory_clearance_and_collision`) and leaving the contact
+monitor (`check_collision_at_current_position_circle_approximation`) on the disc
+made the two disagree about the same ship: the planner correctly certified a
+9.7 m abeam pass as clear, since the true half-beam is 3.165 m, and the monitor
+then declared a collision against the 10.013 m circumscribed radius. The
+`collision` this table used to record for `ny_hist_366962130` was that
+disagreement and not a contact — the ego never came within 9.7 m of anything.
+The two functions' disc expressions were algebraically identical
+(`sqrt(L²+W²)/2` and `sqrt((L/2)²+(W/2)²)`, both 10.0134 m), which is why they
+had always agreed before the capsule existed. Fixed in `b128c9b`; both
+regression scenarios re-run bit-identical.
 
 ## Dataset notes worth keeping
 
@@ -180,6 +230,14 @@ every pre-existing scenario is unaffected.
   perimeter, not an area), so 20 m → 100 m buys only ~4×; and `obstacle_radius`
   is half a cell, so a 100 m grid adds 50 m of phantom shoreline to every bank.
   50 m is the working compromise.
+- **Obstacles exist before their tracks start.** Simulation time is clamped
+  into each recording's own `[t_start, t_end]`, so a vessel whose AIS track
+  begins mid-window is replayed as parked at its first fix from t = 0, and one
+  whose track has ended stays parked at its last. The second is deliberate
+  (`on_finish: "hold"`); the first is not, and it fabricates stationary traffic
+  — 17 of 78 vessels in `ny_hist_366962130`, one of which cost that run its
+  goal. A fix has to stay config-restorable, so it belongs as an `on_start`
+  option defaulting to today's behaviour.
 - 5.6% of AIS samples fall on land cells, but 82% of those are moored vessels at
   piers the polygon covers. Among *moving* samples it is ~1%, which is berth
   geometry rather than a projection error.
