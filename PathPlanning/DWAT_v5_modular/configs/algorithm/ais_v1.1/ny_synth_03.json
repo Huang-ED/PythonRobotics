@@ -4,6 +4,7 @@
     "robot_length": 29.0,
     "robot_width": 9.67,
     "robot_radius": 15.28,
+    "robot_collision_shape": "capsule",
     "max_speed": 4.064,
     "min_speed": 0.0,
     "max_accel": 0.3103,
@@ -27,8 +28,8 @@
     "dynamic_ob_cost_aggregation": "mean",
     "obstacle_radius": 25.0,
     "enable_map_boundary_obstacles": false,
-    "dist_localgoal": 500.0,
-    "catch_goal_dist": 100.0,
-    "catch_turning_point_dist": 500.0,
+    "dist_localgoal": 365.8,
+    "catch_goal_dist": 87.0,
+    "catch_turning_point_dist": 365.8,
     "robot_stuck_flag_cons": 0.01
 }

@@ -26,13 +26,25 @@ exactly. Only live configs sit at the top level; the rest are filed by status:
 | `_scene_export/` | v20.9.x — attempts at a config for the `scene_export` dataset. **None succeeded yet** | `runs/_scene_export/` |
 
 Subdirectories of a *version* mean something different from these status
-folders: they hold an ablation sweep over one parameter, so the sweep reads as
-a single experiment.
+folders: they hold a sweep over **one experimental factor**, so the sweep reads
+as a single experiment.
 
-| directory | sweep |
+The requirement is that the variants be generated from one stated factor by a
+rule you can write in a sentence — so that a difference in outcome is
+attributable to that factor. It is *not* that exactly one key changes. A sweep
+may move several keys at once when they are all derived from the same thing:
+the per-ego configs in `ais_v1.1/` each set ten keys, but all ten follow from
+one vessel's hull and service speed, so the directory is still one experiment
+with one independent variable.
+
+If you cannot state the factor in a sentence, the directory is a grab-bag and
+the configs belong at the top level under their own names.
+
+| directory | factor |
 |---|---|
 | `v20.7.8-2/` | `predict_time_obstacle` ∈ {5, 10, 12, 15, 18, 20, 30} |
 | `v20.7.9/` | `predT5-ramped` — the 5 s point of the same sweep, under v20.7.9 |
+| `ais_v1.1/` | the ego vessel — hull and service speed, per AIS case |
 
 **Bare names still resolve** (`--algorithm-config v20.7.5` works from anywhere)
 because the filename is unique across the tree; a directory-qualified name
@@ -75,7 +87,7 @@ They cannot be *run* through `--algorithm-config`, and re-creating configs for
 them would misrepresent history. `v20.7.4` is the one genuinely unrecorded
 step: no commit, no config, notes only.
 
-`ais_ship_si_v1.json` belongs to the New York / AIS import work, not this
+`ais_v1.json` and `ais_v1.1.json` belong to the New York / AIS import work, not this
 lineage.
 
 ## v20.8.1 — recorded insights
