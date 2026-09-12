@@ -1,4 +1,7 @@
-# Legacy log-analysis scripts
+# Legacy analysis and output tooling
+
+Mostly log-analysis scripts; `image_to_video.py` is the one exception and has
+its own section at the end.
 
 **Reference material, not working tools.** Every script here predates the
 `runs/` layout and most predate the current cost formulation. They are kept
@@ -92,3 +95,37 @@ is the one both scripts above expect.
 *algorithm* code, not analysis tooling, so it belongs with the other retired
 generations. Nothing imports it, and it looks like an entry point; the real one
 is `PathPlanning/DWAT_v5_modular/main.py`.
+
+## Not log analysis: `image_to_video.py`
+
+The odd one out — an *output* tool rather than an analysis one, moved here from
+`.draft/` on 2026-09-12. It was the only tracked file in that directory, which
+is gitignored, so it had been carried in the index by accident since 2025-07-14.
+
+It walks a folder of `frame_*.png`, sorts them by trailing integer, and writes
+`<folder>.mp4` next to it with OpenCV's `VideoWriter` at a hardcoded 10 fps.
+
+**It was the workhorse, not a curiosity.** 122 of the 140 videos under `runs/`
+are `mpeg4` at exactly 10 fps — this script's signature, since OpenCV's `mp4v`
+fourcc yields `mpeg4` and the 10 fps is hardcoded above. Nothing else in the
+repo emits that combination. (The `encoder=Lavf…` tag does *not* distinguish it
+from ffmpeg: OpenCV bundles FFmpeg, so both stamp libavformat. Codec and frame
+rate are what separate them.)
+
+**Why it is retired:** superseded in 2026-08 by a hand-run ffmpeg command,
+documented under "Rendering a video" in `PathPlanning/DWAT_v5_modular/README.md`.
+Videos dated 2026-09 onward are all `h264`. The swap bought three things this
+script cannot do: h264 instead of a 1999 codec many players will not inline, a
+choosable frame rate (the AIS run is 12 fps; this script has no such argument),
+and `-pix_fmt yuv420p` with `-vf scale=trunc(iw/2)*2:trunc(ih/2)*2` — the
+odd-dimension guard that matters because matplotlib figures land on sizes like
+842 x 818, which h264/yuv420p rejects.
+
+Nothing imports or invokes it, and its output path convention (`<folder>.mp4`,
+one level up) predates the `runs/` layout, where `video.mp4` sits beside
+`frames/`.
+
+It still runs (`python tools/legacy/image_to_video.py <folder>`) if you want a
+quick mp4 from a frame directory and would rather not write the ffmpeg
+invocation, but it re-encodes with `mp4v` and gives you no control over
+quality or frame rate.

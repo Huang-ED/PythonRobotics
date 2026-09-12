@@ -69,10 +69,10 @@ vessel, but a voyage that never happened, and therefore no baseline.
 | case | ego | outcome | steps | duration | path | ship clear | shore clear | human |
 |---|---|---|---|---|---|---|---|---|
 | `ny_hist_215804000` | 15 m @ 5.5 m/s | **goal** | 194 | 32.2 min | 9.76 km | 84.5 m | — | 54.0 min / 9.98 km |
-| `ny_hist_366962130` | 19 m @ 5.2 m/s | no-admissible | 209 | 34.7 min | 8.61 km | **2.9 m** | 7.2 m | 38.0 min / 8.84 km |
+| `ny_hist_366962130` | 19 m @ 5.2 m/s | abort (Guard B) | 209 | 34.7 min | 8.61 km | **2.9 m** | 7.2 m | 38.0 min / 8.84 km |
 | `ny_hist_367782880` | 15 m @ 12.8 m/s | grounding | 61 | 10.0 min | 7.50 km | 365.1 m | **1.3 m** | 28.0 min / 14.98 km |
 | `ny_hist_367791550` | 24 m @ 14.7 m/s | grounding | 54 | 8.8 min | 4.02 km | 109.8 m | **2.7 m** | 26.0 min / 15.47 km |
-| `ny_synth_00` | 147 m @ 3.3 m/s | no-admissible | 52 | 8.5 min | 1.61 km | 18.4 m | 100.9 m | — |
+| `ny_synth_00` | 147 m @ 3.3 m/s | abort (Guard B) | 52 | 8.5 min | 1.61 km | 18.4 m | 100.9 m | — |
 | `ny_synth_01` | 25 m @ 1.0 m/s | **goal** | 540 | 89.8 min | 3.88 km | 551.4 m | — | — |
 | `ny_synth_02` | 30 m @ 3.8 m/s | **goal** | 96 | 15.8 min | 3.40 km | 56.8 m | — | — |
 | `ny_synth_03` | 29 m @ 4.1 m/s | **goal** | 183 | 30.3 min | 7.30 km | 56.0 m | 16.1 m | — |
@@ -100,8 +100,12 @@ exactly `obstacle_radius` was a map cell, anything else was a vessel. Without
 that split the table is incoherent — a ferry 365 m clear of every ship reads as
 a "collision" when it has actually run onto a pier.
 
-`no-admissible` is the planner finding no acceptable trajectory at all and
-aborting, not a contact.
+`abort (Guard B)` is the planner finding no acceptable trajectory at all and
+giving up, not a contact. The column previously read `no-admissible`, which was
+the name of the *other* guard — neither run raised it. Both raised `No best
+trajectory found`: candidates passed the braking-admissibility test and every
+survivor was then predicted to collide inside the horizon. See
+[`../OPEN_PROBLEMS.md` §2](../OPEN_PROBLEMS.md).
 
 ### Clearances are re-measured, not read from the log
 
@@ -143,7 +147,7 @@ string suggests:
 So the run raised `No best trajectory found` — **every admissible candidate was
 predicted to collide inside the 120 s horizon** — not `No admissible (v, ω)
 pairs`. The two are different guards and only the first is reachable here; see
-[`../OPEN_PROBLEMS.md` §1](../OPEN_PROBLEMS.md). That distinction matters
+[`../OPEN_PROBLEMS.md` §2](../OPEN_PROBLEMS.md). That distinction matters
 because the case the fallback `no_admissible_fallback: "least_bad"` already
 handles in `dwa_ramped.py` is exactly this one.
 

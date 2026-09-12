@@ -236,7 +236,7 @@ The attempted ablation (`v20.7.9/predT5-narrow-control.json` and
 - **`least_bad` is no substitute for Guard A.** Enabling it changed nothing: also
   876 steps, also bit-identical, same abort. It catches Guard B only, so on a
   Guard A failure it is a no-op. The two guards are not interchangeable; see
-  `../OPEN_PROBLEMS.md` §1.
+  `../OPEN_PROBLEMS.md` §2.
 
 **The escape is the manoeuvre the admissibility test forbids.** At `v = 0.490`
 the braking rule demands `dist > 0.649 u` while 0.0563 u is available, so every

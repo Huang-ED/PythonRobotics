@@ -91,7 +91,7 @@ candidates (64%) — every one that did not slow down — while 164 survived. Th
 run then stopped because all 164 were predicted to collide inside the horizon,
 which is the *other* guard, `No best trajectory found`. The two are distinct
 code paths and only one of them is this test; see
-[`../results/OPEN_PROBLEMS.md` §1](../results/OPEN_PROBLEMS.md).
+[`../results/OPEN_PROBLEMS.md` §2](../results/OPEN_PROBLEMS.md).
 
 **If you change the ego to a large vessel, this parameter has to be justified
 explicitly, or the admissibility test has to change** — but expect that to
