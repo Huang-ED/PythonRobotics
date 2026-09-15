@@ -164,8 +164,8 @@ This is the ledger. Anything not in it is passing.
 Two things this table makes visible that earlier drafts did not:
 
 - **The AIS suite has four failures, not two.** Two aborts *and* two groundings.
-  Previous versions of this document discussed only the aborts, which made item 6
-  (`ais_v1.2`, item 3) look like a nice-to-have when it is the fix for **half** the
+  Previous versions of this document discussed only the aborts, which made item 3
+  (`ais_v1.2`) look like a nice-to-have when it is the fix for **half** the
   suite's failures.
 - **Only one open case is squarely about the braking test.** `ny_synth_00`, and
   even there it is unproven. If items 1 and 2 resolve `ny_hist_366962130`, the
@@ -231,7 +231,7 @@ collision zone. Corrected.)*
 **What is not known:** whether any of the 287 pruned candidates would have scored
 finite. Until someone scores them, "the braking test caused this abort" and "the
 braking test is incidental here" are both live. This is one instrumented call and
-it gates the whole backlog — see §6.2.
+it gates the whole backlog — see §6, step 4.
 
 ---
 
