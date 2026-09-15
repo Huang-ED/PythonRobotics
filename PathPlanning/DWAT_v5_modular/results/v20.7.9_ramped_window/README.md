@@ -43,11 +43,11 @@ Two error strings, two distinct code paths, and the distinction matters:
 
 | message | fires when | in these cases |
 |---|---|---|
-| `No admissible (v, ω) pairs` ([dwa_average_weighted_side.py:534][a]) | the admissibility `continue` rejected everything | predT5, iteration 875 |
-| `No best trajectory found` ([:551][b]) | candidates were admissible but every `final_cost` was `inf` | predT30, iteration 0 |
+| `No admissible (v, ω) pairs` ([dwa_average_weighted_side.py:562][a]) | the admissibility `continue` rejected everything | predT5, iteration 875 |
+| `No best trajectory found` ([:579][b]) | candidates were admissible but every `final_cost` was `inf` | predT30, iteration 0 |
 
-[a]: ../../../DWAT_v4_st/dwa_average_weighted_side.py#L534
-[b]: ../../../DWAT_v4_st/dwa_average_weighted_side.py#L551
+[a]: ../../../DWAT_v4_st/dwa_average_weighted_side.py#L562
+[b]: ../../../DWAT_v4_st/dwa_average_weighted_side.py#L579
 
 ## 2. Shortening the horizon is not the fix
 
@@ -87,7 +87,7 @@ velocity it teleports to. Four config changes against v20.7.8-2:
 | `dwa_module` | `...dwa_ramped` | new module, `dwa_consistent.py` pattern |
 | `v_window_ramp_time` | `2.5` | v window spans what the horizon can reach (`max_speed/max_accel`). At rest: `[0, 0.50]` not `[0, 0.02]`; 30 s reach 14.40 u not 0.60 u |
 | `ramped_rollout` | `true` | setpoint approached at `max_accel`, in rollout **and** execution. Without this a widened window would let the sim jump 0 → 0.5 u/s in one `dt`, violating `max_accel` |
-| `no_admissible_fallback` | `least_bad` | when every candidate is `inf`, keep the one furthest from contact instead of raising |
+| `all_candidates_collide_fallback` | `least_bad` | when every candidate is `inf`, keep the one furthest from contact instead of raising |
 | `v_resolution` | `0.05` | the v window went from 3 samples to the full range; coarsening keeps the count near baseline (891 vs 243, ~3.7× slower) |
 
 The search stays a **2-D grid** over `(v, ω)` — one setpoint per candidate,
@@ -246,7 +246,7 @@ so it can neither outrun nor stop. Turning at full speed is its entire escape
 set, and the test discards that set first. This is the clearest measured evidence
 that the braking-distance constraint is the defect, not the symptom.
 
-**It was the window widening, not `no_admissible_fallback`, that did this.**
+**It was the window widening, not `all_candidates_collide_fallback`, that did this.**
 The fallback only catches the *other* guard (`No best trajectory found`).
 **The cost function does not know that slowing is dangerous when overtaken
 from astern.** The braking-distance test is built for static obstacles,
@@ -284,10 +284,62 @@ Open questions for that work:
 
 ## 6. Known limitations of the prototype
 
-- The **yaw window is still one `dt`.** Unlike `v`, a yaw rate genuinely *is*
-  reachable within one `dt` (`max_delta_yaw_rate · dt` equals the whole
-  window), so it is already self-consistent. Widening it toward
-  horizon-reachable rates is the same change and has not been made.
+- **`omega` got half the fix: the ramped rollout, but not the ramped window.**
+  A sampled `omega` *is* approached under `max_delta_yaw_rate` during the
+  rollout ([dwa_ramped.py:90-91][e]), but the sampling range is still built
+  from one `dt` ([:113-114][f]) while `v`'s uses `dt_v`.
+
+  An earlier version of this section justified that by claiming
+  `max_delta_yaw_rate · dt` "equals the whole window", so the yaw axis was
+  already self-consistent. **That is false in every config**, measured
+  2026-09-15:
+
+  | config | one-`dt` reach | % of `max_yaw_rate` | steps to full rate |
+  |---|---|---|---|
+  | `v20.7.9` | 0.0698 rad/s | **10%** | 10 (1.0 s) |
+  | `ais_v1.1` | 0.0435 rad/s | **50%** | 2 (20 s) |
+  | `ais_v1.1/ny_hist_366962130` | 0.0622 rad/s | **50%** | 2 (20 s) |
+
+  The same window/horizon inconsistency §1 describes for `v` is present for
+  `omega`. It is milder, but not absent.
+
+  **Why it still matters less — the correct reason.** `omega` integrates into
+  *heading*, which accumulates over a long horizon in a way a small `v` does
+  not. At the window edge, over the full `predict_time_obstacle`:
+
+  | | narrow window buys |
+  |---|---|
+  | `v`, v20.7.9 | **0.60 u** — half a hull length |
+  | `omega`, v20.7.9 | **120°** of heading change |
+  | `omega`, AIS configs | **299°** and **427°** |
+
+  A 0.02 u/s candidate goes nowhere, so the escape is unrepresentable; a
+  0.0698 rad/s candidate still swings the bow through 120° in 30 s. The turn
+  *is* representable, just not at maximum rate.
+
+  **Checked: the narrow yaw window did not block the §5 escape.** That escape
+  needs `omega = -0.227`, which from `omega = 0` would sit 3.25× outside the
+  one-`dt` window. It was not a factor — at iteration 875 the ego was already
+  at `omega = -0.2496`, having ramped there over the preceding steps, so the
+  window was `[-0.319, -0.180]` and `-0.227` was inside it. The escape was
+  directly samplable.
+
+  **Cost of finishing the job**, at `yaw_rate_resolution = 0.1°`: widening
+  `omega` to the full range at current resolution gives **8,811 candidates**
+  (9.9×, ~6.6 h/case) — not viable for a suite. Holding 891 candidates with a
+  full window instead costs angular resolution, **0.1° → 1.0°**. That is
+  probably acceptable (helm orders come in 5° increments) and is the same
+  trade already accepted for `v` when `v_resolution` went 0.01 → 0.05.
+
+  **Recommendation: fold this into the item-6 feasibility rework rather than
+  doing it standalone.** Nothing currently fails because of it. But a
+  CPA-based feasibility test wants the full turn set representable, and at
+  that point widening `omega` is the same edit in the same function. Re-run
+  the `135` symmetry check when it happens — that pair was resolution-sensitive
+  once already (§4).
+
+[e]: ../../../DWAT_v4_st/dwa_ramped.py#L90-L91
+[f]: ../../../DWAT_v4_st/dwa_ramped.py#L113-L114
 - **`closest_obstacle_on_curve` still assumes a constant-velocity arc** for
   admissibility and static-obstacle cost, so it under-estimates travel during
   the ramp.

@@ -1,0 +1,668 @@
+<title>The Ramped Window</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,600;0,800;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+/* ---------- tokens: light (complete set defined here) ---------- */
+:root{
+  --bg:#EDF1F0;            /* chart paper, cool green-white */
+  --surface:#FFFFFF;
+  --surface-2:#E3EBEA;
+  --fg:#0B1F2E;            /* chart navy */
+  --fg-2:#3D5766;
+  --fg-3:#6E8796;
+  --rule:#C5D6DC;
+  --grid:#D9E5E9;
+  --accent:#B01B7C;        /* cautionary magenta, as on a nautical chart */
+  --accent-soft:#F6E2EF;
+  --old:#8A6033;           /* series: the baseline / one-dt window */
+  --old-soft:#F0E6D9;
+  --good:#1C6A51;
+  --bad:#A22B24;
+  --warn:#8E5A08;
+  --shadow:0 1px 2px rgba(11,31,46,.06), 0 8px 24px -16px rgba(11,31,46,.28);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#07161E;
+    --surface:#0D212C;
+    --surface-2:#132C39;
+    --fg:#DCE8E7;
+    --fg-2:#9DB4BE;
+    --fg-3:#72909C;
+    --rule:#23414F;
+    --grid:#1B3543;
+    --accent:#F384C8;
+    --accent-soft:#3A1430;
+    --old:#D6A263;
+    --old-soft:#2C2317;
+    --good:#5EC79D;
+    --bad:#F08079;
+    --warn:#E0A24E;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#07161E; --surface:#0D212C; --surface-2:#132C39;
+  --fg:#DCE8E7; --fg-2:#9DB4BE; --fg-3:#72909C;
+  --rule:#23414F; --grid:#1B3543;
+  --accent:#F384C8; --accent-soft:#3A1430;
+  --old:#D6A263; --old-soft:#2C2317;
+  --good:#5EC79D; --bad:#F08079; --warn:#E0A24E;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--fg);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:16px; line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1080px; margin:0 auto; padding-inline:20px; padding-block:0 72px}
+.col{max-width:670px}
+
+/* ---------- type ---------- */
+h1,h2,h3{font-family:Spectral,Georgia,serif; text-wrap:balance; margin:0}
+h1{font-size:clamp(2.3rem,6vw,3.6rem); font-weight:800; line-height:1.02; letter-spacing:-.018em}
+h2{font-size:clamp(1.5rem,3.4vw,2.05rem); font-weight:700; line-height:1.14; letter-spacing:-.01em}
+h3{font-size:1.12rem; font-weight:600; line-height:1.3}
+p{margin:0}
+.lede{font-size:1.16rem; line-height:1.56; color:var(--fg-2)}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace; font-size:.7rem; font-weight:600;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--accent);
+}
+code,.mono{font-family:"IBM Plex Mono",monospace; font-size:.88em}
+p code,li code,td code,th code{
+  background:var(--surface-2); padding:.1em .34em; border-radius:3px;
+  color:var(--fg); white-space:nowrap;
+}
+strong{font-weight:600; color:var(--fg)}
+em{font-style:italic}
+a{color:var(--accent); text-underline-offset:2px}
+
+/* ---------- masthead ---------- */
+header.mast{
+  border-bottom:2px solid var(--fg); padding-block:52px 22px; margin-bottom:0;
+}
+.mast .col{display:flex; flex-direction:column; gap:18px}
+.mast h1{margin-top:4px}
+.specimen{
+  display:flex; flex-wrap:wrap; gap:0; margin-top:26px;
+  border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--surface);
+}
+.specimen div{
+  flex:1 1 150px; padding:11px 14px; border-right:1px solid var(--rule);
+  display:flex; flex-direction:column; gap:3px;
+}
+.specimen div:last-child{border-right:none}
+.specimen dt{
+  font-family:"IBM Plex Mono",monospace; font-size:.66rem; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--fg-3); margin:0;
+}
+.specimen dd{margin:0; font-family:"IBM Plex Mono",monospace; font-size:.83rem; color:var(--fg); font-weight:500}
+
+/* ---------- sections ---------- */
+section{padding-block:48px; border-bottom:1px solid var(--rule)}
+section:last-of-type{border-bottom:none}
+.sec-head{display:flex; flex-direction:column; gap:10px; margin-bottom:26px}
+.stack{display:flex; flex-direction:column; gap:18px}
+.stack-tight{display:flex; flex-direction:column; gap:11px}
+
+/* ---------- verdict ---------- */
+.verdict{
+  background:var(--surface); border:1px solid var(--rule);
+  border-left:4px solid var(--accent); border-radius:4px;
+  padding:22px 24px; box-shadow:var(--shadow);
+  display:flex; flex-direction:column; gap:12px; margin-top:30px;
+}
+.verdict h3{font-family:"IBM Plex Sans",sans-serif; font-size:.98rem; font-weight:600}
+.verdict-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(215px,1fr)); gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:4px; overflow:hidden; margin-top:6px}
+.vcell{background:var(--surface); padding:15px 17px; display:flex; flex-direction:column; gap:6px}
+.vcell .tag{
+  font-family:"IBM Plex Mono",monospace; font-size:.66rem; letter-spacing:.1em;
+  text-transform:uppercase; font-weight:600;
+}
+.tag.no{color:var(--bad)} .tag.yes{color:var(--good)} .tag.maybe{color:var(--warn)}
+.vcell p{font-size:.9rem; line-height:1.5; color:var(--fg-2)}
+
+/* ---------- figures ---------- */
+figure{margin:0; display:flex; flex-direction:column; gap:12px}
+.figbox{
+  background:var(--surface); border:1px solid var(--rule); border-radius:4px;
+  padding:20px 18px 14px; overflow-x:auto;
+}
+.figbox svg{display:block; min-width:520px; width:100%; height:auto}
+figcaption{font-size:.87rem; line-height:1.5; color:var(--fg-2); max-width:670px}
+figcaption b{
+  font-family:"IBM Plex Mono",monospace; font-size:.76rem; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--accent); font-weight:600;
+  display:block; margin-bottom:3px;
+}
+svg text{font-family:"IBM Plex Mono",monospace; fill:var(--fg-2)}
+.t-lbl{font-size:11px}
+.t-num{font-size:11.5px; font-weight:500}
+.t-ttl{font-size:12px; font-weight:600; fill:var(--fg)}
+.t-big{font-size:17px; font-weight:600}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; font-size:.875rem; min-width:480px}
+th,td{padding:9px 13px; text-align:left; border-bottom:1px solid var(--rule); vertical-align:top}
+thead th{
+  font-family:"IBM Plex Mono",monospace; font-size:.68rem; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--fg-3); font-weight:600;
+  background:var(--surface-2); white-space:nowrap;
+}
+tbody tr:last-child td{border-bottom:none}
+td.num{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; white-space:nowrap}
+.ok{color:var(--good); font-weight:600}
+.no{color:var(--bad); font-weight:600}
+
+/* ---------- misc blocks ---------- */
+.note{
+  border-left:3px solid var(--warn); background:var(--surface);
+  padding:14px 17px; border-radius:0 4px 4px 0; font-size:.92rem; color:var(--fg-2);
+  display:flex; flex-direction:column; gap:8px;
+}
+.note b{color:var(--fg)}
+pre{
+  background:var(--surface); border:1px solid var(--rule); border-radius:4px;
+  padding:15px 17px; overflow-x:auto; margin:0;
+  font-family:"IBM Plex Mono",monospace; font-size:.83rem; line-height:1.6; color:var(--fg);
+}
+ul,ol{margin:0; padding-left:1.25em; display:flex; flex-direction:column; gap:9px}
+li{padding-left:.15em}
+li::marker{color:var(--fg-3)}
+.quote{
+  font-family:Spectral,Georgia,serif; font-size:1.03rem; font-style:italic;
+  line-height:1.55; color:var(--fg); border-left:3px solid var(--accent);
+  padding:4px 0 4px 18px; margin:0;
+}
+.quote cite{
+  display:block; font-family:"IBM Plex Mono",monospace; font-style:normal;
+  font-size:.72rem; letter-spacing:.06em; color:var(--fg-3); margin-top:9px;
+}
+.contents{
+  background:var(--surface-2); border-radius:4px; padding:16px 20px;
+  display:flex; flex-wrap:wrap; gap:6px 22px; font-size:.85rem; margin-top:28px;
+}
+.contents a{
+  color:var(--fg-2); text-decoration:none; font-family:"IBM Plex Mono",monospace; font-size:.79rem;
+}
+.contents a:hover{color:var(--accent); text-decoration:underline}
+a:focus-visible,summary:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+@media (max-width:620px){
+  .specimen div{flex:1 1 100%; border-right:none; border-bottom:1px solid var(--rule)}
+  .specimen div:last-child{border-bottom:none}
+  section{padding-block:36px}
+}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="col">
+    <span class="eyebrow">DWAT · v20.7.9 · dwa_ramped.py</span>
+    <h1>The Ramped Window</h1>
+    <p class="lede">The dynamic window admits only what is reachable in one control step, then scores each candidate as if it were held for thirty seconds. For a ship those two sentences contradict each other badly enough that the planner stops. This is what goes wrong, what fixes it, and whether any of it is new.</p>
+  </div>
+  <div class="specimen">
+    <div><dt>Ego</dt><dd>1.2 × 0.5 u hull</dd></div>
+    <div><dt>max_speed</dt><dd>0.50 u/s</dd></div>
+    <div><dt>max_accel</dt><dd>0.20 u/s²</dd></div>
+    <div><dt>Control dt</dt><dd>0.1 s</dd></div>
+    <div><dt>Horizon</dt><dd>30 s</dd></div>
+  </div>
+  <div class="contents">
+    <a href="#contradiction">01 · The contradiction</a>
+    <a href="#fix">02 · The fix</a>
+    <a href="#horizon">03 · Why not shorten the horizon</a>
+    <a href="#results">04 · Results</a>
+    <a href="#cost">05 · Why it stays cheap</a>
+    <a href="#broke">06 · What it quietly broke</a>
+    <a href="#priorart">07 · Prior art &amp; publishability</a>
+  </div>
+</header>
+
+<!-- ============ 1 ============ -->
+<section id="contradiction">
+  <div class="col sec-head">
+    <span class="eyebrow">01</span>
+    <h2>Two statements that contradict each other</h2>
+  </div>
+  <div class="col stack">
+    <p>Classic DWA builds its velocity window from the acceleration limit over a single control step:</p>
+    <pre>window = [ v − max_accel·dt ,  v + max_accel·dt ]     dt = 0.1 s</pre>
+    <p>At rest, with <code>max_accel = 0.2</code>, that window is <strong>[0, 0.02]</strong> — a fifth of a percent of what the ship can do. Each sampled velocity is then scored by <em>holding it constant for the full 30 s prediction horizon</em>.</p>
+    <p>So the planner evaluates a future in which it crawls at 0.02 u/s for half a minute. The real ship, starting from that same standstill, covers <strong>14.40 u</strong> in 30 s. The escape it needs — open the throttle and pull away — is not merely scored badly. It is <em>unrepresentable</em>: no point in the sample space corresponds to it.</p>
+  </div>
+
+  <figure style="margin-top:30px">
+    <div class="figbox">
+      <svg viewBox="0 0 700 246" role="img" aria-label="Speed against time for a baseline candidate and a ramped candidate over the 30 second horizon">
+        <text class="t-ttl" x="0" y="11">Speed over the 30 s scoring horizon</text>
+        <!-- grid -->
+        <g stroke="var(--grid)" stroke-width="1">
+          <line x1="58" y1="196" x2="684" y2="196"/>
+          <line x1="58" y1="34.2" x2="684" y2="34.2" stroke-dasharray="3 4"/>
+          <line x1="58" y1="115" x2="684" y2="115" stroke-dasharray="3 4"/>
+        </g>
+        <!-- y labels -->
+        <text class="t-num" x="50" y="200" text-anchor="end">0.00</text>
+        <text class="t-num" x="50" y="119" text-anchor="end">0.25</text>
+        <text class="t-num" x="50" y="38" text-anchor="end">0.50</text>
+        <text class="t-lbl" x="14" y="118" text-anchor="middle" transform="rotate(-90 14 118)">speed (u/s)</text>
+        <!-- x labels -->
+        <text class="t-num" x="58" y="215" text-anchor="middle">0</text>
+        <text class="t-num" x="162" y="215" text-anchor="middle">5</text>
+        <text class="t-num" x="267" y="215" text-anchor="middle">10</text>
+        <text class="t-num" x="371" y="215" text-anchor="middle">15</text>
+        <text class="t-num" x="475" y="215" text-anchor="middle">20</text>
+        <text class="t-num" x="580" y="215" text-anchor="middle">25</text>
+        <text class="t-num" x="684" y="215" text-anchor="middle">30</text>
+        <text class="t-lbl" x="371" y="236" text-anchor="middle">time from the planning instant (s)</text>
+        <!-- ramp region -->
+        <rect x="58" y="18" width="52.2" height="178" fill="var(--accent-soft)"/>
+        <text class="t-lbl" x="116" y="28" fill="var(--accent)">ramp, 2.5 s = max_speed / max_accel</text>
+        <!-- series -->
+        <path d="M 58,196 L 110.2,34.2 L 684,34.2" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M 58,196 L 64.3,189.5 L 684,189.5" fill="none" stroke="var(--old)" stroke-width="2.5" stroke-linejoin="round"/>
+        <!-- endpoint dots -->
+        <circle cx="684" cy="34.2" r="3.5" fill="var(--accent)"/>
+        <circle cx="684" cy="189.5" r="3.5" fill="var(--old)"/>
+        <!-- inline labels -->
+        <text class="t-num" x="676" y="26" text-anchor="end" fill="var(--accent)">ramped setpoint · 0.50</text>
+        <text class="t-num" x="676" y="183" text-anchor="end" fill="var(--old)">one-dt window ceiling · 0.02</text>
+      </svg>
+    </div>
+    <figcaption><b>Figure 1 — what each candidate assumes about itself</b>
+      Both curves start from rest. The baseline (brown) can only sample up to 0.02 u/s and holds it flat; the ramped candidate (magenta) samples a <em>setpoint</em> of 0.50 and approaches it at <code>max_accel</code>, reaching it in 2.5 s. Everything downstream follows from the gap between these two lines.</figcaption>
+  </figure>
+
+  <figure style="margin-top:34px">
+    <div class="figbox">
+      <svg viewBox="0 0 700 246" role="img" aria-label="Cumulative distance against time, 0.60 units versus 14.40 units at 30 seconds">
+        <text class="t-ttl" x="0" y="11">Distance the candidate believes it will cover</text>
+        <g stroke="var(--grid)" stroke-width="1">
+          <line x1="58" y1="196" x2="684" y2="196"/>
+          <line x1="58" y1="136.7" x2="684" y2="136.7" stroke-dasharray="3 4"/>
+          <line x1="58" y1="77.3" x2="684" y2="77.3" stroke-dasharray="3 4"/>
+          <line x1="58" y1="18" x2="684" y2="18" stroke-dasharray="3 4"/>
+        </g>
+        <text class="t-num" x="50" y="200" text-anchor="end">0</text>
+        <text class="t-num" x="50" y="140" text-anchor="end">5</text>
+        <text class="t-num" x="50" y="81" text-anchor="end">10</text>
+        <text class="t-num" x="50" y="22" text-anchor="end">15</text>
+        <text class="t-lbl" x="14" y="110" text-anchor="middle" transform="rotate(-90 14 110)">distance (u)</text>
+        <text class="t-num" x="58" y="215" text-anchor="middle">0</text>
+        <text class="t-num" x="267" y="215" text-anchor="middle">10</text>
+        <text class="t-num" x="475" y="215" text-anchor="middle">20</text>
+        <text class="t-num" x="684" y="215" text-anchor="middle">30</text>
+        <text class="t-lbl" x="371" y="236" text-anchor="middle">time from the planning instant (s)</text>
+        <!-- hull reference: 1.2 u -->
+        <line x1="58" y1="181.8" x2="684" y2="181.8" stroke="var(--fg-3)" stroke-width="1" stroke-dasharray="2 3"/>
+        <text class="t-lbl" x="62" y="178" fill="var(--fg-3)">one hull length · 1.2 u</text>
+        <!-- series -->
+        <path d="M 58,196 Q 84.1,196 110.2,188.6 L 684,25.1" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+        <path d="M 58,196 L 684,188.9" fill="none" stroke="var(--old)" stroke-width="2.5"/>
+        <circle cx="684" cy="25.1" r="3.5" fill="var(--accent)"/>
+        <circle cx="684" cy="188.9" r="3.5" fill="var(--old)"/>
+        <text class="t-big" x="676" y="45" text-anchor="end" fill="var(--accent)">14.40 u</text>
+        <text class="t-big" x="620" y="207" text-anchor="end" fill="var(--old)">0.60 u</text>
+      </svg>
+    </div>
+    <figcaption><b>Figure 2 — the reachable set is smaller than the ship</b>
+      The ramped curve is parabolic for its first 2.5 s because distance is the <em>integral</em> of speed: while acceleration is constant, <code>s = ½at²</code>. It straightens the moment the setpoint is reached and speed goes constant, and the join is smooth because velocity is continuous there. Over the full horizon the baseline candidate predicts <strong>0.60 u</strong> of travel. The ego's own hull is <strong>1.2 u</strong> long — the dotted line. The planner is reasoning about a reachable set half the length of the vessel doing the reasoning, while the true figure is <strong>14.40 u</strong>, a 24× underestimate.</figcaption>
+  </figure>
+
+  <div class="col stack" style="margin-top:30px">
+    <p>Now put a faster ship dead astern. Every candidate the planner can represent is slower than the overtaking target, so the target sweeps through all of them; every predicted trajectory collides; every cost becomes <code>inf</code>; <code>best_index</code> stays −1 and the run aborts on <strong>iteration 0</strong> with <code>No best trajectory found</code>. Two of the eleven open-water encounter cases failed exactly this way.</p>
+  </div>
+</section>
+
+<!-- ============ 2 ============ -->
+<section id="fix">
+  <div class="col sec-head">
+    <span class="eyebrow">02</span>
+    <h2>The fix: sample a setpoint, not a velocity</h2>
+  </div>
+  <div class="col stack">
+    <p>One idea, applied in two places that must agree:</p>
+    <ol>
+      <li><strong>Size the window to the horizon, not to one step.</strong> <code>v_window_ramp_time</code> replaces <code>dt</code> in the window construction. Set to <code>max_speed / max_accel</code> = 2.5 s, the window at rest becomes <strong>[0, 0.50]</strong> — the whole speed range.</li>
+      <li><strong>Roll out the acceleration you just promised.</strong> <code>ramped_rollout</code> integrates the sampled pair as a setpoint approached at <code>max_accel</code>, in the prediction <em>and</em> in execution. Without it, widening the window would let the simulated ego jump 0 → 0.5 u/s in one <code>dt</code> and silently violate its own acceleration limit.</li>
+    </ol>
+    <p>The motion model becomes a first-order lag against the actuator limit rather than a direct assignment:</p>
+    <pre>dv = u[0] − x[3]
+x[3] += clamp(dv, −max_accel·dt, +max_accel·dt)     <span style="color:var(--fg-3)"># was: x[3] = u[0]</span>
+dw = u[1] − x[4]
+x[4] += clamp(dw, −max_delta_yaw_rate·dt, +…)</pre>
+    <p>A sampled <code>(v, ω)</code> now means <em>"the speed I am aiming for"</em> instead of <em>"the speed I will have next step"</em>. The search space keeps the same shape — a 2-D grid — and the acceleration profile is generated by the rollout rather than searched over.</p>
+  </div>
+
+  <div class="tw col" style="margin-top:26px">
+    <table>
+      <thead><tr><th>Config key</th><th>Value</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td class="num">dwa_module</td><td class="num">dwa_ramped</td><td>New module; strict superset of the baseline</td></tr>
+        <tr><td class="num">v_window_ramp_time</td><td class="num">2.5</td><td>Window spans what the horizon can reach, not one <code>dt</code></td></tr>
+        <tr><td class="num">ramped_rollout</td><td class="num">true</td><td>Setpoint approached at <code>max_accel</code>, in rollout and execution</td></tr>
+        <tr><td class="num">v_resolution</td><td class="num">0.05</td><td>Coarsened so the count stays near baseline: 891 vs 243</td></tr>
+        <tr><td class="num">no_admissible_fallback</td><td class="num">least_bad</td><td>Backstop only — <em>not</em> the mechanism. See §06.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <figure style="margin-top:34px">
+    <div class="figbox">
+      <svg viewBox="0 0 700 176" role="img" aria-label="Collision-free candidates: zero of 243 at baseline, 596 of 891 with the ramped window">
+        <text class="t-ttl" x="0" y="12">Collision-free candidates at iteration 0</text>
+        <!-- baseline row -->
+        <text class="t-num" x="0" y="50" fill="var(--old)">v20.7.8-2</text>
+        <rect x="96" y="36" width="470" height="20" fill="var(--old-soft)" stroke="var(--rule)"/>
+        <text class="t-num" x="576" y="51">0 of 243 survive</text>
+        <text class="t-lbl" x="331" y="50" text-anchor="middle" fill="var(--old)">every candidate collides</text>
+        <!-- ramped row -->
+        <text class="t-num" x="0" y="102" fill="var(--accent)">v20.7.9</text>
+        <rect x="96" y="88" width="470" height="20" fill="var(--accent-soft)" stroke="var(--rule)"/>
+        <rect x="96" y="88" width="314.4" height="20" fill="var(--accent)"/>
+        <text class="t-num" x="576" y="103">596 of 891 survive</text>
+        <text class="t-lbl" x="253" y="102" text-anchor="middle" fill="var(--surface)">66.9% collision-free</text>
+        <!-- window comparison -->
+        <line x1="0" y1="130" x2="700" y2="130" stroke="var(--rule)"/>
+        <text class="t-lbl" x="0" y="150">velocity window at rest</text>
+        <text class="t-num" x="200" y="150" fill="var(--old)">[0.00, 0.02]</text>
+        <text class="t-num" x="300" y="150" fill="var(--fg-3)">→</text>
+        <text class="t-num" x="330" y="150" fill="var(--accent)">[0.00, 0.50]</text>
+        <text class="t-lbl" x="446" y="150" fill="var(--fg-3)">25× wider, 3.7× slower per case</text>
+      </svg>
+    </div>
+    <figcaption><b>Figure 3 — the effect on iteration 0</b>
+      The abort was not a near miss. Under the baseline window <em>every one</em> of 243 candidates was predicted to collide. Widening the window and ramping the rollout leaves two thirds of a larger sample set collision-free.</figcaption>
+  </figure>
+</section>
+
+<!-- ============ 3 ============ -->
+<section id="horizon">
+  <div class="col sec-head">
+    <span class="eyebrow">03</span>
+    <h2>Shortening the horizon is not the fix</h2>
+  </div>
+  <div class="col stack">
+    <p>The obvious cheap alternative is to predict less far ahead, which does make the abort go away. It does so by lowering the spawn distance at which it triggers, not by removing it. Survival at iteration 0 follows a clean staircase:</p>
+  </div>
+
+  <figure style="margin-top:26px">
+    <div class="figbox">
+      <svg viewBox="0 0 700 250" role="img" aria-label="Grid of iteration-0 survival percentage by spawn gap and prediction horizon, forming a staircase">
+        <text class="t-ttl" x="0" y="12">Iteration-0 survival · % of candidates with a collision-free prediction</text>
+        <!-- column headers -->
+        <text class="t-lbl" x="150" y="40" text-anchor="middle">predT5</text>
+        <text class="t-lbl" x="255" y="40" text-anchor="middle">predT10</text>
+        <text class="t-lbl" x="360" y="40" text-anchor="middle">predT15</text>
+        <text class="t-lbl" x="465" y="40" text-anchor="middle">predT20</text>
+        <text class="t-lbl" x="570" y="40" text-anchor="middle">predT30</text>
+        <text class="t-lbl" x="96" y="40" text-anchor="end">spawn gap</text>
+
+        <!-- row 4.0 -->
+        <text class="t-num" x="96" y="65" text-anchor="end">4.00 u</text>
+        <rect x="102" y="48" width="96" height="24" fill="var(--warn)" opacity=".42"/><text class="t-num" x="150" y="65" text-anchor="middle">27</text>
+        <rect x="207" y="48" width="96" height="24" fill="var(--old-soft)" stroke="var(--rule)"/><text class="t-num" x="255" y="65" text-anchor="middle" fill="var(--fg-3)">0</text>
+        <rect x="312" y="48" width="96" height="24" fill="var(--old-soft)" stroke="var(--rule)"/><text class="t-num" x="360" y="65" text-anchor="middle" fill="var(--fg-3)">0</text>
+        <rect x="417" y="48" width="96" height="24" fill="var(--old-soft)" stroke="var(--rule)"/><text class="t-num" x="465" y="65" text-anchor="middle" fill="var(--fg-3)">0</text>
+        <rect x="522" y="48" width="96" height="24" fill="var(--old-soft)" stroke="var(--rule)"/><text class="t-num" x="570" y="65" text-anchor="middle" fill="var(--fg-3)">0</text>
+        <!-- row 6.0 -->
+        <text class="t-num" x="96" y="100" text-anchor="end">6.00 u</text>
+        <rect x="102" y="83" width="96" height="24" fill="var(--good)" opacity=".26"/><text class="t-num" x="150" y="100" text-anchor="middle">100</text>
+        <rect x="207" y="83" width="96" height="24" fill="var(--old-soft)" stroke="var(--rule)"/><text class="t-num" x="255" y="100" text-anchor="middle" fill="var(--fg-3)">0</text>
+        <rect x="312" y="83" width="96" height="24" fill="var(--old-soft)" stroke="var(--rule)"/><text class="t-num" x="360" y="100" text-anchor="middle" fill="var(--fg-3)">0</text>
+        <rect x="417" y="83" width="96" height="24" fill="var(--old-soft)" stroke="var(--rule)"/><text class="t-num" x="465" y="100" text-anchor="middle" fill="var(--fg-3)">0</text>
+        <rect x="522" y="83" width="96" height="24" fill="var(--old-soft)" stroke="var(--rule)"/><text class="t-num" x="570" y="100" text-anchor="middle" fill="var(--fg-3)">0</text>
+        <!-- row 8.0 -->
+        <text class="t-num" x="96" y="135" text-anchor="end">8.00 u</text>
+        <rect x="102" y="118" width="96" height="24" fill="var(--good)" opacity=".26"/><text class="t-num" x="150" y="135" text-anchor="middle">100</text>
+        <rect x="207" y="118" width="96" height="24" fill="var(--good)" opacity=".26"/><text class="t-num" x="255" y="135" text-anchor="middle">100</text>
+        <rect x="312" y="118" width="96" height="24" fill="var(--old-soft)" stroke="var(--rule)"/><text class="t-num" x="360" y="135" text-anchor="middle" fill="var(--fg-3)">0</text>
+        <rect x="417" y="118" width="96" height="24" fill="var(--old-soft)" stroke="var(--rule)"/><text class="t-num" x="465" y="135" text-anchor="middle" fill="var(--fg-3)">0</text>
+        <rect x="522" y="118" width="96" height="24" fill="var(--old-soft)" stroke="var(--rule)"/><text class="t-num" x="570" y="135" text-anchor="middle" fill="var(--fg-3)">0</text>
+        <!-- row 10.55 -->
+        <text class="t-num" x="96" y="170" text-anchor="end">10.55 u</text>
+        <rect x="102" y="153" width="96" height="24" fill="var(--good)" opacity=".26"/><text class="t-num" x="150" y="170" text-anchor="middle">100</text>
+        <rect x="207" y="153" width="96" height="24" fill="var(--good)" opacity=".26"/><text class="t-num" x="255" y="170" text-anchor="middle">100</text>
+        <rect x="312" y="153" width="96" height="24" fill="var(--good)" opacity=".26"/><text class="t-num" x="360" y="170" text-anchor="middle">100</text>
+        <rect x="417" y="153" width="96" height="24" fill="var(--old-soft)" stroke="var(--rule)"/><text class="t-num" x="465" y="170" text-anchor="middle" fill="var(--fg-3)">0</text>
+        <rect x="522" y="153" width="96" height="24" fill="var(--old-soft)" stroke="var(--rule)"/><text class="t-num" x="570" y="170" text-anchor="middle" fill="var(--fg-3)">0</text>
+        <!-- row 14.0 -->
+        <text class="t-num" x="96" y="205" text-anchor="end">14.00 u</text>
+        <rect x="102" y="188" width="96" height="24" fill="var(--good)" opacity=".26"/><text class="t-num" x="150" y="205" text-anchor="middle">100</text>
+        <rect x="207" y="188" width="96" height="24" fill="var(--good)" opacity=".26"/><text class="t-num" x="255" y="205" text-anchor="middle">100</text>
+        <rect x="312" y="188" width="96" height="24" fill="var(--good)" opacity=".26"/><text class="t-num" x="360" y="205" text-anchor="middle">100</text>
+        <rect x="417" y="188" width="96" height="24" fill="var(--good)" opacity=".26"/><text class="t-num" x="465" y="205" text-anchor="middle">100</text>
+        <rect x="522" y="188" width="96" height="24" fill="var(--old-soft)" stroke="var(--rule)"/><text class="t-num" x="570" y="205" text-anchor="middle" fill="var(--fg-3)">0</text>
+        <!-- staircase emphasis -->
+        <path d="M 198,48 L 198,83 L 303,83 L 303,118 L 408,118 L 408,153 L 513,153 L 513,188 L 618,188 L 618,212"
+              fill="none" stroke="var(--accent)" stroke-width="2"/>
+        <text class="t-lbl" x="0" y="240" fill="var(--accent)">the boundary moves, it never leaves — predT30 fails at every spawn gap tested</text>
+      </svg>
+    </div>
+    <figcaption><b>Figure 4 — the horizon sweep</b>
+      The failure boundary is <code>predT ≥ (gap − 1.15) / (v_target − 0.02)</code>. Shortening the horizon slides the magenta staircase to the right; it never removes it. And a short horizon costs you the thing you needed the horizon for: at <code>predT5</code> the ego cruises straight for 87 s and only reacts when the target is 0.065 u away.</figcaption>
+  </figure>
+
+  <div class="col" style="margin-top:26px">
+    <p class="quote">The two failures are opposite ends of one tension. You need a long horizon to see a 0.1 u/s overtake at all; the naive long horizon paralyses the planner at low speed. Shortening trades one for the other — only fixing the model gets both.</p>
+  </div>
+</section>
+
+<!-- ============ 4 ============ -->
+<section id="results">
+  <div class="col sec-head">
+    <span class="eyebrow">04</span>
+    <h2>What it actually did</h2>
+  </div>
+  <div class="col stack">
+    <p>Eleven open-water encounter cases, scored as clearance / deviation / delay against an obstacle-free baseline.</p>
+  </div>
+  <div class="tw" style="margin-top:22px">
+    <table>
+      <thead><tr><th>Case</th><th>v20.7.8-2</th><th>v20.7.9</th><th>t_cpa</th><th></th></tr></thead>
+      <tbody>
+        <tr><td class="num">head_on</td><td class="num">0.48 / 1.74 / 0.7</td><td class="num">0.48 / 1.74 / 0.7</td><td class="num">90.4</td><td>same</td></tr>
+        <tr><td class="num">cross_stbd_045</td><td class="num">0.58 / 1.79 / 0.7</td><td class="num">0.58 / 1.79 / 0.7</td><td class="num">89.8</td><td>same</td></tr>
+        <tr><td class="num">cross_port_045</td><td class="num">0.57 / 1.79 / 0.7</td><td class="num">0.57 / 1.79 / 0.7</td><td class="num">89.8</td><td>same</td></tr>
+        <tr><td class="num">cross_stbd_090</td><td class="num">0.77 / 2.17 / 1.0</td><td class="num">0.77 / 2.17 / 1.0</td><td class="num">88.3</td><td>same</td></tr>
+        <tr><td class="num">cross_port_090</td><td class="num">0.76 / 2.15 / 1.0</td><td class="num">0.76 / 2.15 / 1.0</td><td class="num">88.3</td><td>same</td></tr>
+        <tr><td class="num">cross_stbd_135</td><td class="num">0.94 / 2.97 / 1.9</td><td class="num">0.94 / 3.00 / 1.8</td><td class="num">83.8</td><td>moved</td></tr>
+        <tr><td class="num">cross_port_135</td><td class="num">0.94 / 2.98 / 1.9</td><td class="num">0.94 / 3.00 / 1.8</td><td class="num">83.8</td><td>moved</td></tr>
+        <tr><td class="num">overtake_ego</td><td class="num">1.21 / 2.47 / 1.1</td><td class="num">1.21 / 2.47 / 1.1</td><td class="num">87.8</td><td>same</td></tr>
+        <tr><td class="num">null_safe_pass</td><td class="num">4.88 / 0.00 / 0.0</td><td class="num">4.88 / 0.00 / 0.0</td><td class="num">90.0</td><td>same</td></tr>
+        <tr><td class="num">overtaken_ego</td><td class="num no">failed</td><td class="num">1.15 / 3.15 / 1.5</td><td class="num">109.5</td><td class="ok">fixed</td></tr>
+        <tr><td class="num">overtaken_ego_fast</td><td class="num no">failed</td><td class="num">0.99 / 2.44 / 1.1</td><td class="num">52.0</td><td class="ok">fixed</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col stack" style="margin-top:22px">
+    <ul>
+      <li>Seven of the nine previously-working cases are unchanged to two decimals, with <strong>trajectories matching to 0.0003 u</strong> over identical step counts.</li>
+      <li><code>null_safe_pass</code> holds at 0.00 deviation — a 25× wider speed window bought no over-reaction, which is the result that matters most for "did this break anything".</li>
+      <li>The 135° pair became <em>exactly</em> mirror-symmetric (|Δdev| 0.01 → <strong>0.000</strong>). The residual asymmetry the suite had cited as evidence was a <code>v_resolution</code> artefact.</li>
+      <li>The two repaired cases now diverge as designed — t_cpa 109.5 s vs 52.0 s, tracking the manifest's 100 s and 50 s meeting times. Under the baseline they were indistinguishable, so they had been duplicate tests.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ 5 ============ -->
+<section id="cost">
+  <div class="col sec-head">
+    <span class="eyebrow">05</span>
+    <h2>Why this stays computable</h2>
+  </div>
+  <div class="col stack">
+    <p>The honest alternative to "one command held for the horizon" is to search <em>sequences</em> of commands. With 891 samples per step and 300 control steps in a 30 s horizon at <code>dt = 0.1</code>, a depth-<em>k</em> search costs 891<sup><em>k</em></sup>:</p>
+  </div>
+  <div class="tw col" style="margin-top:22px">
+    <table>
+      <thead><tr><th>Search depth</th><th>Sequences</th><th>Wall-clock for one case</th></tr></thead>
+      <tbody>
+        <tr><td class="num">1 — today</td><td class="num">8.9 × 10²</td><td class="num">40 min</td></tr>
+        <tr><td class="num">2</td><td class="num">7.9 × 10⁵</td><td class="num">25 days</td></tr>
+        <tr><td class="num">3</td><td class="num">7.1 × 10⁸</td><td class="num">60 years</td></tr>
+        <tr><td class="num">300 — full horizon</td><td class="num">10⁸⁸⁵</td><td class="num">—</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col stack" style="margin-top:22px">
+    <p>For scale, the observable universe holds roughly 10⁸⁰ atoms. Even depth 2 is off the table for a suite that re-runs.</p>
+    <p><strong>The ramped rollout is a cheap approximation of that search.</strong> It does not abandon multi-step manoeuvres — it restricts them to a one-parameter family: <em>ramp toward a setpoint at <code>max_accel</code>, then hold</em>. Cost stays <strong>linear</strong> in sample count and <strong>constant</strong> in horizon length, while still representing the accelerate-away escape that the one-step window could not express at all. Any future feasibility test should preserve that property: a closed-form or single-rollout criterion, never a tree.</p>
+  </div>
+</section>
+
+<!-- ============ 6 ============ -->
+<section id="broke">
+  <div class="col sec-head">
+    <span class="eyebrow">06</span>
+    <h2>What it quietly broke</h2>
+  </div>
+  <div class="col stack">
+    <p>This is the part worth carrying into any write-up, because it is an <em>interaction</em> between the fix and a piece of classical DWA that nobody touched.</p>
+    <p>DWA's admissibility test keeps only velocities from which the robot can brake to rest before the nearest obstacle on that curve:</p>
+    <pre>reject (v, ω)  if   v² + 2·a·v·dt  >  2·a·dist</pre>
+    <p>At <code>v = 0</code> this reduces to <code>0 &gt; 2·a·dist</code>, which is never true, so <strong><code>v = 0</code> is always admissible</strong>. The baseline's narrow window at cruise offered only <code>v ∈ [0.48, 0.50]</code>, all of which could fail the check — and when they all did, the planner raised a hard abort. The widened window <em>always contains zero</em>. So something is always admissible, and that abort guard became <strong>unreachable in every configuration</strong>.</p>
+    <p>What the planner does instead is the worst available thing: it slows — 0.50 → 0.40 → 0.38 → 0.36 — while a 0.6 u/s ship closes from dead astern, and is run down.</p>
+    <div class="note">
+      <b>The braking criterion is not merely conservative here — it is inverted.</b>
+      <span>It was built for static obstacles, where stopping is always safe. Against a faster vessel overtaking from astern, stopping is the one action guaranteed to cause contact. Backward reachability from the baseline's own cornered state showed an escape did exist: <code>v = 0.500</code> with a 32% starboard turn holds <strong>+0.0173 u</strong> of clearance, where braking straight ahead gives <strong>−0.5060 u</strong>. The surviving manoeuvre needs <em>more</em> speed plus a turn — and the admissibility test discards exactly that set first, then the planner correctly reports it has none.</span>
+    </div>
+    <div class="note" style="border-left-color:var(--accent)">
+      <b>A load-bearing coincidence.</b>
+      <span>The window reaches <code>v = 0</code> from any state only because <code>v_window_ramp_time = 2.5</code> is <em>exactly</em> <code>max_speed / max_accel = 0.5 / 0.2</code>. That is a configuration convention, not a code invariant. Set the ramp to 2.0 and the floor at cruise becomes 0.1, zero leaves the window, and the guard becomes reachable at some speeds and not others — the worst of both worlds. Worth stating explicitly in any paper that reports this window.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 7 ============ -->
+<section id="priorart">
+  <div class="col sec-head">
+    <span class="eyebrow">07</span>
+    <h2>Is any of this new?</h2>
+  </div>
+  <div class="col stack">
+    <p>Taking the mechanism and the findings separately, because they land very differently.</p>
+  </div>
+
+  <div class="verdict col">
+    <h3>The ramped window itself: <span style="color:var(--bad)">not novel.</span></h3>
+    <p style="font-size:.94rem; color:var(--fg-2)">It is a rediscovery of <strong>Trajectory Rollout</strong>, which has shipped in ROS <code>base_local_planner</code> since 2008 as the sibling algorithm to DWA. The wiki states the distinction in the terms this work arrived at independently:</p>
+    <p class="quote" style="font-size:.97rem">Trajectory Rollout samples from the set of achievable velocities over the entire forward simulation period given the acceleration limits of the robot, while DWA samples from the set of achievable velocities for just one simulation step.
+      <cite>ROS wiki · base_local_planner</cite></p>
+    <p style="font-size:.94rem; color:var(--fg-2)">The source is blunter still. In <code>simple_trajectory_generator.cpp</code> the two algorithms are separated by <strong>a single boolean</strong>, which toggles the window extent and the rollout together:</p>
+    <pre style="font-size:.79rem">continued_acceleration_ = ! use_dwa_;
+
+if (use_dwa_) {
+  max_vel[0] = min(max_vel_x, vel[0] + acc_lim[0] * <b style="color:var(--old)">sim_period_</b>);  <span style="color:var(--fg-3)">// one control step</span>
+} else {
+  max_vel[0] = min(max_vel_x, vel[0] + acc_lim[0] * <b style="color:var(--accent)">sim_time_</b>);    <span style="color:var(--fg-3)">// the whole horizon</span>
+}</pre>
+    <p style="font-size:.94rem; color:var(--fg-2)"><code>use_dwa_ = false</code> <em>is</em> <code>v_window_ramp_time</code> plus <code>ramped_rollout</code> — the same two knobs, coupled for the same reason: widening the window without ramping the rollout would violate the acceleration limit. The header comment even gives the worked example — DWA samples 0→0.2 m/s where trajectory rollout samples 0→1 m/s, <em>"respecting the acceleration limit, so it gradually increases velocity."</em></p>
+  </div>
+
+  <div class="col stack" style="margin-top:30px">
+    <h3 style="font-family:Spectral,Georgia,serif; font-size:1.22rem">Has anyone folded it into DWA proper?</h3>
+    <p>No — and that gap is real and uninteresting at once. The two changes <em>are</em> the DWA↔Trajectory&nbsp;Rollout distinction, so adding them to DWA does not yield a DWA variant: it converts DWA into Trajectory Rollout. Nobody added it because nobody needed to; you flip a flag.</p>
+    <p>Searched and ruled out: <strong>DWPP</strong> (2026) keeps a single-timestep window and is an analytic pure-pursuit variant; <strong>Missura &amp; Bennewitz</strong> (ICRA 2019) change the collision model, not the sampling; <strong>TS-DWA</strong> (2024) changes <em>where in</em> the window it samples, not its extent; <strong>Global DWA</strong> (1999) and <strong>Convergent DWA</strong> (2005) address navigation functions and stability. The nearest neighbour is an <strong>enhanced DWA for UUVs</strong> (2026) arguing that inertia and actuator limits mean velocity candidates "cannot be generated arbitrarily" — worth reading in full.</p>
+    <div class="note">
+      <b>Scope of the equivalence — state it carefully or a reviewer will correct you.</b>
+      <span>One flag separates the two <em>sampling modes of ROS's shared trajectory generator</em>. It does <em>not</em> mean the two ROS packages differ only there — <code>dwa_local_planner</code> uses the modern critic architecture (<code>SimpleScoredSamplingPlanner</code> over Oscillation, Obstacle, GoalFront, Alignment, Path, Goal and Twirling cost functions) while <code>base_local_planner</code> scores inline. Nor does it hold for the <em>published</em> algorithms: Fox, Burgard &amp; Thrun (1997) and Gerkey &amp; Konolige (2008) are separate lineages with different objective functions. The equivalence is a property of ROS's unified reimplementation, not a theorem.</span>
+    </div>
+  </div>
+
+  <div class="col stack" style="margin-top:34px">
+    <h3 style="font-family:Spectral,Georgia,serif; font-size:1.22rem">The find that changes the target of §06</h3>
+    <p>Looking for the braking-admissibility test in ROS's DWA — <code>v² + 2·a·v·dt &gt; 2·a·dist</code>, the Stage 1 veto — turns up nothing. It is absent from <code>dwa_planner.cpp</code>, and <code>ObstacleCostFunction</code> does something else entirely:</p>
+    <p class="quote" style="font-size:.95rem">if we're over a certain speed threshold, we'll scale the robot's footprint to make it either slow down or stay further from walls
+      <cite>ROS · obstacle_cost_function.cpp</cite></p>
+    <p>That is <code>scale = max_scaling_factor · ratio + 1.0</code> — velocity-proportional <em>footprint inflation</em>. A soft geometric heuristic, with nothing resembling <code>v ≤ √(2·d·a_brake)</code> anywhere in it.</p>
+    <div class="note" style="border-left-color:var(--good)">
+      <b>The most widely deployed DWA implementation dropped the admissible-velocity constraint, and replaced the veto with a soft cost.</b>
+      <span>This arrives at §06's argument from an unexpected direction. The braking test is not "what DWA does" — it is what the 1997 paper specified and what this codebase's v4 lineage inherited. In practice it was already retired, and the replacement is a penalty rather than a hard rejection, which is exactly the direction <code>OPEN_PROBLEMS</code> §3(a) proposes. That makes the Stage 1 critique a narrower and far more defensible target, and means it no longer has to be argued from first principles.</span>
+    </div>
+  </div>
+
+  <div class="col stack" style="margin-top:34px">
+    <p>So: do not build a paper's contribution on the mechanism. A reviewer who knows the ROS navigation stack will recognise it immediately, and the honest framing — <em>we independently rederived Trajectory Rollout and show why it is mandatory rather than optional in the maritime regime</em> — is much stronger than a novelty claim that will not survive review. What surrounds the mechanism is a different matter.</p>
+  </div>
+
+  <div class="verdict-grid col" style="margin-top:22px">
+    <div class="vcell">
+      <span class="tag no">Not novel</span>
+      <strong style="font-size:.95rem">Sampling over the horizon</strong>
+      <p>Trajectory Rollout, 2008 — one boolean in the ROS source. Also standard in any MPC with input-rate constraints.</p>
+    </div>
+    <div class="vcell">
+      <span class="tag no">Not novel</span>
+      <strong style="font-size:.95rem">The braking admissibility test</strong>
+      <p>Canonical to the 1997 DWA paper — but <em>absent</em> from ROS's DWA, which replaced it with speed-scaled footprint inflation.</p>
+    </div>
+    <div class="vcell">
+      <span class="tag maybe">Weak / incremental</span>
+      <strong style="font-size:.95rem">"DWA struggles with dynamic obstacles"</strong>
+      <p>Extensively covered — Missura &amp; Bennewitz (ICRA 2019); the maritime DWA literature is already sizeable.</p>
+    </div>
+    <div class="vcell">
+      <span class="tag yes">Defensible</span>
+      <strong style="font-size:.95rem">Counterexample to standing guidance</strong>
+      <p>ROS recommends DWA over Trajectory Rollout because "in practice they perform similarly". Here they do not: abort at iteration 0 versus 1.15 u clearance.</p>
+    </div>
+    <div class="vcell">
+      <span class="tag yes">Defensible</span>
+      <strong style="font-size:.95rem">Infeasibility, not degradation</strong>
+      <p>The wiki's caveat is an unquantified aside. This is a <em>hard abort</em> with a closed-form trigger condition — a different failure class.</p>
+    </div>
+    <div class="vcell">
+      <span class="tag yes">Defensible</span>
+      <strong style="font-size:.95rem">Reachable set smaller than the hull</strong>
+      <p>0.60 u of reachable travel for a 1.2 u vessel — a 24× underestimate, and a vivid instance of the ROS caveat.</p>
+    </div>
+    <div class="vcell">
+      <span class="tag yes">Strongest</span>
+      <strong style="font-size:.95rem">Braking admissibility is <em>inverted</em> astern</strong>
+      <p>Not "too conservative" — it selects the one fatal action and deletes the unique surviving manoeuvre. Measured, not argued.</p>
+    </div>
+  </div>
+
+  <div class="col stack" style="margin-top:34px">
+    <h3 style="font-family:Spectral,Georgia,serif; font-size:1.3rem">Where the publishable contribution actually sits</h3>
+    <p>Not in the window. In the observation that <strong>DWA's two filters model different physics</strong>, and that the feasibility filter is the wrong one on three independent axes: it freezes obstacles that the cost function extrapolates, it <em>used</em> a circumscribed disc where the cost function uses a capsule, and it scans unbounded arc length where the cost function respects a horizon.</p>
+    <p class="note"><strong>Updated 2026-09-15 (<code>194aacf</code>).</strong> The hull axis is now closed: <code>closest_obstacle_on_curve</code> honours <code>robot_collision_shape</code> in all three of its branches, disc verified bit-identical. Two axes remain open, plus a newly found one &mdash; the function misreports an obstacle it is <em>already touching</em> (OPEN_PROBLEMS item 10).</p>
+    <p>For an elongated, low-acceleration vehicle every one of those is severe, and the middle one was measurable at 3.16&times; hull inflation <em>abeam</em> &mdash; though only 0.513&nbsp;m along the bow, since a capsule's bow still reaches <code>(L&minus;W)/2</code> ahead of the hull centre. That distinction matters: the bow is the direction a braking test cares about. That is a coherent critique of the classical formulation <em>as applied to ships</em>, with a concrete remedy — move the CPA that already exists in the cost function onto the feasibility side and retire the braking test, as ROS's own DWA effectively already has.</p>
+    <div class="note" style="border-left-color:var(--good)">
+      <b>Suggested framing.</b>
+      <span>Position the ramped window as <em>necessary preparation</em>: cite Trajectory Rollout and Gerkey &amp; Konolige, show the maritime regime makes it non-optional, and add the counterexample to the "they perform similarly" guidance — that much is publishable as a supporting result. Then spend the paper on the feasibility/cost inconsistency and the inverted braking criterion, which is where the genuinely new material is. The negative result in §06 — that fixing the window silently disabled a safety guard — is a good honest inclusion and reviewers tend to reward it.</span>
+    </div>
+    <div class="note">
+      <b>Three gaps to close before submission.</b>
+      <span>The backward-reachability grid that produced the escape numbers is not in the repository, so the headline evidence for the inverted-braking claim cannot currently be reproduced. The strongest AIS case for the braking critique, <code>ny_synth_00</code>, is still unproven — 287 pruned candidates have never been scored. And the prior-art sweep behind this section is English-language and largely abstract-level for paywalled venues; the sizeable Chinese-language <em>改进DWA</em> literature warrants a CNKI pass before any novelty claim is committed to.</span>
+    </div>
+  </div>
+
+</section>
+
+<section style="border-bottom:none">
+  <div class="col stack">
+    <span class="eyebrow">Reproducing</span>
+    <pre># the fix
+python -m PathPlanning.DWAT_v5_modular.main \
+    --scenario owenc_overtaken_ego --algorithm-config v20.7.9
+
+# the degraded variant that collides
+python -m PathPlanning.DWAT_v5_modular.main \
+    --scenario owenc_overtaken_ego --algorithm-config v20.7.9/predT5-ramped</pre>
+    <p style="font-size:.86rem; color:var(--fg-3)">A case takes ~40 min at v20.7.9 (891 candidates) against ~11 min at v20.7.8-2. Source: <code>PathPlanning/DWAT_v4_st/dwa_ramped.py</code>. Full record: <code>results/v20.7.9_ramped_window/README.md</code>; open problems and the feasibility critique: <code>results/OPEN_PROBLEMS.md</code>.</p>
+  </div>
+</section>
+
+</div>

@@ -44,17 +44,24 @@ through **two independent tests**, in this order:
 ```
 
 **Stage 1 and Stage 2 disagree about what a ship is and what the world does, on
-three independent axes — and Stage 1 is the wrong one on all three:**
+three independent axes — and Stage 1 is the wrong one on all three.** One of the
+three is now closed (`194aacf`, 2026-09-15); the other two are the remaining work:
 
 | axis | Stage 2 (cost) | Stage 1 (feasibility) | backlog |
 |---|---|---|---|
 | **obstacle motion** | `ob_pos + ob_vel·t`, relative motion | **frozen** — the function takes no `ob_vel` argument at all | item **5** |
-| **ego hull** | capsule when configured, half-beam `W/2` | **always the circumscribed disc** `sqrt(L²+W²)/2` — **3.16×** wider for a 19 × 6.33 m ego | item **1** |
+| **ego hull** | capsule when configured, half-beam `W/2` | ✅ **fixed** — honours `robot_collision_shape` since `194aacf`. *Was* always the circumscribed disc `sqrt(L²+W²)/2`, **3.16×** wider abeam for a 19 × 6.33 m ego | item **1** ✅ |
 | **look-ahead** | bounded by `predict_time_obstacle` | **unbounded** — "no span restriction", scans the full circle | item **9** (new) |
 
 That table *is* the problem statement. Everything in §5 is either repairing one
 of those three rows, replacing the whole of Stage 1, or cleaning up inputs so the
 repair can be measured.
+
+**A caution the closed row leaves behind.** The 3.16× figure is the gain *abeam*.
+Along the bow — the direction a braking test cares most about — a capsule buys only
+`sqrt(L²+W²)/2 − L/2` = **0.513 m**, because the bow still reaches `(L−W)/2` ahead
+of the hull centre. Quoting 3.16× as the improvement to Stage 1's reach overstates
+it by an order of magnitude in the direction that matters. See the ⚠ in §4.1.
 
 The third row is worth a number, because it was unnamed until now: for
 `ny_hist_366962130` the 120 s horizon covers **624 m**, while a gentle turn at
@@ -72,18 +79,18 @@ is where most historical confusion came from.
 | | **Guard A** | **Guard B** |
 |---|---|---|
 | message | `No admissible (v, ω) pairs found in dynamic window` | `No best trajectory found` |
-| raised at | [dwa_average_weighted_side.py:534][a] (`len(to_goal_costs) == 0`) | [:551][b] (`best_index == -1`) |
+| raised at | [dwa_average_weighted_side.py:562][a] (`len(to_goal_costs) == 0`) | [:579][b] (`best_index == -1`) |
 | means | **Stage 1** emptied the set | Stage 1 passed something, **Stage 2** emptied it |
 | what makes it fire | `v² + 2·a·v·dt > 2·a·dist` for all `(v, ω)` | `is_collision` inside the horizon for all survivors |
 | caught by `least_bad`? | **no** — still raises unconditionally | **yes** — this is the case the fallback handles |
 
-[a]: ../../DWAT_v4_st/dwa_average_weighted_side.py#L534
-[b]: ../../DWAT_v4_st/dwa_average_weighted_side.py#L551
+[a]: ../../DWAT_v4_st/dwa_average_weighted_side.py#L562
+[b]: ../../DWAT_v4_st/dwa_average_weighted_side.py#L579
 
 **The fallback key was misleadingly named, and has been renamed.** It does not
-catch the "no admissible pairs" guard. [dwa_ramped.py:293][c] gates on
+catch the "no admissible pairs" guard. [dwa_ramped.py:296][c] gates on
 `best_index == -1 and len(controls) > 0` — meaning admissible candidates
-existed. Guard A at [dwa_ramped.py:291][d] still raises regardless of the
+existed. Guard A at [dwa_ramped.py:294][d] still raises regardless of the
 setting.
 
 | | |
@@ -103,8 +110,8 @@ carries `all_candidates_collide_fallback`. Existing log files are untouched, but
 anything that diffs *config blocks* across the rename will show this one key as
 a spurious difference. Trajectory diffs are unaffected.
 
-[c]: ../../DWAT_v4_st/dwa_ramped.py#L293
-[d]: ../../DWAT_v4_st/dwa_ramped.py#L291
+[c]: ../../DWAT_v4_st/dwa_ramped.py#L296
+[d]: ../../DWAT_v4_st/dwa_ramped.py#L294
 
 ### The inference to *not* make
 
