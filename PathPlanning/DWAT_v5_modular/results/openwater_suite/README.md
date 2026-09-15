@@ -127,7 +127,7 @@ baseline's `v + a*dt` upper bound *is* the max-accel step.
   `max_accel` / `max_delta_yaw_rate`, in the rollout *and* in execution.
   Widening the window without this would let the simulated ego jump
   0 -> 0.5 u/s in one `dt` and silently violate `max_accel`.
-- `no_admissible_fallback: "least_bad"` — when every candidate scores `inf`,
+- `all_candidates_collide_fallback: "least_bad"` — when every candidate scores `inf`,
   keep the one furthest from contact instead of raising. Iteration 0 now has
   596 of 891 candidates collision-free, so the widened window carries the fix
   on its own and this rarely fires. **It is not the only guard that changed:**

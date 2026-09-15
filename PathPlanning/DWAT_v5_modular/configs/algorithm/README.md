@@ -73,6 +73,8 @@ Worked examples, all verified:
 | `global_planner_resolution` | absent from a scenario ⇒ `1.0`, the historical value |
 | large occupancy maps drawn as an image | threshold above the largest existing map |
 | capsule ego hull | `robot_collision_shape` absent ⇒ `"disc"` |
+| capsule in `closest_obstacle_on_curve` (item 1) | same key; `"disc"` verified bit-identical over 4000 randomised calls **and** `owenc_head_on` re-run |
+| `no_admissible_fallback` → `all_candidates_collide_fallback` | old key still loads, as a property alias on `Config` |
 
 **Check it by re-running, not by reading.** Re-run an existing scenario on the
 new code and diff the trajectory against its recorded run — `log_details.json`
@@ -86,6 +88,26 @@ assert np.abs(np.array(a) - np.array(b)).max() == 0
 
 Last verified 2026-09-12 on `openwater_baseline` (v20.7.8-2, 1534 steps) and
 `scene_export` (v20.9.1, 260 steps): both bit-identical.
+
+### One rename that does change logs
+
+`no_admissible_fallback` became **`all_candidates_collide_fallback`** on
+2026-09-15. It was named after Guard A's message (`No admissible (v, ω) pairs`)
+but only ever caught Guard B (`No best trajectory found`) — see
+`../../results/OPEN_PROBLEMS.md` §2.
+
+Old configs keep working: `Config` exposes the old name as a property that
+proxies to the new one, which is what `apply_algorithm_overrides`'s
+`hasattr`/`setattr` gate needs. **But logs change.** `output_display` serialises
+`config.__dict__`, and a property is not in `__dict__`, so:
+
+| log written | carries |
+|---|---|
+| before 2026-09-15 | `no_admissible_fallback` |
+| after | `all_candidates_collide_fallback` |
+
+Existing runs are not rewritten. The trajectory-diff recipe above is unaffected;
+only a *config-block* diff spanning the rename sees it.
 
 **Do not rename or move a config without moving its `runs/` directory too.**
 `run_paths.version_from_config` derives the run directory from the config path,

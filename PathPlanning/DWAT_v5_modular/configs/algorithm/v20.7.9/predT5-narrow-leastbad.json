@@ -32,5 +32,5 @@
   "side_clearance_gaussian_decay": 6.0,
   "v_window_ramp_time": 0.0,
   "ramped_rollout": false,
-  "no_admissible_fallback": "least_bad"
+  "all_candidates_collide_fallback": "least_bad"
 }

@@ -90,9 +90,17 @@ class Config:
         # Treat a sampled (v, omega) as a setpoint approached at max_accel /
         # max_delta_yaw_rate, instead of a velocity applied instantly.
         self.ramped_rollout = False
-        # What to do when every candidate scores inf:
+        # What to do when every candidate that PASSED admissibility scores inf
+        # -- i.e. Guard B, "No best trajectory found":
         # "raise" -> ValueError (classic), "least_bad" -> keep the safest one.
-        self.no_admissible_fallback = "raise"
+        #
+        # Named for the guard it actually catches. It was once called
+        # "no_admissible_fallback", which collided with Guard A's message
+        # ("No admissible (v, omega) pairs") -- a guard it does NOT catch and
+        # never did. Guard A fires when admissibility rejects everything, and
+        # raises unconditionally regardless of this setting. The old name is
+        # still accepted as an alias; see the property below.
+        self.all_candidates_collide_fallback = "raise"
 
         self.obstacle_max_angle = np.pi / 180 * 180  # [rad] max angle to consider obstacles in front
 
@@ -121,6 +129,26 @@ class Config:
         # _and_collision.
         self.robot_collision_shape = "disc"
 
+
+    @property
+    def no_admissible_fallback(self):
+        """Deprecated alias for ``all_candidates_collide_fallback``.
+
+        Kept so that config JSONs written before the rename keep loading:
+        ``main.apply_algorithm_overrides`` gates on ``hasattr`` and then
+        ``setattr``, both of which this property satisfies.
+
+        Being a property, it is absent from ``Config.__dict__`` and therefore
+        from the config block that ``output_display`` writes into every
+        ``run.json`` / ``log_details.json``. Logs written after the rename
+        carry ``all_candidates_collide_fallback``; logs written before it carry
+        ``no_admissible_fallback``. Both name the same setting.
+        """
+        return self.all_candidates_collide_fallback
+
+    @no_admissible_fallback.setter
+    def no_admissible_fallback(self, value):
+        self.all_candidates_collide_fallback = value
 
     @property
     def robot_type(self):
@@ -575,6 +603,43 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
             min_cost)
 
 
+def _swept_hull_extent(config, side_factor, arc_radius=None):
+    """Rectangular ego hull, reduced to what the swept-path tests need.
+
+    Returns ``(half, radius)``: the hull swept along the candidate path is
+    contained in the band of ``radius`` about that path, with the bow leading
+    the hull centre by ``half`` of path length.
+
+    ``"disc"`` returns ``(0.0, sqrt((L/2)^2 + (W/2)^2) * side_factor)`` -- the
+    circumscribed circle, which is what every branch below used unconditionally
+    before the capsule existed, so disc configs are bit-identical.
+
+    ``"capsule"`` returns ``half = (L - W)/2`` and ``radius = (W/2) *
+    side_factor``. For a 19 x 6.33 m ego that is 3.165 m rather than 10.013 m --
+    the disc treats a ship as being as wide as it is long, and in Stage 1 that
+    is the difference between an admissible creep and an abort.
+
+    ``arc_radius`` is ``|v / omega|`` for the circular-arc branch. A capsule
+    rigidly swept along an arc, axis tangent, sweeps an annulus whose outer edge
+    sits at ``hypot(R, half) + W/2`` while its inner edge stays at ``R - W/2``.
+    Widening the band by ``hypot(R, half) - R`` makes the symmetric band contain
+    that annulus, which keeps the existing circle-circle intersection exact and
+    conservative. The term is 0.024 m at R = 836 m and grows only as the turn
+    tightens; the bow lead ``half`` is handled by the caller and is the larger
+    of the two effects by far.
+    """
+    shape = getattr(config, "robot_collision_shape", "disc")
+    if shape == "capsule":
+        half = max(0.5 * (config.robot_length - config.robot_width), 0.0)
+        radius = 0.5 * config.robot_width * side_factor
+        if arc_radius is not None and arc_radius > 0.0:
+            radius += math.hypot(arc_radius, half) - arc_radius
+        return half, radius
+
+    diagonal = math.sqrt((config.robot_length / 2) ** 2 + (config.robot_width / 2) ** 2)
+    return 0.0, diagonal * side_factor
+
+
 def closest_obstacle_on_curve(x, ob, ob_radii, v, omega, config):
     """
     Calculate the distance to the closest obstacle that intersects with the curvature
@@ -623,16 +688,18 @@ def closest_obstacle_on_curve(x, ob, ob_radii, v, omega, config):
                 
             closest_approach = np.linalg.norm(to_center - projection * heading_vector)
             
-            collision_threshold = 0
+            half_hull = 0.0
             if config.robot_type == RobotType.rectangle:
-                robot_diagonal = math.sqrt((config.robot_length/2)**2 + (config.robot_width/2)**2)
-                collision_threshold = obstacle_radius + robot_diagonal * side_clearnce_factor
+                half_hull, hull_radius = _swept_hull_extent(config, side_clearnce_factor)
+                collision_threshold = obstacle_radius + hull_radius
             else:
                 collision_threshold = obstacle_radius + config.robot_radius * side_clearnce_factor
-                
+
             if closest_approach <= collision_threshold:
-                # Distance to the edge of collision zone
-                dist_to_intersection = max(0, projection - math.sqrt(
+                # Distance to the edge of collision zone, travelled by the hull
+                # CENTRE. The bow reaches the zone half_hull earlier; half_hull
+                # is 0 for a disc, so this is unchanged there.
+                dist_to_intersection = max(0, projection - half_hull - math.sqrt(
                     max(0, collision_threshold**2 - closest_approach**2)))
                 
                 if dist_to_intersection < min_dist:
@@ -658,18 +725,25 @@ def closest_obstacle_on_curve(x, ob, ob_radii, v, omega, config):
                 
             closest_approach = np.linalg.norm(to_center - projection * heading_vector)
             
-            collision_threshold = 0
+            half_hull = 0.0
             if config.robot_type == RobotType.rectangle:
-                robot_diagonal = math.sqrt((config.robot_length/2)**2 + (config.robot_width/2)**2)
-                collision_threshold = obstacle_radius + robot_diagonal * side_clearnce_factor
+                half_hull, hull_radius = _swept_hull_extent(config, side_clearnce_factor)
+                collision_threshold = obstacle_radius + hull_radius
             else:
                 collision_threshold = obstacle_radius + config.robot_radius * side_clearnce_factor
-                
+
             if closest_approach > collision_threshold:
                 continue
-                
-            dist_to_intersection = projection - math.sqrt(collision_threshold**2 - closest_approach**2)
-            
+
+            dist_to_intersection = projection - half_hull - math.sqrt(
+                collision_threshold**2 - closest_approach**2)
+            if half_hull > 0.0:
+                # A capsule's bow can already be inside the zone where the disc
+                # centre had not yet arrived. Report contact now (0) rather than
+                # letting the `0 <= ...` guard below drop the obstacle entirely
+                # and return inf -- "no obstacle ahead" -- while overlapping it.
+                dist_to_intersection = max(0.0, dist_to_intersection)
+
             if 0 <= dist_to_intersection < min_dist:
                 min_dist = dist_to_intersection
                 min_time = dist_to_intersection / v if v > 0 else float("inf")
@@ -700,10 +774,15 @@ def closest_obstacle_on_curve(x, ob, ob_radii, v, omega, config):
             
             dist_between_centers = np.linalg.norm(arc_center - obstacle_center)
             
+            half_hull = 0.0
             if config.robot_type == RobotType.rectangle:
-                robot_diagonal = math.sqrt((config.robot_length/2)**2 + (config.robot_width/2)**2)
-                collision_radius = obstacle_radius + robot_diagonal * side_clearnce_factor
+                half_hull, hull_radius = _swept_hull_extent(
+                    config, side_clearnce_factor, radius)
+                collision_radius = obstacle_radius + hull_radius
             else:
+                # NOTE: no side_clearnce_factor here, unlike every other branch
+                # in this function. Pre-existing asymmetry, preserved so that
+                # circle-robot runs stay reproducible; not part of this change.
                 collision_radius = obstacle_radius + config.robot_radius
                 
             if dist_between_centers > radius + collision_radius or dist_between_centers < radius - collision_radius:
@@ -747,7 +826,10 @@ def closest_obstacle_on_curve(x, ob, ob_radii, v, omega, config):
             
             # Check both intersection points (no span restriction)
             for angle_diff in [angle_diff1, angle_diff2]:
-                dist = angle_diff * radius
+                # Arc length travelled by the hull centre, less the bow lead.
+                dist = angle_diff * radius - half_hull
+                if half_hull > 0.0:
+                    dist = max(0.0, dist)
                 time = dist / v if v > 0 else float("inf")
                 
                 if dist < min_dist:

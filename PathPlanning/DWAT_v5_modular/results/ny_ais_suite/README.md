@@ -148,7 +148,7 @@ So the run raised `No best trajectory found` — **every admissible candidate wa
 predicted to collide inside the 120 s horizon** — not `No admissible (v, ω)
 pairs`. The two are different guards and only the first is reachable here; see
 [`../OPEN_PROBLEMS.md` §2](../OPEN_PROBLEMS.md). That distinction matters
-because the case the fallback `no_admissible_fallback: "least_bad"` already
+because the case the fallback `all_candidates_collide_fallback: "least_bad"` already
 handles in `dwa_ramped.py` is exactly this one.
 
 **The braking test is still wrong, but it is a pruning problem, not the abort.**

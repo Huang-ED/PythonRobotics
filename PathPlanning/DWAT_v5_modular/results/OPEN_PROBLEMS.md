@@ -80,11 +80,28 @@ is where most historical confusion came from.
 [a]: ../../DWAT_v4_st/dwa_average_weighted_side.py#L534
 [b]: ../../DWAT_v4_st/dwa_average_weighted_side.py#L551
 
-**`no_admissible_fallback` is misleadingly named.** It does not catch the "no
-admissible pairs" guard. [dwa_ramped.py:293][c] gates on `best_index == -1 and
-len(controls) > 0` — meaning admissible candidates existed. Guard A at
-[dwa_ramped.py:291][d] still raises regardless of the setting. The key would be
-better named `all_candidates_collide_fallback`.
+**The fallback key was misleadingly named, and has been renamed.** It does not
+catch the "no admissible pairs" guard. [dwa_ramped.py:293][c] gates on
+`best_index == -1 and len(controls) > 0` — meaning admissible candidates
+existed. Guard A at [dwa_ramped.py:291][d] still raises regardless of the
+setting.
+
+| | |
+|---|---|
+| was | `no_admissible_fallback` — echoed **Guard A's** message, caught **Guard B** |
+| now | **`all_candidates_collide_fallback`** — named for the guard it catches |
+
+The old key still loads (it is a property alias on `Config`), so every config
+written before the rename keeps working. The **guard messages themselves are
+unchanged**: they were never the ambiguity. The collision was between the key's
+name and Guard A's message, and renaming the key removes it.
+
+⚠ **Logs before and after the rename differ.** `output_display` writes
+`config.__dict__`, and the alias is a property, so it is absent from it. Every
+log written before the rename carries `no_admissible_fallback`; every log after
+carries `all_candidates_collide_fallback`. Existing log files are untouched, but
+anything that diffs *config blocks* across the rename will show this one key as
+a spurious difference. Trajectory diffs are unaffected.
 
 [c]: ../../DWAT_v4_st/dwa_ramped.py#L293
 [d]: ../../DWAT_v4_st/dwa_ramped.py#L291
@@ -200,6 +217,26 @@ Commit `7e5fc81` put it plainly: `closest_obstacle_on_curve` "alone decides this
 case". **Item 1 is a candidate fix for this abort, not merely a prerequisite** —
 though the margin is 0.07 m, so it must be measured, not assumed.
 
+> ⚠ **The `+4.27 m` in that table is now doubted.** Item 1 has since been
+> implemented, and the capsule does **not** buy 6.85 m in the direction that
+> matters. A capsule's reach is direction-dependent:
+>
+> | direction | disc | capsule | capsule buys |
+> |---|---|---|---|
+> | dead ahead | `sqrt(L²+W²)/2` = 10.0134 m | `L/2` = **9.5000 m** | **0.5134 m** |
+> | abeam | 10.0134 m | `W/2` = 3.1650 m | 6.8484 m |
+>
+> The bow still sticks out `(L−W)/2` = 6.335 m in front of the hull centre, so
+> substituting the half-beam 3.165 m as a *scalar* radius — which is what "capsule,
+> half-beam 3.165 m" reads like — models the ego as a 3.165 m **disc** and
+> silently discards the bow. The implemented test subtracts that bow lead
+> explicitly.
+>
+> This table needs the gap to grow by **1.77 m** (2.43 → 4.20). The capsule
+> delivers that only if the blocker is far enough off the bow; dead ahead it
+> delivers 0.51 m and the abort stands. **Re-measure before claiming item 1
+> fixes this case.**
+
 And the thing it is refused against **is not there**: the blocker's AIS track does
 not begin until 620 s *after* the run ends. 17 of the 78 vessels in this scene are
 phantoms parked at entry points they never reach (item 2).
@@ -245,14 +282,41 @@ cleaner and gives a working order for free.
 
 | # | item | status | what it is |
 |---|---|---|---|
-| **1** | **Capsule in `closest_obstacle_on_curve`** | not started | Row 2 of the §1 table. The one hull site still on the disc. No new config key — `robot_collision_shape` exists, default `disc`. **Candidate fix for `ny_hist_366962130`.** |
+| **1** | **Capsule in `closest_obstacle_on_curve`** | ✅ **implemented 2026-09-15** | Row 2 of the §1 table. All three branches (`v≈0`, straight, arc) now honour `robot_collision_shape`; disc verified bit-identical. Whether it fixes `ny_hist_366962130` is **now in doubt** — see the ⚠ in §4.1. |
 | **5** | **Admissibility against *predicted* obstacle positions** | open, **upgraded** | Row 1 of the §1 table. Formerly "restore Guard A in a form a wide window cannot bypass" — same thing: give Stage 1 the obstacle velocities and it stops being a static-world rule. |
 | **9** | **Bound Stage 1's look-ahead to the horizon** | **new — was unnamed** | Row 3 of the §1 table. Impact unmeasured; one instrumented run from being known. |
 | **6** | **Replace braking feasibility with turn/CPA** | open | The synthesis of 1, 5 and 9. This is `ais_v2` and the stern-sector guard **at once** — one piece of work under two names. |
 | **7** | **Stern-sector cost term** | open, **likely unnecessary** | Per §3(b), falls out of item 6. **Do not build it first**, and possibly not at all. |
 
+| **10** | **`closest_obstacle_on_curve` misreports an obstacle it is already touching** | **new — found 2026-09-15** | Pre-existing, independent of item 1, and it *pre-dates* the capsule. If the hull already overlaps an obstacle at `t = 0`, the arc branch reports the distance to the **far side** of the obstacle and the straight branch reports `inf` — "nothing ahead" — while in contact. |
+
 Items 1, 5 and 9 are the same defect in three fields of the same function. Item 6
 is what you get if you fix all three at once and stop patching.
+
+### Item 10, measured
+
+Found while validating item 1 against a brute-force hull sweep. Ego 215.1 × 36.83 m,
+one obstacle (r = 20 m) centred 30.4 m away — inside the hull on any reading.
+**The correct answer is 0.0 m in every row:**
+
+| branch | hull | returned |
+|---|---|---|
+| arc (`R` = 164 m) | disc, pre-item-1 | **165.65 m** |
+| arc | disc, post-item-1 | 165.65 m *(unchanged — this is not a regression)* |
+| arc | capsule | 0.45 m |
+| straight | disc, pre-item-1 | **`inf`** |
+| straight | capsule | 0.00 m |
+
+The cause is that both branches solve for where the path *enters* the obstacle's
+inflated circle, measuring forward from the current heading. Starting already
+inside, the forward entry is most of a lap away. Item 1's capsule improves the
+numbers by a lot but only the straight branch is exactly right.
+
+**Why this has stayed invisible:** `dist ≈ 0` makes Stage 1 reject every
+candidate with `v > 0`, so a correct reading here produces Guard A — the very
+"cornered" report §7.3 shows is a *save*. A 165 m reading instead says the way
+ahead is clear. This interacts with items 5 and 9 and should be fixed as part of
+item 6 rather than patched alone.
 
 ### Group B — the inputs are wrong *(must land before any measurement means anything)*
 
@@ -281,7 +345,7 @@ is what you get if you fix all three at once and stop patching.
   Stage 1 defect, identical in kind to item 5.
 - **Item 4 belongs *outside* Group A** — it touches neither stage.
 - **Item numbers are unchanged** from earlier drafts, so older notes still
-  resolve. Only the *grouping* is new; item 9 is the one addition.
+  resolve. Only the *grouping* is new; items 9 and 10 are the additions.
 
 ---
 
@@ -292,8 +356,10 @@ it.** Items 1 and 2 both change what the AIS suite *reports*. Anything measured
 before them is measured on a scene containing a ship that is not there, judged
 against a hull three times too wide.
 
-1. **Item 1** — capsule in `closest_obstacle_on_curve`. Small, no new config key,
-   and a candidate fix for `ny_hist_366962130` in its own right.
+1. ~~**Item 1** — capsule in `closest_obstacle_on_curve`.~~ ✅ done 2026-09-15.
+   Next action is to **re-measure `ny_hist_366962130`**: §4.1 predicted this
+   admits the blocking candidate, and the direction-dependence of a capsule's
+   reach (§4.1 ⚠) makes that prediction look optimistic.
 2. **Item 2** — `on_start`, defaulting to today's behaviour.
 3. **Re-baseline the AIS suite** on the corrected scene and hull. Expect
    `ny_hist_366962130` to change outcome; if it does, it leaves the feasibility
