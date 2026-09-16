@@ -132,27 +132,50 @@ def calc_dynamic_window(x, config):
             max(Vs[2], Vd[2]), min(Vs[3], Vd[3])]
 
 
+def _rollout_rows(horizon, dt):
+    """Row count the accumulate-and-compare rollout loops below produce.
+
+    Replicates ``time = 0; while time <= horizon: time += dt`` exactly, including
+    its floating-point drift, so preallocating cannot change the trajectory
+    length by a row. Do not replace with ``int(horizon/dt) + 2``: the accumulated
+    sum and the division disagree at the boundary for some horizon/dt pairs.
+    """
+    n = 1
+    time = 0
+    while time <= horizon:
+        n += 1
+        time += dt
+    return n
+
+
 def predict_trajectory_to_goal(x_init, v, y, config):
-    x = np.array(x_init)
-    trajectory = np.array(x)
+    n = _rollout_rows(config.predict_time_to_goal, config.dt)
+    trajectory = np.empty((n, len(x_init)), dtype=float)
+    x = np.array(x_init, dtype=float)
+    trajectory[0] = x
+    i = 1
     time = 0
     while time <= config.predict_time_to_goal:
         x = _step(x, [v, y], config)
-        trajectory = np.vstack((trajectory, x))
+        trajectory[i] = x
+        i += 1
         time += config.dt
-    return trajectory
+    return trajectory[:i]
 
 
 def predict_trajectory_obstacle(x_init, v, y, config):
-    x = np.array(x_init)
-    trajectory = np.array(x)
+    n = _rollout_rows(config.predict_time_obstacle, config.dt)
+    trajectory = np.empty((n, len(x_init)), dtype=float)
+    x = np.array(x_init, dtype=float)
+    trajectory[0] = x
+    i = 1
     time = 0
     while time <= config.predict_time_obstacle:
         x = _step(x, [v, y], config)
-        trajectory = np.vstack((trajectory, x))
+        trajectory[i] = x
+        i += 1
         time += config.dt
-    return trajectory
-
+    return trajectory[:i]
 
 def calc_control_and_trajectory_merged(x, dw, config, goal,
                                      static_ob, static_ob_radii,
@@ -231,8 +254,21 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
             if v**2 + 2 * config.max_accel * v * config.dt > 2 * config.max_accel * dist_all:
                 continue
                 
-            trajectory_to_goal = predict_trajectory_to_goal(x.copy(), v, y, config)
+            # These two rollouts are the SAME integration -- same initial state,
+            # same (v, omega), same step function -- differing only in how long
+            # they run. When the goal horizon is the shorter one (it always is
+            # in every shipped config), the goal trajectory is a bit-exact
+            # PREFIX of the obstacle one, so computing it separately re-walks
+            # work already done. Both cost terms read only its final row:
+            # calc_to_goal_cost takes [-1, 0:3] and speed_cost takes [-1, 3].
             trajectory_for_obstacle = predict_trajectory_obstacle(x.copy(), v, y, config)
+            n_goal = _rollout_rows(config.predict_time_to_goal, config.dt)
+            if n_goal <= trajectory_for_obstacle.shape[0]:
+                trajectory_to_goal = trajectory_for_obstacle[:n_goal]
+            else:
+                # Goal horizon longer than the obstacle horizon: no prefix to
+                # take, so fall back to integrating it on its own.
+                trajectory_to_goal = predict_trajectory_to_goal(x.copy(), v, y, config)
             
             # --- Calculate costs ---
             to_goal_cost = config.to_goal_cost_gain * calc_to_goal_cost(trajectory_to_goal, goal)
