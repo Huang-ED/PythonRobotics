@@ -87,6 +87,12 @@ class Config:
         # Seconds of acceleration authority used to size the v window.
         # 0.0 -> classic one-dt dynamic window.
         self.v_window_ramp_time = 0.0  # [s]
+        # Same idea for the yaw axis. 0.0 -> classic one-dt yaw window.
+        # With a one-dt window you cannot match both a ship's angular
+        # ACCELERATION and a usable window width at a fine dt: a realistic
+        # max_delta_yaw_rate leaves a window a fraction of a percent wide.
+        # Sizing the window from a ramp time decouples the two.
+        self.omega_window_ramp_time = 0.0  # [s]
         # Treat a sampled (v, omega) as a setpoint approached at max_accel /
         # max_delta_yaw_rate, instead of a velocity applied instantly.
         self.ramped_rollout = False
@@ -459,6 +465,21 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
     if has_all_ob:
         all_ob_radii_np = np.array(all_ob_radii)
     
+    # A window can be EMPTY rather than merely restrictive: if the state has
+    # drifted outside the actuator envelope, calc_dynamic_window returns
+    # lo > hi and np.arange yields nothing. Every candidate list stays empty and
+    # the Guard A raise below fires -- reporting "the braking test rejected
+    # everything" when in truth nothing was ever tested. Those are opposite
+    # diagnoses, so say which one happened.
+    if dw[0] > dw[1] or dw[2] > dw[3]:
+        raise ValueError(
+            "Dynamic window is empty -- state is outside the actuator envelope: "
+            f"v window [{dw[0]:.6f}, {dw[1]:.6f}], "
+            f"omega window [{dw[2]:.6f}, {dw[3]:.6f}], "
+            f"state v={x[3]:.6f} omega={x[4]:.6f}, "
+            f"limits max_speed={config.max_speed} max_yaw_rate={config.max_yaw_rate}"
+        )
+
     # evaluate all trajectory with sampled input in dynamic window
     for v in np.arange(dw[0], dw[1] + 1e-6, config.v_resolution):
         for y in np.arange(dw[2], dw[3] + 1e-6, config.yaw_rate_resolution):
@@ -580,7 +601,12 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
         
     if abs(best_u[0]) < config.robot_stuck_flag_cons \
             and abs(x[3]) < config.robot_stuck_flag_cons:
-        best_u[1] = -config.max_delta_yaw_rate
+        # A yaw RATE command, so it must respect max_yaw_rate. This historically
+        # read -config.max_delta_yaw_rate, which is an angular ACCELERATION;
+        # the two are equal in v20.7.8-2 and the acceleration is far smaller in
+        # every AIS config, so min() reproduces all 34 committed configs
+        # exactly. It only bites where max_delta_yaw_rate > max_yaw_rate.
+        best_u[1] = -min(config.max_yaw_rate, config.max_delta_yaw_rate)
 
     if return_candidates:
         stride = max(1, int(candidate_stride))

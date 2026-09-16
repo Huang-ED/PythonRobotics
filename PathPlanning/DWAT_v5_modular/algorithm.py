@@ -93,7 +93,16 @@ def run_simulation(
                 continue
 
             collision_detected = False
+            max_steps = int(getattr(runtime, "max_sim_steps", 0) or 0)
             while True:
+                if max_steps and iteration >= max_steps:
+                    raise ValueError(
+                        f"Simulation did not converge within max_sim_steps={max_steps} "
+                        f"(state x={x[0]:.3f} y={x[1]:.3f} v={x[3]:.4f} omega={x[4]:.5f}); "
+                        "the ego reached neither the goal, a collision, nor a "
+                        "local-goal divergence -- most likely stalled just outside "
+                        "catch_goal_dist"
+                    )
                 dwagoal = _choose_local_goal(
                     road_map=map_ctx.road_map,
                     i_turning_point=i_turning_point,

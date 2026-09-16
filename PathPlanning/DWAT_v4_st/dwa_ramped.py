@@ -70,10 +70,10 @@ check_collision_at_current_position_circle_approximation = (
 # -- three positional args, no config. ``dwa_control_merged`` runs immediately
 # before it every iteration, so it stashes the actuator limits here for
 # ``motion`` to pick up. Set to None, ``motion`` falls back to the classic model.
-_LIMITS = {"max_accel": None, "max_delta_yaw_rate": None}
+_LIMITS = {"max_accel": None, "max_delta_yaw_rate": None, "max_yaw_rate": None}
 
 
-def motion(x, u, dt, max_accel=None, max_delta_yaw_rate=None):
+def motion(x, u, dt, max_accel=None, max_delta_yaw_rate=None, max_yaw_rate=None):
     """Motion model in which (v, omega) is a setpoint, not an instant state.
 
     With no limits configured this is exactly ``base.motion``.
@@ -82,6 +82,8 @@ def motion(x, u, dt, max_accel=None, max_delta_yaw_rate=None):
         max_accel = _LIMITS["max_accel"]
     if max_delta_yaw_rate is None:
         max_delta_yaw_rate = _LIMITS["max_delta_yaw_rate"]
+    if max_yaw_rate is None:
+        max_yaw_rate = _LIMITS["max_yaw_rate"]
     if max_accel is None or max_delta_yaw_rate is None:
         return base.motion(x, u, dt)
 
@@ -89,6 +91,16 @@ def motion(x, u, dt, max_accel=None, max_delta_yaw_rate=None):
     x[3] += max(-max_accel * dt, min(max_accel * dt, dv))
     dw = u[1] - x[4]
     x[4] += max(-max_delta_yaw_rate * dt, min(max_delta_yaw_rate * dt, dw))
+    # Saturate the yaw RATE at its own limit. base.motion assigns x[4] = u[1]
+    # outright, so it can never leave the legal band; slewing toward a setpoint
+    # can, if the setpoint is itself out of band. Nothing guarantees it is not:
+    # the stuck escape below commands -max_delta_yaw_rate, an angular
+    # ACCELERATION used as a rate. Where the two are equal (v20.7.8-2) or the
+    # acceleration is the smaller (every AIS config) this clamp never binds --
+    # verified across all 34 committed configs -- so it is a no-op for them and
+    # a guard for any config where max_delta_yaw_rate > max_yaw_rate.
+    if max_yaw_rate is not None:
+        x[4] = max(-max_yaw_rate, min(max_yaw_rate, x[4]))
     x[2] += x[4] * dt
     x[0] += x[3] * math.cos(x[2]) * dt
     x[1] += x[3] * math.sin(x[2]) * dt
@@ -97,7 +109,8 @@ def motion(x, u, dt, max_accel=None, max_delta_yaw_rate=None):
 
 def _step(x, u, config):
     if getattr(config, "ramped_rollout", False):
-        return motion(x, u, config.dt, config.max_accel, config.max_delta_yaw_rate)
+        return motion(x, u, config.dt, config.max_accel,
+                      config.max_delta_yaw_rate, config.max_yaw_rate)
     return base.motion(x, u, config.dt)
 
 
@@ -105,13 +118,15 @@ def calc_dynamic_window(x, config):
     """Dynamic window whose v range spans what the horizon can actually reach."""
     ramp = max(float(getattr(config, "v_window_ramp_time", 0.0)), 0.0)
     dt_v = config.dt if ramp <= 0.0 else ramp
+    w_ramp = max(float(getattr(config, "omega_window_ramp_time", 0.0)), 0.0)
+    dt_w = config.dt if w_ramp <= 0.0 else w_ramp
 
     Vs = [config.min_speed, config.max_speed,
           -config.max_yaw_rate, config.max_yaw_rate]
     Vd = [x[3] - config.max_accel * dt_v,
           x[3] + config.max_accel * dt_v,
-          x[4] - config.max_delta_yaw_rate * config.dt,
-          x[4] + config.max_delta_yaw_rate * config.dt]
+          x[4] - config.max_delta_yaw_rate * dt_w,
+          x[4] + config.max_delta_yaw_rate * dt_w]
 
     return [max(Vs[0], Vd[0]), min(Vs[1], Vd[1]),
             max(Vs[2], Vd[2]), min(Vs[3], Vd[3])]
@@ -187,6 +202,21 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
     if has_all_ob:
         all_ob_radii_np = np.array(all_ob_radii)
     
+    # A window can be EMPTY rather than merely restrictive: if the state has
+    # drifted outside the actuator envelope, calc_dynamic_window returns
+    # lo > hi and np.arange yields nothing. Every candidate list stays empty and
+    # the Guard A raise below fires -- reporting "the braking test rejected
+    # everything" when in truth nothing was ever tested. Those are opposite
+    # diagnoses, so say which one happened.
+    if dw[0] > dw[1] or dw[2] > dw[3]:
+        raise ValueError(
+            "Dynamic window is empty -- state is outside the actuator envelope: "
+            f"v window [{dw[0]:.6f}, {dw[1]:.6f}], "
+            f"omega window [{dw[2]:.6f}, {dw[3]:.6f}], "
+            f"state v={x[3]:.6f} omega={x[4]:.6f}, "
+            f"limits max_speed={config.max_speed} max_yaw_rate={config.max_yaw_rate}"
+        )
+
     # evaluate all trajectory with sampled input in dynamic window
     for v in np.arange(dw[0], dw[1] + 1e-6, config.v_resolution):
         for y in np.arange(dw[2], dw[3] + 1e-6, config.yaw_rate_resolution):
@@ -323,7 +353,12 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
         
     if abs(best_u[0]) < config.robot_stuck_flag_cons \
             and abs(x[3]) < config.robot_stuck_flag_cons:
-        best_u[1] = -config.max_delta_yaw_rate
+        # A yaw RATE command, so it must respect max_yaw_rate. This historically
+        # read -config.max_delta_yaw_rate, which is an angular ACCELERATION;
+        # the two are equal in v20.7.8-2 and the acceleration is far smaller in
+        # every AIS config, so min() reproduces all 34 committed configs
+        # exactly. It only bites where max_delta_yaw_rate > max_yaw_rate.
+        best_u[1] = -min(config.max_yaw_rate, config.max_delta_yaw_rate)
 
     if return_candidates:
         stride = max(1, int(candidate_stride))
@@ -359,6 +394,7 @@ def dwa_control_merged(x, config, goal,
     if getattr(config, "ramped_rollout", False):
         _LIMITS["max_accel"] = config.max_accel
         _LIMITS["max_delta_yaw_rate"] = config.max_delta_yaw_rate
+        _LIMITS["max_yaw_rate"] = config.max_yaw_rate
 
     dw = calc_dynamic_window(x, config)
     

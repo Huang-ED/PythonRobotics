@@ -16,6 +16,16 @@ class RuntimeOptions:
     candidate_plot_stride: int = 20
     candidate_plot_max_count: int = 120
     output_tag: str = ""
+    # Hard ceiling on control iterations. 0 = unlimited, which is the historical
+    # behaviour and stays the default so existing runs reproduce.
+    #
+    # The control loop has no natural bound: it exits on reaching the goal, a
+    # collision, or _choose_local_goal straying outside dist_localgoal. A ship
+    # that stalls just outside catch_goal_dist satisfies none of those and spins
+    # forever -- owenc_cross_stbd_090 at v21.1 burned 11h49m and 9,996
+    # iterations without moving. Set this and that becomes a clear failure in
+    # minutes instead.
+    max_sim_steps: int = 0
 
 
 @dataclass
