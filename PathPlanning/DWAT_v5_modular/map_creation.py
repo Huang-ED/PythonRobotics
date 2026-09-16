@@ -269,6 +269,28 @@ def _plan_global_path(
         theta_star.show_animation = previous_show_animation
 
     road_map = np.array([rx, ry]).transpose()[::-1]
+
+    if getattr(config, "pin_path_endpoints", False) and road_map.shape[0] >= 2:
+        # Theta* returns grid NODES, so both endpoints are rounded to the
+        # nearest node. Put the declared start and goal back. The planner still
+        # searches on the grid; only the two endpoints become exact.
+        #
+        # The replaced segment is at most 0.707*resolution long -- inside a
+        # single cell -- and start/goal are required to be navigable, so this is
+        # normally free. Guard it anyway: if the declared endpoint is within the
+        # planner's own inflation radius of an obstacle, keep the snapped node
+        # rather than route the ego into something.
+        rr = max(config.robot_width, config.robot_length)
+        for idx, declared in ((0, np.asarray(start, dtype=float)),
+                              (-1, np.asarray(goal, dtype=float))):
+            if map_manager.astar_obstacles.shape[0] > 0:
+                gap = np.hypot(*(map_manager.astar_obstacles - declared).T).min()
+                if gap <= rr:
+                    continue
+            road_map[idx] = declared
+        rx = list(road_map[::-1, 0])
+        ry = list(road_map[::-1, 1])
+
     return road_map, rx, ry
 
 

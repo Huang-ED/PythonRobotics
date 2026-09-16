@@ -133,6 +133,68 @@ rollout weighted below 0.5%**, pure waste. That is why `λ` was reduced to
 Horizon and discount are not independent knobs. Changing one without the other
 either starves the far horizon or pays for a tail nobody reads.
 
+### 3.3 There are *two* horizons, and the ordering is a hard constraint
+
+Everything above concerns `predict_time_obstacle` — Stage 2's horizon, `T₂`.
+Stage 1 has a horizon too, and the relation between them is not free:
+
+> **`T₁ ≤ T₂` always.**
+
+The reason is what each stage is *for*. Stage 2 is a **gradient**: it scores
+candidates, so it can push the ego gently away from a hazard long before the
+hazard is critical. Stage 1 is a **veto**: it deletes candidates outright. If
+Stage 1 sees further than Stage 2, it can reject a candidate over a hazard the
+cost function never sees — the planner then meets a cliff with no preceding
+slope, because the thing that vetoed it was never in the objective. That is
+exactly the §7.3 failure in `OPEN_PROBLEMS.md`: Guard A fired with **no prior
+cost gradient** steering the ego away.
+
+**The shipped code violates this, without bound.** `closest_obstacle_on_curve`
+takes no span limit — it scans the whole arc, so Stage 1's reach is a full
+circle at the sampled `(v, ω)`:
+
+| config | `T₂` | Stage 1 arc time at max ω | ratio |
+|---|---|---|---|
+| `v20.7.8-2` | 30.0 s | 90.0 s | **3.0×** |
+| `v21.2` | 78.8 s | 66.4 s | 0.8× |
+| `ais_v1.1/ny_hist_366962130` | 120.0 s | 101.1 s | 0.8× |
+
+And those are at *maximum* yaw. The window samples ω down to ~0, where
+`R = v/ω → ∞` and the scan becomes an effectively infinite ray — so across most
+of the candidate grid `T₁` is unbounded while `T₂` is 30–120 s. The ordering is
+not merely violated; it is inverted without limit. This is item 9, and the rule
+is *why* item 9 is a defect rather than an inefficiency.
+
+**How much horizon Stage 1 actually needs.** A braking test only cares about
+distance up to the stopping distance; beyond it the test passes regardless. So
+its natural horizon is the stopping time `v/a + dt`:
+
+| config | stop time | `T₂` | `T₁/T₂` |
+|---|---|---|---|
+| `v20.7.8-2` | 2.6 s | 30.0 s | **0.087** |
+| `v21.2` | 13.1 s | 78.8 s | **0.166** |
+| `ais_v1.1/ny_hist_366962130` | 23.0 s | 120.0 s | **0.192** |
+
+Stage 1 needs 9–19% of Stage 2's horizon. Everything past that is not merely
+wasted — it is the inversion.
+
+**Why the bound is `≤` and not `<`.** Strict inequality holds while Stage 1 is a
+*braking* test, because stopping is inherently short-horizon. But under item 6,
+where Stage 1 is rebuilt as a CPA test sharing Stage 2's rollout, both stages
+compute the same quantity over the same horizon and differ only in threshold:
+Stage 2 penalises, Stage 1 vetoes once the penalty saturates. `T₁ = T₂` is then
+correct — indeed it is the point, since the two stages finally agree about
+physics. `T₁ > T₂` is the incoherent case, and it is what ships today.
+
+**Consequence for the backlog.** Implementing item 5 by reusing Stage 2's
+sampled spacetime check makes `T₁ = T₂` structural rather than a convention to
+maintain by hand, and item 9 dissolves rather than needing separate work. It
+also settles how obstacle culling must be filed: culling Stage 2 by reachability
+is provably bit-identical and is an optimisation, while culling Stage 1 by
+horizon changes behaviour — but by this rule that change is the *fix*, so it
+belongs with item 9 behind a config key and measured, not smuggled in as a
+speed-up.
+
 ---
 
 ## 4. What the evidence says

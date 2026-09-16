@@ -133,6 +133,7 @@ Notes are the developer's; parameters verified from the JSON; commits from git.
 | `v21.0` | Give the open-water ego the AIS suite's **dimensionless** dynamics, so conclusions transfer between the two suites | **failed.** `max_delta_yaw_rate` was derived by matching AIS's yaw *window fraction*, which at `dt=0.1` forces 0.947 rad/s² — **5× `max_yaw_rate`**. Exposed three latent bugs (unclamped ω, the stuck-escape's rate/acceleration confusion, an empty window reported as Guard A) |
 | `v21.1` | v21.0 with the yaw axis derived from **angular acceleration** (20 s to full helm, as AIS) plus `omega_window_ramp_time`, which lets one config match AIS's yaw acceleration *and* window width at once — impossible with a one-`dt` window | `head_on` and `overtaken_ego` reach goal; `cross_stbd_090` **livelocked 11h49m**. `catch_goal_dist` was still 0.417 `L` — only **0.19 turning circles**, unsatisfiable for a ship |
 | **`v21.2`** | v21.1 with `catch_goal_dist` scaled to the turn radius (1.36 turning circles, AIS's ratio) | **3/3 reach goal.** Trajectories are bit-identical prefixes of v21.1's — `catch_goal_dist` is purely a termination test |
+| **`v21.3`** | Make v21.2 affordable. Two changes, both measured: `yaw_rate_resolution` 0.1° → 0.5°, and `pin_path_endpoints` on | **4.9–5.0× faster** (872 → 176 candidates; 3.503 → 0.710 s/iter open water, 6.821 → 1.361 s/iter v3crowd). The yaw window is only ±5.43°, so 0.5° still leaves 22 choices across it. **Re-run the `cross_*_135` symmetry check** — that pair was resolution-sensitive once before |
 | `v20.8.1` | **Static obstacles made consistent with the dynamic-obstacle cost.** Does not work on `video5` | module `dwa_consistent`, barrier `quadratic` |
 | `v20.8.2` | Same branch as v20.8.1 | module `dwa_consistent`, barrier `exponential` decay 6.0 |
 | `v20.9` | Tests on scene export | **parameter-identical to v20.7.8-2** apart from `max_speed` 1.0 — the first attempt |
@@ -244,7 +245,8 @@ local-goal selector rather than the cost loop.
 | `v20.7.9` | prototype, **not a drop-in replacement**: it removes a safety guard. See `../../results/v20.7.9_ramped_window/README.md` |
 | `v21.0` | **derivation error — do not use.** File to `_abandoned/` once the v21 line settles |
 | `v21.1` | superseded by v21.2; correct dynamics, unusable goal tolerance |
-| **`v21.2`** | ship-like open-water ego. 3/3 encounters reach goal. Not yet a baseline — only 3 of 11 cases run |
+| `v21.2` | ship-like open-water ego, faithful but slow. Superseded by v21.3 for routine use; keep for fidelity comparisons |
+| **`v21.3`** | v21.2 at 0.5° yaw resolution (**5× faster**) with Theta* endpoints pinned. The config to run |
 | `_abandoned/*` | do not derive new configs from these |
 | `_scene_export/*` | v20.9.x — an open problem, not a solved one. See below |
 | `_superseded/*` | historical; runnable and now pinned, but superseded by v20.7.8-2 |

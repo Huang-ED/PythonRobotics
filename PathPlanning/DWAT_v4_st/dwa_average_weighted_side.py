@@ -93,6 +93,19 @@ class Config:
         # max_delta_yaw_rate leaves a window a fraction of a percent wide.
         # Sizing the window from a ramp time decouples the two.
         self.omega_window_ramp_time = 0.0  # [s]
+
+        # Theta* plans on a grid, so calc_xy_index/calc_grid_position round the
+        # declared start and goal to the nearest NODE -- up to resolution/2 per
+        # axis, 0.707*resolution in 2D. The ego is then initialised at the
+        # DECLARED start while its path begins at the snapped one, so it starts
+        # off its own track, and "goal reached" is measured against a point that
+        # is not the goal. Measured: 0.707 u in open water (resolution 1.0) and
+        # 6.8-32.0 m across the AIS scenes (resolution 50.0), against a
+        # catch_goal_dist of 0.5 and 57.0 respectively.
+        #
+        # True -> overwrite the first and last road_map points with the declared
+        # start and goal. False (default) reproduces every existing run.
+        self.pin_path_endpoints = False
         # Treat a sampled (v, omega) as a setpoint approached at max_accel /
         # max_delta_yaw_rate, instead of a velocity applied instantly.
         self.ramped_rollout = False
