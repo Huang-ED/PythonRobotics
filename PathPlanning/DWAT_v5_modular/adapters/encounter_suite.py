@@ -599,6 +599,12 @@ def main() -> int:
     parser.add_argument("--detection-range", type=float, default=25.0,
                         help="range at which the planner starts costing a target; "
                              "predict_time_obstacle * closing speed")
+    parser.add_argument("--t-meet", action="append", default=[], metavar="NAME=SECONDS",
+                        help="override a case's t_meet, e.g. --t-meet overtaken_ego_fast=40. "
+                             "Repeatable. The shipped t_meet values were tuned for an ego "
+                             "cruising at 0.5; a different ego reaches a different point at "
+                             "the same time, which can push an astern target's spawn off the "
+                             "map. This retunes without forking the case list.")
     parser.add_argument("--no-map-check", action="store_true",
                         help="skip the check that each target's track stays in water")
     args = parser.parse_args()
@@ -640,7 +646,22 @@ def main() -> int:
         return _emit_combined(args, base, base_path, traj, dt, sim_duration,
                               static_obs, out_dir, root, prefix)
 
-    for case in SUITES[args.suite]:
+    _overrides = {}
+    for _spec in args.t_meet:
+        _name, _, _val = _spec.partition("=")
+        if not _val:
+            raise SystemExit(f"--t-meet expects NAME=SECONDS, got {_spec!r}")
+        _overrides[_name.strip()] = float(_val)
+    _cases = SUITES[args.suite]
+    _unknown = set(_overrides) - {c["name"] for c in _cases}
+    if _unknown:
+        raise SystemExit(f"--t-meet names not in suite {args.suite!r}: {sorted(_unknown)}")
+    if _overrides:
+        _cases = [dict(c, t_meet=_overrides.get(c["name"], c["t_meet"])) for c in _cases]
+        for _n, _v in sorted(_overrides.items()):
+            print(f"t_meet override: {_n} {SUITES[args.suite][[c['name'] for c in SUITES[args.suite]].index(_n)]['t_meet']} -> {_v} s")
+
+    for case in _cases:
         name = case["name"]
         obstacle, diag = build_target(
             traj, dt,
