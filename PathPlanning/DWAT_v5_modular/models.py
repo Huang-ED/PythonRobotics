@@ -26,6 +26,17 @@ class RuntimeOptions:
     # iterations without moving. Set this and that becomes a clear failure in
     # minutes instead.
     max_sim_steps: int = 0
+    # Seconds of wall-clock between progress lines on stdout. 0 = silent.
+    # Printing changes no trajectory, so this is not a config-restorable
+    # concern; it defaults ON because a diagnostic that is off by default
+    # helps nobody. Time-based rather than step-based so it self-tunes to
+    # whatever the config costs per iteration.
+    progress_every_s: float = 30.0
+    # Trailing window, in steps, used to decide whether the ego is making
+    # headway. Must be long enough to contain a full minimum-radius circle:
+    # at max_yaw_rate the circumference is 2*pi*v/omega, ~330 steps for the
+    # v21.x ego, so 600 leaves room. 0 disables the check.
+    stall_window_steps: int = 600
 
 
 @dataclass

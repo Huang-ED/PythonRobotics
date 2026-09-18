@@ -3,12 +3,55 @@ import math
 import traceback
 from typing import Any, Optional
 
+import time as _time
+
 import numpy as np
 
 _dwa_module = importlib.import_module("PathPlanning.DWAT_v4_st.dwa_average_weighted_side")
 line_circle_intersection = _dwa_module.line_circle_intersection
 
 from .models import CollisionEvent, MapContext, RuntimeOptions, SimulationResult
+
+
+def _describe_stall(trajectory, window, loop_ratio=2.0):
+    """Is the ego making headway, or going nowhere?
+
+    Deliberately NOT distance-to-goal: with static obstacles the ego often has
+    to move AWAY from the goal for a while (the v3crowd routes do exactly that),
+    so a goal-relative metric cries wolf on correct behaviour.
+
+    Instead compare, over a trailing window, how far the ego TRAVELLED against
+    how large a REGION it stayed within. That is scale-free, needs no reference
+    point, and does not care which way the goal lies:
+
+        travelled / extent  ~1    running (straight or gently curving)
+                            >2.0  going round -- covering ground inside a box
+                                  it never leaves, i.e. circling
+
+    Net displacement over the window is NOT the right measure. A closed loop
+    only returns ``net ~ 0`` at a whole number of laps; at 1.5 laps the ego ends
+    diametrically opposite and ``net/travelled`` reads 0.21, which passes any
+    sane threshold. Extent has no such blind spot.
+
+    This is what the real-time render was being watched for by eye.
+    """
+    if window <= 0 or trajectory.shape[0] < window + 1:
+        return None
+
+    recent = trajectory[-(window + 1):, :2]
+    travelled = float(np.hypot(*np.diff(recent, axis=0).T).sum())
+    # The LARGER SIDE of the bounding box, not its diagonal. The diagonal
+    # inflates extent by sqrt(2) for anything roughly circular, which is
+    # exactly the case being detected: a full lap reads 2.22 by diagonal
+    # (passes) but 3.14 by larger side (fires).
+    extent = float(max(np.ptp(recent[:, 0]), np.ptp(recent[:, 1])))
+
+    if travelled < 1e-6:
+        return f"STOPPED: no motion in {window} steps"
+    if extent > 1e-9 and travelled / extent > loop_ratio:
+        return (f"CIRCLING: travelled {travelled:.1f} u in {window} steps but never "
+                f"left a {extent:.1f} u region (ratio {travelled / extent:.1f})")
+    return None
 
 
 def _choose_local_goal(
@@ -84,6 +127,18 @@ def run_simulation(
     trajectory = np.array(x)
     log_data = []
     iteration = 0
+
+    # --- progress reporting -------------------------------------------------
+    # The control loop used to print nothing, so a run was opaque until it
+    # ended: a livelock burned 11h49m before anyone could see the ego had not
+    # moved in 4,000 iterations, and two processes died leaving no record of
+    # where they stopped (log_details.json is written only at the end).
+    # stdout is flushed as it goes, so the last line survives a killed process.
+    _progress_every = float(getattr(runtime, "progress_every_s", 0.0) or 0.0)
+    _stall_window = int(getattr(runtime, "stall_window_steps", 0) or 0)
+    _t_start = _time.perf_counter()
+    _t_next = _t_start + _progress_every
+    _stall_warned = False
     reached_goal = False
     collision_event = None
 
@@ -202,6 +257,23 @@ def run_simulation(
 
                 x = dwa_mod.motion(x, u, config.dt)
                 trajectory = np.vstack((trajectory, x))
+
+                if _progress_every > 0.0:
+                    _now = _time.perf_counter()
+                    if _now >= _t_next:
+                        _t_next = _now + _progress_every
+                        _el = _now - _t_start
+                        _msg = (
+                            f"[progress] step {iteration} t={iteration * config.dt:.1f}s "
+                            f"pos=({x[0]:.2f}, {x[1]:.2f}) v={x[3]:.3f} omega={x[4]:+.4f} "
+                            f"| leg {i_turning_point}/{len(map_ctx.road_map) - 1} "
+                            f"{_el / 60.0:.1f} min, {iteration / max(_el, 1e-9):.2f} steps/s"
+                        )
+                        _stall = _describe_stall(trajectory, _stall_window)
+                        if _stall:
+                            _msg += f"  <-- {_stall}"
+                            _stall_warned = True
+                        print(_msg, flush=True)
 
                 all_current_ob = map_ctx.map_manager.get_current_obstacles()
                 all_current_ob_radii = map_ctx.map_manager.get_obstacle_radii()
