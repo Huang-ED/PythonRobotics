@@ -134,6 +134,7 @@ Notes are the developer's; parameters verified from the JSON; commits from git.
 | `v21.1` | v21.0 with the yaw axis derived from **angular acceleration** (20 s to full helm, as AIS) plus `omega_window_ramp_time`, which lets one config match AIS's yaw acceleration *and* window width at once — impossible with a one-`dt` window | `head_on` and `overtaken_ego` reach goal; `cross_stbd_090` **livelocked 11h49m**. `catch_goal_dist` was still 0.417 `L` — only **0.19 turning circles**, unsatisfiable for a ship |
 | **`v21.2`** | v21.1 with `catch_goal_dist` scaled to the turn radius (1.36 turning circles, AIS's ratio) | **3/3 reach goal.** Trajectories are bit-identical prefixes of v21.1's — `catch_goal_dist` is purely a termination test |
 | **`v21.3`** | Make v21.2 affordable. Two changes, both measured: `yaw_rate_resolution` 0.1° → 0.5°, and `pin_path_endpoints` on | **4.9–5.0× faster** (872 → 176 candidates; 3.503 → 0.710 s/iter open water, 6.821 → 1.361 s/iter v3crowd). The yaw window is only ±5.43°, so 0.5° still leaves 22 choices across it. **Re-run the `cross_*_135` symmetry check** — that pair was resolution-sensitive once before |
+| **`v21.4`** | Remove the speed cap v21.2 introduced. `predict_time_to_goal` 19.69 → 8.0 | The ego was held to 0.30 of a 0.50 `max_speed` — not by ship physics but because the goal rollout travelled `v·T` past `dist_localgoal`, flipping the bearing and saturating `to_goal_cost` at `gain·π`. Safe window measured as **T ∈ [4, 12]**; 8.0 is its midpoint. Result: max v 0.3038 → **0.4850**, frames 2500 → **1584**. Sweep in `v21.4/` shows T = 5/8/11 differ by <1% — the margin matters, the exact value does not |
 | `v20.8.1` | **Static obstacles made consistent with the dynamic-obstacle cost.** Does not work on `video5` | module `dwa_consistent`, barrier `quadratic` |
 | `v20.8.2` | Same branch as v20.8.1 | module `dwa_consistent`, barrier `exponential` decay 6.0 |
 | `v20.9` | Tests on scene export | **parameter-identical to v20.7.8-2** apart from `max_speed` 1.0 — the first attempt |
@@ -246,7 +247,8 @@ local-goal selector rather than the cost loop.
 | `v21.0` | **derivation error — do not use.** File to `_abandoned/` once the v21 line settles |
 | `v21.1` | superseded by v21.2; correct dynamics, unusable goal tolerance |
 | `v21.2` | ship-like open-water ego, faithful but slow. Superseded by v21.3 for routine use; keep for fidelity comparisons |
-| **`v21.3`** | v21.2 at 0.5° yaw resolution (**5× faster**) with Theta* endpoints pinned. The config to run |
+| `v21.3` | superseded by v21.4; fast, but still carries the speed cap |
+| **`v21.4`** | **the config to run.** v21.3 with the speed cap removed. 8.0× faster than v21.2 end to end |
 | `_abandoned/*` | do not derive new configs from these |
 | `_scene_export/*` | v20.9.x — an open problem, not a solved one. See below |
 | `_superseded/*` | historical; runnable and now pinned, but superseded by v20.7.8-2 |
