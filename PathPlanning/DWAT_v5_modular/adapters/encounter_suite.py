@@ -622,6 +622,13 @@ def main() -> int:
     if not out_dir.is_absolute():
         out_dir = root / out_dir
     out_dir.mkdir(parents=True, exist_ok=True)
+    # The emitted scenario is a CLONE of the base scenario, so without this it
+    # inherits the base's "group" -- "baseline" for openwater_baseline.json.
+    # run_paths uses group to decide where a run's output lands, so every
+    # generated encounter would file itself under runs/<version>/baseline/
+    # instead of runs/<version>/encounters/. The group must match where the
+    # scenario lives, which is what out_dir names.
+    _group = out_dir.name
 
     traj, dt = load_reference(ref_path)
     sim_duration = (traj.shape[0] - 1) * dt
@@ -677,6 +684,7 @@ def main() -> int:
 
         scenario = dict(base)
         scenario["dynamic_obstacles"] = [obstacle]
+        scenario["group"] = _group
         out_path = out_dir / f"{prefix}_{name}.json"
         with out_path.open("w", encoding="utf-8") as f:
             json.dump(scenario, f, indent=2)

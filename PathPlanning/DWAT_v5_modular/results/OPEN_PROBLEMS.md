@@ -44,17 +44,18 @@ through **two independent tests**, in this order:
 ```
 
 **Stage 1 and Stage 2 disagree about what a ship is and what the world does, on
-three independent axes — and Stage 1 is the wrong one on all three.** One of the
-three is now closed (`194aacf`, 2026-09-15); the other two are the remaining work:
+four independent axes — and Stage 1 is the wrong one on all four.** One is now
+closed (`194aacf`, 2026-09-15); the fourth was added 2026-09-19:
 
 | axis | Stage 2 (cost) | Stage 1 (feasibility) | backlog |
 |---|---|---|---|
 | **obstacle motion** | `ob_pos + ob_vel·t`, relative motion | **frozen** — the function takes no `ob_vel` argument at all | item **5** |
 | **ego hull** | capsule when configured, half-beam `W/2` | ✅ **fixed** — honours `robot_collision_shape` since `194aacf`. *Was* always the circumscribed disc `sqrt(L²+W²)/2`, **3.16×** wider abeam for a 19 × 6.33 m ego | item **1** ✅ |
 | **look-ahead** | bounded by `predict_time_obstacle` | **unbounded** — "no span restriction", scans the full circle | item **9** (new) |
+| **ego's own path** | the ramped rollout — the spiral the ego actually flies | **a constant-velocity arc at the SETPOINT**, radius `\|v/ω\|`. Across one window that is radii of 1.0–10.0 u, none of them the ego's | item **11** (new) |
 
 That table *is* the problem statement. Everything in §5 is either repairing one
-of those three rows, replacing the whole of Stage 1, or cleaning up inputs so the
+of those rows, replacing the whole of Stage 1, or cleaning up inputs so the
 repair can be measured.
 
 **A caution the closed row leaves behind.** The 3.16× figure is the gain *abeam*.
@@ -112,6 +113,24 @@ a spurious difference. Trajectory diffs are unaffected.
 
 [c]: ../../DWAT_v4_st/dwa_ramped.py#L296
 [d]: ../../DWAT_v4_st/dwa_ramped.py#L294
+
+### A third meaning nobody listed
+
+Guard A has a **third** cause, found 2026-09-19 and distinct from both above:
+the dynamic window can be **empty**. Once `|ω| > max_yaw_rate + Δω·dt` the window
+inverts, `np.arange` returns nothing, and the Guard A raise fires having tested
+nothing at all. "The braking test rejected everything" and "nothing was ever
+tested" are opposite diagnoses and the message does not distinguish them. Fixed
+in `63033a1` with its own error; recorded here because the §2 table above still
+reads as though there are only two.
+
+**Scope note on `v = 0` always being admissible (§7.1).** That is a property of
+any window wide enough to contain `v = 0`, however obtained — not of v20.7.9. It
+is equally true of most `ais_v1.1` configs, where `max_accel · dt = 4.0` puts
+`v = 0` in the window across 73–80% of the speed range, and unconditionally for
+`ny_synth_01`. It is **not** true of v21.x, whose ramped floor is `v − 0.385`, so
+Guard A is reachable there. This bears directly on **item 3**: halving `dt`
+halves `max_accel · dt` and changes how much of the range admits `v = 0`.
 
 ### The inference to *not* make
 
@@ -293,12 +312,101 @@ cleaner and gives a working order for free.
 | **5** | **Admissibility against *predicted* obstacle positions** | open, **upgraded** | Row 1 of the §1 table. Formerly "restore Guard A in a form a wide window cannot bypass" — same thing: give Stage 1 the obstacle velocities and it stops being a static-world rule. |
 | **9** | **Bound Stage 1's look-ahead to the horizon** | **new — was unnamed** | Row 3 of the §1 table. Impact unmeasured; one instrumented run from being known. |
 | **6** | **Replace braking feasibility with turn/CPA** | open | The synthesis of 1, 5 and 9. This is `ais_v2` and the stern-sector guard **at once** — one piece of work under two names. |
-| **7** | **Stern-sector cost term** | open, **likely unnecessary** | Per §3(b), falls out of item 6. **Do not build it first**, and possibly not at all. |
+| **7** | **Stern-sector cost term** | open, **scope narrowed 2026-09-19** | Per §3(b), falls out of item 6. **Do not build it first.** Scope: item 7 is the *Stage 1* defect — the braking test rewards deceleration when a faster ship closes from astern. It is **not** the overtaking counterpart (item 13), which is a Stage 2 cost balance. Measured at v21.5: both `overtaken_ego*` cases pass safely because the ego sees the target 13 u out with ~40 s of warning and steps aside. **Item 7 needs the cornered state**, which only the short-horizon `predT5` regime produces — untested at v21.x. |
 
 | **10** | **`closest_obstacle_on_curve` misreports an obstacle it is already touching** | **new — found 2026-09-15** | Pre-existing, independent of item 1, and it *pre-dates* the capsule. If the hull already overlaps an obstacle at `t = 0`, the arc branch reports the distance to the **far side** of the obstacle and the straight branch reports `inf` — "nothing ahead" — while in contact. |
+| **11** | **Stage 1 scores every candidate against a path and a speed the ego will not have** | **new — found 2026-09-19** | Row 4 of the §1 table. `closest_obstacle_on_curve` and the braking inequality are both handed the *setpoint* `(v, ω)`, but under `ramped_rollout` the setpoint is a target the ego approaches at `max_accel` — it is not the state. So the ego is judged on a path it is not on, at a speed it does not have. **Both halves, not one.** |
+| **12** | **The candidate set cannot express a wide pass** | **new — found 2026-09-19** | At a head-on decision the ENTIRE yaw window spans clearances of −0.680 (collides) to **+0.578**. `max_side_weight_dist` is 2.0. Passing clear is not a candidate the planner can choose, so no cost tuning can select it — measured by three falsified fixes. Same defect as v20.7.9's, now on the yaw axis. |
+| **13** | **Nothing penalises indefinite speed-matching** | **new — found 2026-09-19** | `overtake_ego`: the ego closes to 3.07 u, locks to the target's speed (**exactly 0.200**) and station-keeps for 173 s to the goal — 263.5 s against a 153.3 s baseline, **72% longer**, never passing. **Not item 7.** The braking test permits v ≤ 0.43 there; the ego chooses 0.20, so this is Stage 2 cost balance, not a Stage 1 veto. Unmoved by barrier gain or shape. |
 
-Items 1, 5 and 9 are the same defect in three fields of the same function. Item 6
-is what you get if you fix all three at once and stop patching.
+Items 1, 5, 9 and 11 are the same defect in four fields of the same function.
+Item 6 is what you get if you fix them at once and stop patching.
+
+### Item 12, measured — and three fixes it falsified
+
+At the `head_on` decision 12 s before CPA, evaluating **every** yaw candidate at
+full speed:
+
+| ω | min clearance | to_goal cost | rollout ends |
+|---|---|---|---|
+| −0.09659 | **0.578** | 0.28478 | 2.00 u off track |
+| −0.06981 | 0.519 | 0.28191 | 3.51 u off track |
+| +0.05236 | 0.346 | 0.24581 | 15.96 u off track |
+| −0.00873 | −0.433 | 0.06359 | **COLLIDES** |
+| 0.00000 | −0.680 | 0.00512 | **COLLIDES** |
+
+**The best clearance any candidate can produce is 0.578 u.
+`max_side_weight_dist` is 2.0.** The ego is not declining to pass clear —
+passing clear is not on the menu. And the chosen candidate sits near the *top* of
+what is available: the planner is doing the best it can with the set it is given.
+
+**Why the menu is that short.** The yaw window is ±5.43° and the rollout holds
+one command for 78.76 s. At the window edge the ego curls into a circle of
+radius `v/ω = 5.2 u` and comes back, so the maximum lateral offset any *single*
+command can place at the CPA is ~0.58 u. "Turn now, straighten later" is not
+representable. This is v20.7.9's original defect — a manoeuvre the window cannot
+express — moved from the speed axis to the yaw axis.
+
+**Three fixes this falsified**, all aimed at the cost function rather than the
+candidate set:
+
+| hypothesis | prediction | measured |
+|---|---|---|
+| barrier tuned for the disc hull | capsule passes closer | centre distance identical |
+| `side_cost_gain` too weak | clearance opens up | **0.000 at every gain 0.6 → 3.5** |
+| Gaussian barrier flat at contact | quadratic fixes it | **0.000; min ctr 0.750 vs 0.751** |
+
+You cannot tune a *selector* into producing an option that does not exist. The
+barrier pathologies are real and worth recording — `A·exp(−λd²)` has **zero
+gradient at `d = 0`**, peaks at `d = 0.577`, and is **non-monotonic below zero**
+(`B(−0.5) = 1.37 < B(0) = 2.00`, so deeper overlap would score cheaper, reachable
+only because `is_collision` forces `inf` first) — but they are not what causes
+the grazes.
+
+**Related, not yet separated:** `side_cost_gain` is the one cost parameter the
+rescale invalidated, since it is the only term aggregated as a *mean* over the
+horizon. The CPA's share of that mean fell **1.90×** when the horizon went from
+302 to 789 samples. That is a genuine scaling error (matched value ≈ 1.14) even
+though correcting it does not fix item 12.
+
+### Item 11, measured
+
+`closest_obstacle_on_curve(x, ob, radii, v, y, config)` takes the **setpoint**
+`v`, and `v` is what picks both the branch and the arc radius. With the ego at
+`v = 0.470`, `ω = −0.050` — genuinely on an arc of `R = 9.40 u`:
+
+| setpoint `v` | branch taken | path scanned | dist returned |
+|---|---|---|---|
+| 0.000 | `abs(v) < 1e-5` | **a straight ray along the heading** | 48.610 |
+| 0.050 | arc | `R = 1.00 u` | inf |
+| 0.200 | arc | `R = 4.00 u` | inf |
+| 0.470 | arc | `R = 9.40 u` | inf |
+| 0.500 | arc | `R = 10.00 u` | inf |
+
+Across a single window the candidates are scored against arcs from 1.0 to
+10.0 u — **and the ego is on none of them.** Under `ramped_rollout` its real
+path is a spiral: `v` ramps toward the setpoint at `max_accel` while `ω` ramps
+at `max_delta_yaw_rate`, so the radius `v/ω` changes throughout. The `v = 0`
+candidate is the extreme case: it is scored along a straight ray the ship is
+not on and, at `0.470 u/s`, cannot be on.
+
+**The same setpoint confusion is in the inequality.** `v² + 2·a·v·dt > 2·a·dist`
+reads `v` as the ship's current speed. At setpoint `v = 0` it demands zero
+braking room while the ship is doing 0.470 and needs 2.9 u. That is the
+mechanism behind §7.1's "`v = 0` is always admissible", stated as a property of
+the candidate rather than of the window.
+
+**Both halves are still setpoint-based.** A correction was designed and
+validated numerically on 2026-09-17 — replace `v` with the speed actually
+reached after one `dt`, `v₁ = v₀ + clamp(v − v₀, ±a·dt)` — and shown to restore
+Guard A at the cornered state while remaining a no-op under the narrow window
+(`max |classic − real| = 0.0010 u` across the whole v20.7.8-2 window). **It was
+never implemented.** Fixing only the inequality would leave the path wrong, so
+the two belong together.
+
+**Why this is not item 5.** Item 5 is about the *obstacle's* motion being
+frozen. This is about the *ego's* own path and speed being wrong. Two different
+vessels, two different errors, same function.
 
 ### Item 10, measured
 

@@ -87,9 +87,22 @@ def analyse(run_path: Path, baseline_traj: np.ndarray, manifest: dict, path_xy=N
     dt = float(data["config"]["dt"])
     cfg = data["config"]
 
-    # The ego is a rectangle; use its half-diagonal as the effective radius, the
-    # same quantity the planner's own collision check uses.
-    ego_r = math.hypot(cfg["robot_length"] / 2.0, cfg["robot_width"] / 2.0)
+    # Honour robot_collision_shape. Scoring a capsule run against a disc hull
+    # is the same disagreement that b128c9b fixed in the collision monitor --
+    # the ny_ais_suite README records a "collision" that was the mismatch and
+    # not a contact. This scorer was missed then; it is the sixth hull site.
+    #
+    #   disc    -> half-diagonal, hypot(L/2, W/2)          (historical)
+    #   capsule -> a segment of length (L - W) along the heading, radius W/2
+    #
+    # Measured on the v21.5 suite, the difference is not cosmetic: head_on
+    # scores -0.381 as a disc and 0.000 as a capsule -- "hulls overlapped"
+    # versus "grazed".
+    _shape = str(cfg.get("robot_collision_shape", "disc"))
+    _capsule = _shape == "capsule"
+    ego_r = (cfg["robot_width"] / 2.0 if _capsule
+             else math.hypot(cfg["robot_length"] / 2.0, cfg["robot_width"] / 2.0))
+    _half = max(0.5 * (cfg["robot_length"] - cfg["robot_width"]), 0.0) if _capsule else 0.0
 
     # A run that aborts on iteration 0 logs a single state, so trajectory is
     # (5,) rather than (N, 5). Those logs only started existing once save_log
@@ -119,7 +132,17 @@ def analyse(run_path: Path, baseline_traj: np.ndarray, manifest: dict, path_xy=N
         ego = traj[:T, 0:2]
         obs = tracks[:T]
         target_r = manifest.get("radius", cfg.get("obstacle_radius", 0.5))
-        d = np.hypot(obs[:, :, 0] - ego[:, None, 0], obs[:, :, 1] - ego[:, None, 1])
+        if _capsule:
+            # Distance to the hull AXIS, not to the hull centre: project each
+            # target onto the heading and clamp to the segment.
+            yaw = traj[:T, 2]
+            axis = np.stack([np.cos(yaw), np.sin(yaw)], axis=-1)[:, None, :]
+            to_ob = obs - ego[:, None, :]
+            proj = np.clip(np.sum(to_ob * axis, axis=2), -_half, _half)
+            perp = to_ob - proj[:, :, None] * axis
+            d = np.hypot(perp[:, :, 0], perp[:, :, 1])
+        else:
+            d = np.hypot(obs[:, :, 0] - ego[:, None, 0], obs[:, :, 1] - ego[:, None, 1])
         clearance = d - target_r - ego_r
         k = int(np.unravel_index(np.argmin(clearance), clearance.shape)[0])
         j = int(np.unravel_index(np.argmin(clearance), clearance.shape)[1])

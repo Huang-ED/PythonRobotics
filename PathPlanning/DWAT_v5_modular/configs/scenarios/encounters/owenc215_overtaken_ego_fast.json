@@ -1,5 +1,5 @@
 {
-  "group": "baseline",
+  "group": "encounters",
   "occupancy_path": "EnvData/maps/openwater_100.npy",
   "occupancy_resolution": 1.0,
   "occupancy_origin": [

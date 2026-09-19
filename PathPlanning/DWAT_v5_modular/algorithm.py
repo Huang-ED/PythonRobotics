@@ -98,8 +98,18 @@ def _build_collision_event(
     iteration: int,
 ) -> CollisionEvent:
     if config.robot_type == dwa_mod.RobotType.rectangle:
-        effective_radius = math.sqrt((config.robot_length / 2) ** 2 + (config.robot_width / 2) ** 2)
-        robot_shape_info = f"rectangle (effective radius: {effective_radius:.3f}m)"
+        # Honour robot_collision_shape, like the check that fired to get here.
+        # DETECTION is already capsule-aware (see
+        # check_collision_at_current_position_circle_approximation); only the
+        # threshold RECORDED in the event was still the disc, so a capsule run
+        # logged a collision against a radius 3x larger than the one that
+        # actually triggered it. Reporting only -- no decision depends on this.
+        if str(getattr(config, "robot_collision_shape", "disc")) == "capsule":
+            effective_radius = config.robot_width / 2.0
+            robot_shape_info = f"capsule (half-beam: {effective_radius:.3f}m)"
+        else:
+            effective_radius = math.sqrt((config.robot_length / 2) ** 2 + (config.robot_width / 2) ** 2)
+            robot_shape_info = f"rectangle (effective radius: {effective_radius:.3f}m)"
     else:
         effective_radius = config.robot_radius
         robot_shape_info = f"circle (radius: {effective_radius:.3f}m)"
