@@ -573,31 +573,71 @@ item 6 rather than patched alone.
 ## 6. Order of work
 
 **The principle: fix what is wrong with the measurement before designing against
-it.** Items 1 and 2 both change what the AIS suite *reports*. Anything measured
-before them is measured on a scene containing a ship that is not there, judged
-against a hull three times too wide.
+it.** Anything measured on a scene containing a ship that is not there, or judged
+against a hull three times too wide, is not evidence.
 
-1. ~~**Item 1** — capsule in `closest_obstacle_on_curve`.~~ ✅ done 2026-09-15.
+There are **two independent tracks**. The open-water track is where the cost
+function is tuned; the AIS track is where Stage 1's physics is wrong. They share
+no blocking dependency, so either can proceed.
+
+### Track 1 — open water: finish what `predict_time_to_goal` opened
+
+1. **Validate `T_goal = 2.0` across all 11 `owenc215_*` cases and cut v21.6.**
+   Three cases are measured (§5.1); eight are not. The one to watch is
+   **`null_safe_pass`** — a weaker goal term should over-react to a target that
+   was never a threat, and that control case exists to catch exactly that.
+2. **Split `predict_time_to_goal` into two parameters.** It sets the stiffness of
+   `to_goal_cost` *and* the authority of `speed_cost` from one number. The rescale
+   moved `max_yaw_rate` and `max_accel` by different factors (3.7× and 5.2×), so
+   no single value restores both — which is why the old 1.0 cannot simply be
+   copied back (it reaches 0.880 clearance and then loses the path).
+3. **Item 15** — give the local-goal follower a recovery when cross-track error
+   exceeds `dist_localgoal`, instead of aborting. Until then, evasion is silently
+   capped at 7.0 u.
+4. **Item 14** — a COLREGs Rule 14 side preference. The suite is now exactly
+   symmetric, so this is load-bearing rather than cosmetic. **Do not** "fix" the
+   symmetry by re-introducing a scenario offset; §5.1 shows the offset changes
+   the manoeuvre's shape and not its outcome.
+
+### Track 2 — AIS: Stage 1 is built on the wrong physics
+
+5. ~~**Item 1** — capsule in `closest_obstacle_on_curve`.~~ ✅ done 2026-09-15.
    Next action is to **re-measure `ny_hist_366962130`**: §4.1 predicted this
    admits the blocking candidate, and the direction-dependence of a capsule's
    reach (§4.1 ⚠) makes that prediction look optimistic.
-2. **Item 2** — `on_start`, defaulting to today's behaviour.
-3. **Re-baseline the AIS suite** on the corrected scene and hull. Expect
+6. **Item 2** — `on_start`, defaulting to today's behaviour.
+7. **Re-baseline the AIS suite** on the corrected scene and hull. Expect
    `ny_hist_366962130` to change outcome; if it does, it leaves the feasibility
    backlog entirely and `ny_synth_00` becomes the only AIS instance of it.
-4. **Measure what Stage 1 prunes — before designing anything.** At the
+8. **Measure what Stage 1 prunes — before designing anything.** At the
    `ny_synth_00` abort, score the 287 candidates Stage 1 rejected. If any is
    collision-free, Stage 1 causes that abort too and item 6 is the whole job; if
    none is, item 4 really is the answer there. **One instrumented call, and it
    decides everything below it.** Take the item 9 (unbounded-span) number in the
    same pass.
-5. **Item 4** — port `least_bad` to `dwa_average_weighted_side` (or run AIS on
-   `dwa_ramped`). Do this regardless of how step 4 turns out, for legibility.
-6. **Item 6** — design the replacement feasibility test, absorbing items 5 and 9.
-   Only now are its inputs trustworthy. Item 7 probably falls out; do not build it
-   separately.
-7. **Item 3** (`ais_v1.2`) — orthogonal, so "whenever convenient". But it fixes
-   half the suite's failures, so *convenient* should not mean *never*.
+9. **Item 4** — port `least_bad` to `dwa_average_weighted_side` (or run AIS on
+   `dwa_ramped`). Do this regardless of how step 8 turns out, for legibility.
+10. **Item 6** — design the replacement feasibility test, absorbing items 5 and 9.
+    Only now are its inputs trustworthy. Item 7 probably falls out; do not build
+    it separately.
+11. **Item 3** (`ais_v1.2`) — orthogonal, so "whenever convenient". But it fixes
+    half the suite's failures, so *convenient* should not mean *never*.
+
+### Also open, unsequenced
+
+- **Item 10** — `closest_obstacle_on_curve` misreports an obstacle it is already
+  touching. Independent of everything above.
+- **Cull obstacles outside the prediction horizon.** Should be behaviour-neutral;
+  worth doing for cost.
+- **`max` vs `mean` aggregation.** Deferred until parameter matching was done —
+  which §5.1 has now done, so it is eligible. Compare, do not dive deep.
+
+### Dropped
+
+- ~~**Shorten the open-water basin.**~~ Dropped 2026-09-20 — it was a runtime
+  optimisation worth ~23% of a run that now costs ~15 min. Not worth the churn of
+  changing the reference case.
+- ~~**Silent-death investigation.**~~ Parked unless it recurs.
 
 Every step must stay **config-restorable**: new behaviour behind a key that
 defaults to the current one, per `../configs/algorithm/README.md`.
