@@ -19,7 +19,7 @@
   "predict_time_obstacle": 78.76,
   "obstacle_max_angle": 3.141592653589793,
   "enable_map_boundary_obstacles": false,
-  "dist_localgoal": 7.0,
+  "dist_localgoal": 20.0,
   "catch_goal_dist": 3.6,
   "catch_turning_point_dist": 7.0,
   "robot_stuck_flag_cons": 0.001,
@@ -36,6 +36,5 @@
   "omega_window_ramp_time": 10.0,
   "robot_collision_shape": "capsule",
   "pin_path_endpoints": true,
-  "sample_grid_anchor": "lattice",
-  "local_goal_recovery": "rejoin"
+  "sample_grid_anchor": "lattice"
 }
