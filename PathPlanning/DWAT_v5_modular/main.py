@@ -130,6 +130,21 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Disable per-frame PNG saving.",
     )
+    parser.add_argument(
+        "--frames-root",
+        default=None,
+        help=(
+            "Write per-frame PNGs under <FRAMES_ROOT>/<run tag>/ instead of into "
+            "the run directory, and delete that directory when the run ends. "
+            "Point it at a WSL-native path (e.g. /tmp/dwat-frames): frames are "
+            "an intermediate, ~55 KB each and ~85 MB for a 1540-step run."
+        ),
+    )
+    parser.add_argument(
+        "--keep-frames",
+        action="store_true",
+        help="With --frames-root, keep the frames instead of deleting them.",
+    )
     return parser
 
 
@@ -174,6 +189,10 @@ def main() -> int:
         runtime.show_animation = False
     if args.no_save_frames:
         runtime.save_animation_to_figs = False
+    if args.frames_root is not None:
+        runtime.frames_root = args.frames_root
+    if args.keep_frames:
+        runtime.keep_frames = True
 
     run_paths = importlib.import_module("PathPlanning.DWAT_v5_modular.run_paths")
 
@@ -206,13 +225,21 @@ def main() -> int:
             reuse_existing_figure=runtime.show_global_planner_search,
         )
 
-    result = run_simulation(
-        config=config,
-        map_ctx=map_ctx,
-        runtime=runtime,
-        renderer=renderer,
-        dwa_module=dwa_module,
-    )
+    try:
+        result = run_simulation(
+            config=config,
+            map_ctx=map_ctx,
+            runtime=runtime,
+            renderer=renderer,
+            dwa_module=dwa_module,
+        )
+    finally:
+        # Scratch frames must not outlive the run, including when it raises or
+        # is interrupted. A no-op unless frames_root is set.
+        if renderer is not None:
+            note = renderer.cleanup_frames()
+            if note:
+                print(f"[frames] {note}")
 
     log_file = save_log(
         config=config,

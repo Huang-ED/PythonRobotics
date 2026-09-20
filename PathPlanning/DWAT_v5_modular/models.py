@@ -16,6 +16,30 @@ class RuntimeOptions:
     candidate_plot_stride: int = 20
     candidate_plot_max_count: int = 120
     output_tag: str = ""
+    # Where per-frame PNGs go, and whether they outlive the run.
+    #
+    # Frames are an INTERMEDIATE -- run_paths documents the video as "assembled
+    # afterwards by ffmpeg" -- but they have always been written into the run
+    # directory and never deleted. Measured 2026-09-21: ~55 KB a frame, ~85 MB
+    # for a 1540-step run, and 52 GB across 358 frames/ directories already in
+    # runs/, which on this machine is inside a OneDrive folder and therefore
+    # syncing to the cloud.
+    #
+    # frames_root = ""   frames go to <run dir>/frames and are kept. The
+    #                    historical behaviour, and the default, so nothing
+    #                    changes for a config that does not set this.
+    # frames_root = path frames go to <path>/<run tag>/ instead, and that
+    #                    directory is REMOVED when the run ends, however it
+    #                    ends. Point it at a WSL-native path: ext4 also saves
+    #                    the ~16% DrvFs write penalty.
+    #
+    # keep_frames keeps them either way, for when the PNGs themselves are
+    # wanted rather than a video.
+    #
+    # None of this changes a trajectory, so it is not a config-restorable
+    # question in the sense of ../configs/algorithm/README.md.
+    frames_root: str = ""
+    keep_frames: bool = False
     # Hard ceiling on control iterations. 0 = unlimited, which is the historical
     # behaviour and stays the default so existing runs reproduce.
     #
