@@ -54,11 +54,36 @@ def _describe_stall(trajectory, window, loop_ratio=2.0):
     return None
 
 
+def _rejoin_point(
+    seg_start: np.ndarray,
+    seg_end: np.ndarray,
+    current_xy: np.ndarray,
+    dist_localgoal: float,
+) -> np.ndarray:
+    """Aim back at a leg the ego has strayed off by more than the look-ahead.
+
+    Project the ego onto the leg, then advance `dist_localgoal` along it from
+    that projection, clamped to the leg's end. The result is always on the leg
+    and always ahead of the ego, which is what the look-ahead circle would have
+    given had it still reached.
+    """
+    seg = seg_end - seg_start
+    length = float(np.hypot(seg[0], seg[1]))
+    if length < 1e-9:
+        return seg_end
+    unit = seg / length
+    # Arc-length of the ego's projection along the leg, clamped to it.
+    s = float(np.dot(current_xy - seg_start, unit))
+    s = min(max(s, 0.0), length)
+    return seg_start + min(s + dist_localgoal, length) * unit
+
+
 def _choose_local_goal(
     road_map: np.ndarray,
     i_turning_point: int,
     current_xy: np.ndarray,
     dist_localgoal: float,
+    recovery: str = "abort",
 ) -> np.ndarray:
     turning_point = road_map[i_turning_point]
     intersection_points = line_circle_intersection(
@@ -78,6 +103,13 @@ def _choose_local_goal(
     if len(valid_intersection_points) == 0:
         if dist_to_turning_global <= dist_localgoal:
             return turning_point
+        if recovery == "rejoin":
+            # Open problem 15: the ego has evaded by more than dist_localgoal,
+            # so the look-ahead circle no longer meets the leg. Steer back to
+            # it instead of aborting a run that has not collided with anything.
+            return _rejoin_point(
+                road_map[i_turning_point - 1], turning_point, current_xy, dist_localgoal
+            )
         raise ValueError("No intersection points found and robot not within local-goal radius")
 
     if len(valid_intersection_points) == 1:
@@ -173,6 +205,7 @@ def run_simulation(
                     i_turning_point=i_turning_point,
                     current_xy=x[:2],
                     dist_localgoal=config.dist_localgoal,
+                    recovery=str(getattr(config, "local_goal_recovery", "abort")),
                 )
 
                 map_ctx.map_manager.update_dynamic_obstacles(config.dt)

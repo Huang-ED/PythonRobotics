@@ -136,6 +136,22 @@ class Config:
         self.catch_goal_dist = 0.5  # [m] goal radius
         self.catch_turning_point_dist = self.dist_localgoal  # [m] local goal radius
 
+        # What the local-goal follower does when the ego has strayed further
+        # than dist_localgoal from the leg it is tracking, so the look-ahead
+        # circle no longer meets the path (open problem 15).
+        #
+        #   "abort"   raise, as it always has. dist_localgoal then doubles as a
+        #             silent cap on how far the planner is allowed to deviate:
+        #             evade by more than it and the run dies, not from a
+        #             collision but from losing the path.
+        #   "rejoin"  steer back to the leg: aim at the point dist_localgoal
+        #             further along it than the ego's own projection, clamped
+        #             to the turning point. Standard pure-pursuit recovery.
+        #
+        # "abort" is the default so every existing config keeps its behaviour.
+        # The two differ ONLY on runs that currently raise.
+        self.local_goal_recovery = "abort"
+
         self.robot_stuck_flag_cons = 0.001  # constant to prevent robot stucked
         self.robot_type = RobotType.rectangle
         self.robot_radius = 0.5  # [m] for collision check

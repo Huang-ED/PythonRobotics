@@ -319,7 +319,9 @@ cleaner and gives a working order for free.
 | **12** | ~~The candidate set cannot express a wide pass~~ → **`predict_time_to_goal` is 4× too long** | ✅ **cause found 2026-09-20** | **Superseded.** The short menu was the *consequence* of reacting late, not the cause. `predict_time_to_goal` went 1.0 → 8.0 in the rescale, making `to_goal_cost` **70× stiffer** across the yaw window while `side_cost_gain` stayed at 0.6. Setting it to 2.0 restores v20.7.8-2's clearance **exactly**. See §5.1. |
 | **13** | **Nothing penalises indefinite speed-matching** | ✅ **same cause as item 12, 2026-09-20** | `overtake_ego`: the ego closes to 3.07 u, locks to the target's speed (**exactly 0.200**) and station-keeps for 173 s — 263.5 s against a 153.3 s baseline, **72% longer**, never passing. "Unmoved by barrier gain or shape" was right: the barrier was never the lever. At `predict_time_to_goal = 2.0` the ego **overtakes**, in 176.6 s. Not a separate defect. |
 | **14** | **A perfectly symmetric encounter has no side preference** | **new — found 2026-09-20** | On an exactly collinear head-on the planner chatters ±1 yaw cell — **149 sign flips in 199 steps, net turn exactly zero** — until float noise breaks the tie. **Not a cause of the grazes** (§5.1), but it is the missing COLREGs Rule 14 side rule made load-bearing. Masked until v21.3, when `pin_path_endpoints` removed the 0.707 u Theta\* snap that had been breaking the tie by accident. |
-| **15** | **`dist_localgoal` is also the maximum admissible cross-track error** | **new — found 2026-09-20** | The pure-pursuit follower intersects a circle of radius `dist_localgoal` with the path; stray further and there is no intersection and the run **aborts** (`No intersection points found…`). So `dist_localgoal = 7.0` silently caps evasion at 7 u. Both `predict_time_to_goal` ∈ {1.0, 4.0} runs died this way with `max |dev|` of 6.96 and 6.99 — **not collisions**. The follower has no recovery path. |
+| **15** | **`dist_localgoal` is also the maximum admissible cross-track error** | **low priority — 2026-09-20** | The pure-pursuit follower intersects a circle of radius `dist_localgoal` with the path; stray further and there is no intersection and the run **aborts** (`No intersection points found…`). So `dist_localgoal = 7.0` silently caps evasion at 7 u. Both `predict_time_to_goal` ∈ {1.0, 4.0} runs died this way with `max |dev|` of 6.96 and 6.99 — **not collisions**. A `local_goal_recovery: "rejoin"` option exists (default `"abort"`, so nothing changes unless enabled). ⚠ **Never enable it without an oscillation check** — on a diverging controller it converts a visible abort into an invisible divergence, and turns 5 honest failures into 6 misleading "successes". Demoted from blocker to low priority: it was found while chasing item 16, and is not its cause. |
+| **16** | **`predict_time_to_goal` supplies the path-following loop's phase lead** | **new — found 2026-09-20** | The goal rollout's *length* is what makes `to_goal_cost` anticipatory. Shorten it and the loop loses its lead while keeping a 20 s actuation lag, and the cross-track error diverges (growth 1.3–2.1× per half-cycle on every manoeuvring case). The parameter has **three conflicting roles** — see §5.1. Fixing item 12 must not go through it. |
+| **17** | **A scenario silently overrides the algorithm config** | **new — found 2026-09-20** | `map_creation.py:306` lets a scenario's `enable_map_boundary_obstacles` win over the algorithm config's. Every `owenc215_*` run has had 396 boundary obstacles active while `v21.5`/`v21.6` declared `false`. **Inert here** — measured min distance to any boundary is 14.5 u against `max_obstacle_cost_dist` of 8.0, and runs with boundaries on and off are bit-identical — but the precedence is undocumented and the same mechanism applies to every shared key. |
 
 Items 1, 5, 9 and 11 are the same defect in four fields of the same function.
 Item 6 is what you get if you fix them at once and stop patching.
@@ -365,6 +367,49 @@ v` collapses to 0.12). `predict_time_to_goal` sets the stiffness of the heading
 term **and** the authority of the speed term from one number, and the rescale
 changed `max_yaw_rate` and `max_accel` by different factors (3.7× and 5.2×), so
 no single value restores both. Splitting them is the principled fix.
+
+> ### ⚠ `T_goal = 2.0` is NOT the fix — it buys the clearance with a control instability
+>
+> **Found 2026-09-20 by watching the videos, after the table above said it worked.**
+> At `T_goal = 2.0` the cross-track error does not settle after the encounter: it
+> oscillates with **growing** amplitude, and the heading error to the local goal
+> reaches **+136.9°** — the ego ends up pointing nearly backwards. Peak |xte|
+> per half-cycle, all 11 `owenc215_*` cases:
+>
+> | case | peaks | growth |
+> |---|---|---|
+> | `head_on` *(reached goal)* | 1.68 → 1.42 → 2.12 → **3.49** | 1.49, 1.65 |
+> | `overtake_ego` *(reached goal)* | 1.86 → 1.71 → 2.99 → **5.90** | 1.74, 1.98 |
+> | `cross_port_045` *(reached goal)* | 1.92 → 1.59 → 2.76 → **5.35** | 1.73, 1.94 |
+> | `cross_port_135` *(failed)* | 4.20 → **6.47** | 1.54 |
+> | `overtaken_ego_fast` *(failed)* | 3.28 → **6.79** | 2.07 |
+>
+> At `T_goal = 8.0` the same cases show **one peak and no oscillation**. So the
+> "6 of 11 reached the goal" result was an artefact: all six were diverging too
+> and merely finished before the amplitude passed `dist_localgoal`. The five
+> "failures" were only the fastest divergers. **Reaching the goal is not a pass
+> criterion on its own; the oscillation ratio must be checked with it.**
+>
+> **Why a shorter horizon destabilises.** `calc_to_goal_cost` scores the heading
+> at the **end** of the goal rollout, i.e. the heading the ego *will have* after
+> turning for `T_goal` seconds. That is **phase lead**. Shortening `T_goal`
+> removes the anticipation while the actuation lag stays long (`ω` ramps at
+> `max_delta_yaw_rate`, 20 s to full helm). Lag without lead is a divergent loop.
+>
+> So `predict_time_to_goal` has **three** roles, and they conflict:
+>
+> | role | wants |
+> |---|---|
+> | stiffness of the heading term vs the barrier | **small** |
+> | authority of `speed_cost` (`max_accel · T`) | large |
+> | **phase lead of the path-following loop** | large |
+>
+> No single value satisfies all three, which is why both 8.0 (grazes) and 2.0
+> (diverges) are wrong. **The lever to use instead is `to_goal_cost_gain`**: it
+> weakens the heading term's magnitude while leaving the rollout length — and
+> therefore the anticipation — intact. Matching v20.7.8-2's goal/barrier spread
+> ratio of 1.22 gives `to_goal_cost_gain ≈ 0.13` at `T_goal = 8.0`. **Under test;
+> not yet established.**
 
 **Where the v21.x derivation went wrong.** It bounded `predict_time_to_goal`
 from above by *overshoot* (`v·T > dist_localgoal` saturates the bearing) and
@@ -582,18 +627,21 @@ no blocking dependency, so either can proceed.
 
 ### Track 1 — open water: finish what `predict_time_to_goal` opened
 
-1. **Validate `T_goal = 2.0` across all 11 `owenc215_*` cases and cut v21.6.**
-   Three cases are measured (§5.1); eight are not. The one to watch is
-   **`null_safe_pass`** — a weaker goal term should over-react to a target that
-   was never a threat, and that control case exists to catch exactly that.
+1. ~~**Validate `T_goal = 2.0` across all 11 `owenc215_*` cases.**~~ ✅ done
+   2026-09-20, and it **failed**: 5 of 11 abort and the other 6 diverge. Do not
+   ship it. `null_safe_pass` was clean (`max |dev|` exactly 0.000), so the
+   over-reaction worry was unfounded; the problem is item 16 instead.
+   **Next: `to_goal_cost_gain ≈ 0.13` at `T_goal = 8.0`**, which weakens the
+   heading term without removing the loop's phase lead. Score every run on
+   **two** criteria — clearance **and** oscillation growth < 1.0.
 2. **Split `predict_time_to_goal` into two parameters.** It sets the stiffness of
    `to_goal_cost` *and* the authority of `speed_cost` from one number. The rescale
    moved `max_yaw_rate` and `max_accel` by different factors (3.7× and 5.2×), so
    no single value restores both — which is why the old 1.0 cannot simply be
    copied back (it reaches 0.880 clearance and then loses the path).
-3. **Item 15** — give the local-goal follower a recovery when cross-track error
-   exceeds `dist_localgoal`, instead of aborting. Until then, evasion is silently
-   capped at 7.0 u.
+3. **Item 15** — `local_goal_recovery: "rejoin"` is implemented and defaults
+   off. Low priority, and **do not enable it until item 16 is fixed**: on a
+   diverging controller it hides the divergence instead of reporting it.
 4. **Item 14** — a COLREGs Rule 14 side preference. The suite is now exactly
    symmetric, so this is load-bearing rather than cosmetic. **Do not** "fix" the
    symmetry by re-introducing a scenario offset; §5.1 shows the offset changes
