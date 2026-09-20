@@ -43,6 +43,20 @@ def render(run_dir, out_path, stride=5, fps=25, title=None):
     ax.text(goal[0] + R, start[1] + 2, f" dist_localgoal = {R:g}", color="crimson", fontsize=8)
     ax.plot(*goal, "*", c="darkgreen", ms=15, zorder=3)
 
+    # Candidate fan (only present when the run set log_candidates_every) and
+    # the predicted obstacle tracks, which reconstruct from the logged
+    # positions as pos + vel*t -- no extra logging needed for those.
+    cand_lines = []
+    n_cand_max = max((len(e.get("candidates") or []) for e in d["log_entries"]), default=0)
+    for _ in range(n_cand_max):
+        cand_lines.append(ax.plot([], [], "-", c="deepskyblue", lw=0.8, alpha=0.25, zorder=2)[0])
+    ob_vel = np.zeros_like(obs[0])
+    if len(obs) > 1:
+        ob_vel = (obs[1] - obs[0]) / float(cfg["dt"])
+    pred_t = np.arange(0.0, float(cfg["predict_time_obstacle"]) + float(cfg["dt"]), float(cfg["dt"]))
+    pred_lines = [ax.plot([], [], "--", c="peru", lw=1.0, alpha=0.8, zorder=3)[0]
+                  for _ in range(obs.shape[1])]
+
     trail, = ax.plot([], [], "-", c="tab:blue", lw=1.4, zorder=4)
     ego_body, = ax.plot([], [], "-", c="k", lw=2.2, zorder=6)
     ego_nose = Circle((0, 0), er, fc="none", ec="tab:blue", lw=1.0, zorder=5); ax.add_patch(ego_nose)
@@ -65,6 +79,16 @@ def render(run_dir, out_path, stride=5, fps=25, title=None):
         ego_body.set_data([a[0], b[0]], [a[1], b[1]])
         ego_nose.center = (b[0], b[1]); ego_tail.center = (a[0], a[1])
         trail.set_data(traj[:k + 1, 0], traj[:k + 1, 1])
+        cands = d["log_entries"][k].get("candidates") or []
+        for li, line in enumerate(cand_lines):
+            if li < len(cands):
+                ct = np.asarray(cands[li], float)
+                line.set_data(ct[:, 0], ct[:, 1])
+            else:
+                line.set_data([], [])
+        for j, line in enumerate(pred_lines):
+            line.set_data(obs[k, j, 0] + ob_vel[j, 0] * pred_t,
+                          obs[k, j, 1] + ob_vel[j, 1] * pred_t)
         lgpt.set_data([lg[k, 0]], [lg[k, 1]])
         dmin = 9e9
         for j, c in enumerate(tg):
