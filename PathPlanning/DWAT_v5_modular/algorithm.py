@@ -216,7 +216,9 @@ def run_simulation(
                 dynamic_ob_radii = map_ctx.map_manager.get_dynamic_obstacle_radii()
                 dynamic_ob_vel = map_ctx.map_manager.get_dynamic_obstacles_vel()
 
-                if runtime.plot_candidate_trajectories:
+                _log_cand_every = int(getattr(runtime, "log_candidates_every", 0) or 0)
+                _want_cands_now = _log_cand_every and (iteration % _log_cand_every == 0)
+                if runtime.plot_candidate_trajectories or _want_cands_now:
                     (
                         u,
                         predicted_trajectory,
@@ -274,6 +276,18 @@ def run_simulation(
                     )
                     candidate_trajectories = []
 
+                # The candidate fan is the only thing a replayed video cannot
+                # reconstruct from this log, so record a strided copy when asked.
+                # float lists, not arrays: this file is JSON.
+                _cands = None
+                if _want_cands_now and candidate_trajectories:
+                    _ps = max(int(getattr(runtime, "candidate_point_stride", 10) or 1), 1)
+                    _cands = [
+                        [[round(float(p[0]), 3), round(float(p[1]), 3)]
+                         for p in ct[::_ps]]
+                        for ct in candidate_trajectories
+                    ]
+
                 log_data.append(
                     {
                         "iteration": iteration,
@@ -294,6 +308,7 @@ def run_simulation(
                         "dynamic_ob_after": float(dynamic_ob_after),
                         "dynamic_window": [float(dw[0]), float(dw[1]), float(dw[2]), float(dw[3])],
                         "dynamic_obstacles_pos": dynamic_ob_pos.tolist() if len(dynamic_ob_pos) > 0 else [],
+                        **({"candidates": _cands} if _cands else {}),
                     }
                 )
                 iteration += 1

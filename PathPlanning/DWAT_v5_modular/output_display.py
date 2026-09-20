@@ -1,5 +1,4 @@
 import json
-import shutil
 from pathlib import Path
 from typing import Any, Optional
 
@@ -57,30 +56,6 @@ class SimulationRenderer:
         self.fig_dir: Optional[Path] = None
         self.i_fig = 0
         self.plt_elements = []
-        # True only when fig_dir is a scratch directory this run created under
-        # frames_root, i.e. the one case cleanup_frames() may delete.
-        self.frames_are_scratch = False
-
-    def cleanup_frames(self) -> Optional[str]:
-        """Remove the scratch frames directory. Safe to call more than once.
-
-        Only ever touches a directory this renderer created under
-        ``frames_root``; a run writing frames into its own run directory is
-        left alone, so the historical layout is never deleted by accident.
-        """
-        if not self.frames_are_scratch or self.fig_dir is None:
-            return None
-        if getattr(self.runtime, "keep_frames", False):
-            return f"kept {self.i_fig} frames in {self.fig_dir}"
-        target, n = self.fig_dir, self.i_fig
-        self.fig_dir = None
-        self.frames_are_scratch = False
-        try:
-            shutil.rmtree(target)
-        except OSError as exc:
-            # Never fail a completed run over scratch cleanup.
-            return f"could not remove {target}: {exc}"
-        return f"removed {n} scratch frames from {target}"
 
     def _save_frame(self) -> None:
         if self.runtime.save_animation_to_figs and self.fig_dir is not None:
@@ -108,13 +83,13 @@ class SimulationRenderer:
             # base_dir is the run directory; frames get their own subfolder so
             # run.json and log_details.json stay visible beside thousands of PNGs.
             #
-            # With frames_root set they go to a scratch directory instead, which
-            # cleanup_frames() removes when the run ends. See RuntimeOptions.
+            # With frames_root set they go to a scratch directory instead. The
+            # run does NOT remove it: deleting scratch is the caller's business,
+            # not the planner's. See RuntimeOptions and purge_scratch_frames.py.
             root = str(getattr(self.runtime, "frames_root", "") or "").strip()
             if root:
                 self.fig_dir = Path(root).expanduser() / base_dir.name
                 self.fig_dir.mkdir(parents=True, exist_ok=True)
-                self.frames_are_scratch = True
             else:
                 self.fig_dir = base_dir / "frames"
                 self.fig_dir.mkdir(parents=True, exist_ok=False)

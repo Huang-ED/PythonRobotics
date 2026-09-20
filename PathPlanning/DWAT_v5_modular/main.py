@@ -135,15 +135,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help=(
             "Write per-frame PNGs under <FRAMES_ROOT>/<run tag>/ instead of into "
-            "the run directory, and delete that directory when the run ends. "
-            "Point it at a WSL-native path (e.g. /tmp/dwat-frames): frames are "
-            "an intermediate, ~55 KB each and ~85 MB for a 1540-step run."
+            "the run directory. Point it at a WSL-native path (e.g. "
+            "/tmp/dwat-frames): frames are an intermediate, ~55 KB each and "
+            "~85 MB for a 1540-step run. NOTHING here deletes them -- that is "
+            "left to whoever started the run (see tools/purge_scratch_frames.py)."
         ),
-    )
-    parser.add_argument(
-        "--keep-frames",
-        action="store_true",
-        help="With --frames-root, keep the frames instead of deleting them.",
     )
     return parser
 
@@ -191,8 +187,6 @@ def main() -> int:
         runtime.save_animation_to_figs = False
     if args.frames_root is not None:
         runtime.frames_root = args.frames_root
-    if args.keep_frames:
-        runtime.keep_frames = True
 
     run_paths = importlib.import_module("PathPlanning.DWAT_v5_modular.run_paths")
 
@@ -225,21 +219,13 @@ def main() -> int:
             reuse_existing_figure=runtime.show_global_planner_search,
         )
 
-    try:
-        result = run_simulation(
-            config=config,
-            map_ctx=map_ctx,
-            runtime=runtime,
-            renderer=renderer,
-            dwa_module=dwa_module,
-        )
-    finally:
-        # Scratch frames must not outlive the run, including when it raises or
-        # is interrupted. A no-op unless frames_root is set.
-        if renderer is not None:
-            note = renderer.cleanup_frames()
-            if note:
-                print(f"[frames] {note}")
+    result = run_simulation(
+        config=config,
+        map_ctx=map_ctx,
+        runtime=runtime,
+        renderer=renderer,
+        dwa_module=dwa_module,
+    )
 
     log_file = save_log(
         config=config,

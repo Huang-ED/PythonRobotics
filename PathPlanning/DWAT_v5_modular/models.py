@@ -25,21 +25,41 @@ class RuntimeOptions:
     # runs/, which on this machine is inside a OneDrive folder and therefore
     # syncing to the cloud.
     #
-    # frames_root = ""   frames go to <run dir>/frames and are kept. The
-    #                    historical behaviour, and the default, so nothing
-    #                    changes for a config that does not set this.
-    # frames_root = path frames go to <path>/<run tag>/ instead, and that
-    #                    directory is REMOVED when the run ends, however it
-    #                    ends. Point it at a WSL-native path: ext4 also saves
-    #                    the ~16% DrvFs write penalty.
+    # frames_root = ""   frames go to <run dir>/frames. The historical
+    #                    behaviour, and the default, so nothing changes for a
+    #                    config that does not set this.
+    # frames_root = path frames go to <path>/<run tag>/ instead. Point it at a
+    #                    WSL-native path: ext4 also saves the ~16% DrvFs write
+    #                    penalty.
     #
-    # keep_frames keeps them either way, for when the PNGs themselves are
-    # wanted rather than a video.
+    # NOTHING in this repository deletes them. Scratch is the caller's to clear
+    # -- keeping it out of the run means no code path can ever throw away the
+    # frames of a run someone still wanted. tools/purge_scratch_frames.py
+    # sweeps a frames_root when asked.
     #
     # None of this changes a trajectory, so it is not a config-restorable
     # question in the sense of ../configs/algorithm/README.md.
     frames_root: str = ""
-    keep_frames: bool = False
+    # Log the DWA candidate set every N control steps, 0 = off (the default).
+    #
+    # The candidate fan is the one thing a video needs that log_details.json
+    # does not carry -- predicted obstacle tracks reconstruct exactly from the
+    # logged positions as pos + vel*t, and the global-planner search is a
+    # one-off before the loop. Logging it lets tools/render_run_video.py
+    # produce a full investigation video WITHOUT rendering inline, which costs
+    # ~85 MB of PNGs and ~+65% wall clock.
+    #
+    # Sizes measured on a 1540-step head_on run, 120 candidates, float32, with
+    # candidate_point_stride = 10:
+    #
+    #   every step     115.5 MB        every 10 steps    11.5 MB
+    #   every 20 steps   5.8 MB
+    #
+    # 10 is the useful default when on: 6.5 frames/s of decision fan at dt=0.1.
+    log_candidates_every: int = 0
+    # Keep every Nth point of each logged candidate. The fan is for seeing
+    # WHERE the options went, so full time resolution is waste.
+    candidate_point_stride: int = 10
     # Hard ceiling on control iterations. 0 = unlimited, which is the historical
     # behaviour and stays the default so existing runs reproduce.
     #
