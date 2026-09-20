@@ -100,6 +100,16 @@ Safe window **[4, 12]**; the 13.0 I first proposed was already capped. A sweep a
 T = 5/8/11 differs by **under 1%** on every measure — inside the window the exact
 value does not matter, only the margin to its edges.
 
+> ⚠ **Superseded 2026-09-20 — this window is wrong, and 8.0 was a bad choice.**
+> The only criterion here is *"does the rollout overshoot and cap the speed?"*.
+> `predict_time_to_goal` also sets the stiffness of `to_goal_cost` against the
+> obstacle barrier, and on that axis 8.0 is **70× too stiff**: it is what causes
+> the 0.000 grazes (item 12) and the overtake station-keeping (item 13). The
+> working value is **2.0** — *below* this "safe window", whose lower edge of 4.0
+> is the worst value measured. See `../OPEN_PROBLEMS.md` §5.1. The sweep showing
+> "<1% on every measure" is consistent: 5, 8 and 11 are all far into the
+> goal-dominated regime, so all three graze identically.
+
 ### 2.3 Geometry the planner could not express
 
 **6. `ω = 0` was never sampleable (P).** `np.arange(dw[0], dw[1]+1e-6, res)`

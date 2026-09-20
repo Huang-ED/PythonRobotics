@@ -316,13 +316,64 @@ cleaner and gives a working order for free.
 
 | **10** | **`closest_obstacle_on_curve` misreports an obstacle it is already touching** | **new — found 2026-09-15** | Pre-existing, independent of item 1, and it *pre-dates* the capsule. If the hull already overlaps an obstacle at `t = 0`, the arc branch reports the distance to the **far side** of the obstacle and the straight branch reports `inf` — "nothing ahead" — while in contact. |
 | **11** | **Stage 1 scores every candidate against a path and a speed the ego will not have** | **new — found 2026-09-19** | Row 4 of the §1 table. `closest_obstacle_on_curve` and the braking inequality are both handed the *setpoint* `(v, ω)`, but under `ramped_rollout` the setpoint is a target the ego approaches at `max_accel` — it is not the state. So the ego is judged on a path it is not on, at a speed it does not have. **Both halves, not one.** |
-| **12** | **The candidate set cannot express a wide pass** | **new — found 2026-09-19** | At a head-on decision the ENTIRE yaw window spans clearances of −0.680 (collides) to **+0.578**. `max_side_weight_dist` is 2.0. Passing clear is not a candidate the planner can choose, so no cost tuning can select it — measured by three falsified fixes. Same defect as v20.7.9's, now on the yaw axis. |
-| **13** | **Nothing penalises indefinite speed-matching** | **new — found 2026-09-19** | `overtake_ego`: the ego closes to 3.07 u, locks to the target's speed (**exactly 0.200**) and station-keeps for 173 s to the goal — 263.5 s against a 153.3 s baseline, **72% longer**, never passing. **Not item 7.** The braking test permits v ≤ 0.43 there; the ego chooses 0.20, so this is Stage 2 cost balance, not a Stage 1 veto. Unmoved by barrier gain or shape. |
+| **12** | ~~The candidate set cannot express a wide pass~~ → **`predict_time_to_goal` is 4× too long** | ✅ **cause found 2026-09-20** | **Superseded.** The short menu was the *consequence* of reacting late, not the cause. `predict_time_to_goal` went 1.0 → 8.0 in the rescale, making `to_goal_cost` **70× stiffer** across the yaw window while `side_cost_gain` stayed at 0.6. Setting it to 2.0 restores v20.7.8-2's clearance **exactly**. See §5.1. |
+| **13** | **Nothing penalises indefinite speed-matching** | ✅ **same cause as item 12, 2026-09-20** | `overtake_ego`: the ego closes to 3.07 u, locks to the target's speed (**exactly 0.200**) and station-keeps for 173 s — 263.5 s against a 153.3 s baseline, **72% longer**, never passing. "Unmoved by barrier gain or shape" was right: the barrier was never the lever. At `predict_time_to_goal = 2.0` the ego **overtakes**, in 176.6 s. Not a separate defect. |
+| **14** | **A perfectly symmetric encounter has no side preference** | **new — found 2026-09-20** | On an exactly collinear head-on the planner chatters ±1 yaw cell — **149 sign flips in 199 steps, net turn exactly zero** — until float noise breaks the tie. **Not a cause of the grazes** (§5.1), but it is the missing COLREGs Rule 14 side rule made load-bearing. Masked until v21.3, when `pin_path_endpoints` removed the 0.707 u Theta\* snap that had been breaking the tie by accident. |
+| **15** | **`dist_localgoal` is also the maximum admissible cross-track error** | **new — found 2026-09-20** | The pure-pursuit follower intersects a circle of radius `dist_localgoal` with the path; stray further and there is no intersection and the run **aborts** (`No intersection points found…`). So `dist_localgoal = 7.0` silently caps evasion at 7 u. Both `predict_time_to_goal` ∈ {1.0, 4.0} runs died this way with `max |dev|` of 6.96 and 6.99 — **not collisions**. The follower has no recovery path. |
 
 Items 1, 5, 9 and 11 are the same defect in four fields of the same function.
 Item 6 is what you get if you fix them at once and stop patching.
 
-### Item 12, measured — and three fixes it falsified
+### 5.1 Items 12 and 13, solved: `predict_time_to_goal` was 4× too long
+
+**Measured 2026-09-20.** `calc_to_goal_cost` is the heading error at the **final
+row** of the goal rollout, so its sensitivity to `ω` scales with how far that
+rollout travels. The rescale raised `predict_time_to_goal` from 1.0 to 8.0 and
+left all four cost gains alone. Spread of `to_goal_cost` across the yaw window,
+same state, same ship:
+
+| `predict_time_to_goal` | 1.0 | 2.0 | 4.0 | **8.0 (shipped)** |
+|---|---|---|---|---|
+| goal-cost spread | 0.0039 | 0.0127 | 0.0531 | **0.2747** |
+
+**70×.** The barrier's own spread is ~0.049, so the competition *inverts*: at
+1.0 the barrier outweighs the goal term 12×, at 8.0 the goal term outweighs the
+barrier 5.6×. Nothing else in the rescale matters — `time_decay_lambda` and
+`predict_time_obstacle` move the chosen clearance by **zero**.
+
+Closed loop on `owenc215_head_on` (clearance is surface-to-surface, so it is
+comparable across hulls; centre distance is not):
+
+| config | `T_goal` | goal | clearance | min centre | max dev |
+|---|---|---|---|---|---|
+| v21.5 shipped | 8.0 | ✅ | **0.000** | 0.751 | 1.603 |
+| v21.5 | 4.0 | ❌ item 15 | 0.000 | 0.785 | 6.994 |
+| **v21.5** | **2.0** | ✅ | **0.433** | 1.181 | 3.487 |
+| v21.5 | 1.0 | ❌ item 15 | 0.880 | 1.663 | 6.963 |
+| v21.5 `side_cost_gain=2.11` | 8.0 | ✅ | **0.000** | 0.752 | 1.612 |
+
+On the offset geometry `T_goal = 2.0` reproduces the baseline **exactly** —
+`0.482` against v20.7.8-2's `0.482`, the centre distances differing only by hull
+(capsule 1.183, disc 1.632). Item 13 falls out at the same value: the ego stops
+station-keeping and **overtakes**, 263.4 s → **176.6 s**, `max |dev|` 0.003 →
+5.900.
+
+**`T_goal` is not monotone** and 1.0 is not the answer. The old value cannot be
+copied back because the ship changed: `max_accel` fell 5.2×, so at `T_goal = 1.0`
+the *speed* term loses its authority too (spread 0.0074, and free-space `argmin
+v` collapses to 0.12). `predict_time_to_goal` sets the stiffness of the heading
+term **and** the authority of the speed term from one number, and the rescale
+changed `max_yaw_rate` and `max_accel` by different factors (3.7× and 5.2×), so
+no single value restores both. Splitting them is the principled fix.
+
+**Where the v21.x derivation went wrong.** It bounded `predict_time_to_goal`
+from above by *overshoot* (`v·T > dist_localgoal` saturates the bearing) and
+concluded a "safe window [4, 12]", then took 8.0. The criterion was "does it cap
+the speed?" — the competition against the barrier was never in it. The working
+value, 2.0, lies **below** that window, and 4.0 — its lower edge — is the worst
+value tested.
+
+### Item 12's original evidence, and what it actually showed
 
 At the `head_on` decision 12 s before CPA, evaluating **every** yaw candidate at
 full speed:
@@ -340,6 +391,15 @@ full speed:
 passing clear is not on the menu. And the chosen candidate sits near the *top* of
 what is available: the planner is doing the best it can with the set it is given.
 
+> ⚠ **This measurement is correct and its conclusion was not.** It was taken
+> **12 s before CPA**, by which time the menu really is that short. Evaluated
+> earlier, the same window is rich: at a centre gap of 20 u the widest available
+> candidate clears **4.742 u**, and at 30 u it clears **9.999 u**. The menu was
+> ample and the planner spent it standing still. *The short menu is the
+> consequence of reacting late, not the cause of it* — §5.1 has the cause. The
+> general lesson: **measuring at the moment of failure finds the constraint that
+> binds last, which is rarely the one that can be fixed.**
+
 **Why the menu is that short.** The yaw window is ±5.43° and the rollout holds
 one command for 78.76 s. At the window edge the ego curls into a circle of
 radius `v/ω = 5.2 u` and comes back, so the maximum lateral offset any *single*
@@ -356,18 +416,64 @@ candidate set:
 | `side_cost_gain` too weak | clearance opens up | **0.000 at every gain 0.6 → 3.5** |
 | Gaussian barrier flat at contact | quadratic fixes it | **0.000; min ctr 0.750 vs 0.751** |
 
-You cannot tune a *selector* into producing an option that does not exist. The
-barrier pathologies are real and worth recording — `A·exp(−λd²)` has **zero
-gradient at `d = 0`**, peaks at `d = 0.577`, and is **non-monotonic below zero**
+**All three verdicts stand, re-measured 2026-09-20.** `side_cost_gain = 2.11`
+closed-loop gives clearance **0.000** and min centre **0.752**, against the
+baseline's 0.000 / 0.751 — the gain really does nothing, and a single-step
+decomposition predicting 1.218 at a 20 u gap really is wrong. The barrier
+pathologies are real and worth recording — `A·exp(−λd²)` has **zero gradient at
+`d = 0`**, peaks at `d = 0.577`, and is **non-monotonic below zero**
 (`B(−0.5) = 1.37 < B(0) = 2.00`, so deeper overlap would score cheaper, reachable
 only because `is_collision` forces `inf` first) — but they are not what causes
 the grazes.
 
-**Related, not yet separated:** `side_cost_gain` is the one cost parameter the
-rescale invalidated, since it is the only term aggregated as a *mean* over the
-horizon. The CPA's share of that mean fell **1.90×** when the horizon went from
-302 to 789 samples. That is a genuine scaling error (matched value ≈ 1.14) even
-though correcting it does not fix item 12.
+What was wrong was the *inference drawn from* the three falsifications: that
+since no cost-function change helped, the candidate set must be at fault. Every
+one of the three scales a term that competes against `to_goal_cost`, and at
+`predict_time_to_goal = 8.0` that term outweighs all of them. They failed for one
+shared reason, which is weaker evidence than three independent failures.
+
+**Retracted:** the note that `side_cost_gain` needs a **1.90×** dilution
+correction (matched value ≈ 1.14) because it is aggregated as a *mean* over a
+longer horizon. The reasoning is sound but the effect is **nil**: holding
+`λ·T` fixed while varying `T`, and separately restoring `T_obs = 30, λ = 0.1`,
+each move the chosen clearance by **0.000**. The mean-dilution term is real and
+irrelevant at this scale.
+
+### Item 14, measured — symmetry changes the manoeuvre, not the outcome
+
+The cost function is mirror-symmetric in port/starboard (the open-water suite
+confirms it empirically: mirrored pairs agree to 2 d.p.). Until v21.3 every
+"collinear" case was in fact offset — Theta\* snapped the ego's start by
+**0.707 u** — and that accident was the only thing breaking the tie.
+`pin_path_endpoints` removed it and the suite regeneration put the target on
+`x = 50.0` exactly, so the encounter became genuinely symmetric for the first
+time. On the axis the planner chatters:
+
+| phase | sign flips | net turn | `|k|max` |
+|---|---|---|---|
+| barrier active, t = 50–70 | **149 / 199 steps** | **exactly 0 cells** | 1 |
+| committed, t = 76–90 | 8 / 139 | −207 cells | 10 |
+
+It commands a turn every step, alternates sides, and integrates to nothing.
+
+**It is not what causes the grazes.** Sweeping the target's lateral offset with
+every cost parameter untouched:
+
+| offset | breaks tie at | centre dist then | max dev | **min centre** |
+|---|---|---|---|---|
+| 0.00 | 81.4 s | 7.8 u | 1.603 | **0.751** |
+| 0.05 | 73.3 s | 15.1 u | 0.902 | **0.726** |
+| 0.25 | 64.6 s | 23.0 u | 0.492 | **0.707** |
+| 0.50 | 62.3 s | 25.1 u | 0.237 | **0.712** |
+
+Breaking the tie 19 s earlier at 3× the range leaves the outcome **unchanged, and
+marginally worse**. The planner converges on the same ~0.72 u equilibrium however
+early it starts; reacting sooner only buys a smaller deviation. Symmetry sets the
+manoeuvre's *shape*, not its endpoint.
+
+So the exactly-symmetric suite is **better, not broken** — it stopped an
+accidental offset from masking a missing COLREGs Rule 14 side rule. Do not
+"fix" it by re-introducing an offset.
 
 ### Item 11, measured
 
