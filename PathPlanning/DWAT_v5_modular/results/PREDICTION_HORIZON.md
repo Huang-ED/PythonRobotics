@@ -350,9 +350,30 @@ range was 49.2 u on a 100 u map, yet the ego was measured not reacting until a
 6.45 u gap. The extra horizon bought no earlier action whatsoever.
 
 `v21.10` sets `T = 36.41 s` (`4·T_act` exactly), `λ = 0.02746` (holding
-`λ·T = 1.0`), and `side_cost_gain = 0.98` (holding `G/B ≈ 0.228`). Against
-v21.9: clearance **0.590 → 0.644** on `head_on`, rollout **548 → 366 rows**, and
-wall-clock **~35 min → 24.1 min, a 40% saving**.
+`λ·T = 1.0`), and `side_cost_gain = 0.98` (holding `G/B ≈ 0.228`). Measured on
+the full 11-case suite with its own baseline — **11/11 reach the goal, settle,
+and clear**, and every encounter improved:
+
+| case | v21.9 | v21.10 | Δ |
+|---|---|---|---|
+| `head_on` | 0.590 | **0.644** | +0.054 |
+| `cross_*_045` | 0.532 | **0.628** | +0.096 |
+| `cross_*_090` | 0.644 | **0.719** | +0.075 |
+| `cross_*_135` | 0.844 | **0.899** | +0.055 |
+| `overtake_ego` | 0.822 | **0.864** | +0.042 |
+| `overtaken_ego` | 0.799 | **0.842** | +0.043 |
+| `overtaken_ego_fast` | 0.689 | **0.753** | +0.064 |
+| `null_safe_pass` (control) | 4.356 | 4.356 | 0.000 |
+| **mean (encounters)** | **0.703** | **0.764** | **+0.061** |
+
+Worst case 0.628 against v20.7.8-2's 0.482; every delay under **1.7 s** against a
+151.0 s baseline; the no-threat control still deviates exactly 0.000. Rollout
+**547 → 365 rows (33% fewer)**, measured **0.73 → 1.02 steps/s**, wall-clock
+**~35 min → 24.1 min**.
+
+**A shorter horizon was better on every axis at once** — safety, cost and
+compute. That is the signature of a parameter that was simply wrong, not of a
+trade-off being re-balanced.
 
 **The general lesson.** A horizon scaled from a reference config carries that
 config's `T_act`, not this one's. Scale the *inputs* (`max_accel`,
