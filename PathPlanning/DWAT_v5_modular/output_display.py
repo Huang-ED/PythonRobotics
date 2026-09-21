@@ -1,4 +1,5 @@
 import json
+import sys
 from pathlib import Path
 from typing import Any, Optional
 
@@ -173,8 +174,23 @@ class SimulationRenderer:
         self._save_frame()
 
     def show(self) -> None:
-        if self.runtime.show_animation:
-            plt.show()
+        """Hold the final figure open -- but only when someone is there to see it.
+
+        ``plt.show()`` on an interactive backend BLOCKS until a human closes the
+        window. In a background batch there is no human, so the run sits at 100%
+        complete forever: measured 2026-09-21, six runs finished their 1,515
+        frames in 38 min each and then hung here for a further 10.1 hours.
+
+        stdout not being a tty is the signal that nobody is watching. Rendering
+        itself is unaffected -- it costs ~15-25% against a headless run, and the
+        frames are already written by the time this is reached.
+        """
+        if not self.runtime.show_animation:
+            return
+        if not sys.stdout.isatty():
+            plt.close("all")
+            return
+        plt.show()
 
 
 def save_log(
