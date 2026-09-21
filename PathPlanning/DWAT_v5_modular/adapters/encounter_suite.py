@@ -492,10 +492,38 @@ COMBINED_SUITES = {
 }
 
 
+def _apply_t_meet(args, cases, suite_name):
+    """Return `cases` with any --t-meet overrides applied.
+
+    Shared by the --suite and --combine paths. It used to live only in the
+    --suite path, below an early `return _emit_combined(...)`, so --t-meet was
+    accepted and then silently ignored for every combined set -- which is the
+    only way to de-conflict targets that collide with EACH OTHER.
+    """
+    overrides = {}
+    for spec in args.t_meet:
+        name, _, val = spec.partition("=")
+        if not val:
+            raise SystemExit(f"--t-meet expects NAME=SECONDS, got {spec!r}")
+        overrides[name.strip()] = float(val)
+    if not overrides:
+        return cases
+    known = {c["name"] for c in cases}
+    unknown = set(overrides) - known
+    if unknown:
+        raise SystemExit(
+            f"--t-meet names not in {suite_name!r}: {sorted(unknown)}\n"
+            f"  available: {sorted(known)}")
+    for n, v in sorted(overrides.items()):
+        was = next(c["t_meet"] for c in cases if c["name"] == n)
+        print(f"t_meet override: {n} {was} -> {v} s")
+    return [dict(c, t_meet=overrides.get(c["name"], c["t_meet"])) for c in cases]
+
+
 def _emit_combined(args, base, base_path, traj, dt, sim_duration, static_obs,
                    out_dir, root, prefix) -> int:
     """Write a single scenario containing every target of a combined set."""
-    cases = COMBINED_SUITES[args.combine]
+    cases = _apply_t_meet(args, COMBINED_SUITES[args.combine], args.combine)
     obstacles, diags = [], []
 
     for case in cases:
@@ -653,20 +681,7 @@ def main() -> int:
         return _emit_combined(args, base, base_path, traj, dt, sim_duration,
                               static_obs, out_dir, root, prefix)
 
-    _overrides = {}
-    for _spec in args.t_meet:
-        _name, _, _val = _spec.partition("=")
-        if not _val:
-            raise SystemExit(f"--t-meet expects NAME=SECONDS, got {_spec!r}")
-        _overrides[_name.strip()] = float(_val)
-    _cases = SUITES[args.suite]
-    _unknown = set(_overrides) - {c["name"] for c in _cases}
-    if _unknown:
-        raise SystemExit(f"--t-meet names not in suite {args.suite!r}: {sorted(_unknown)}")
-    if _overrides:
-        _cases = [dict(c, t_meet=_overrides.get(c["name"], c["t_meet"])) for c in _cases]
-        for _n, _v in sorted(_overrides.items()):
-            print(f"t_meet override: {_n} {SUITES[args.suite][[c['name'] for c in SUITES[args.suite]].index(_n)]['t_meet']} -> {_v} s")
+    _cases = _apply_t_meet(args, SUITES[args.suite], args.suite)
 
     for case in _cases:
         name = case["name"]

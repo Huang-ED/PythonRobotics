@@ -1,0 +1,124 @@
+{
+  "group": "combined",
+  "image_path": "EnvData/maps/land_shapes_ht_crop.png",
+  "map_size": [
+    100,
+    100
+  ],
+  "enable_map_boundary_obstacles": true,
+  "start_position": [
+    70.0,
+    90.0
+  ],
+  "goal_position": [
+    60.0,
+    10.0
+  ],
+  "dynamic_obstacles": [
+    {
+      "motion_type": "waypoint",
+      "waypoints": [
+        [
+          54.2185,
+          91.3243
+        ],
+        [
+          135.4744,
+          -9.7002
+        ]
+      ],
+      "speed": 0.35,
+      "radius": 0.5
+    },
+    {
+      "motion_type": "waypoint",
+      "waypoints": [
+        [
+          49.9103,
+          71.6394
+        ],
+        [
+          144.0723,
+          87.3432
+        ]
+      ],
+      "speed": 0.25,
+      "radius": 0.5
+    },
+    {
+      "motion_type": "waypoint",
+      "waypoints": [
+        [
+          29.9747,
+          54.0585
+        ],
+        [
+          154.3515,
+          131.9241
+        ]
+      ],
+      "speed": 0.4,
+      "radius": 0.5
+    },
+    {
+      "motion_type": "waypoint",
+      "waypoints": [
+        [
+          36.8989,
+          52.3382
+        ],
+        [
+          107.6481,
+          86.0488
+        ]
+      ],
+      "speed": 0.2,
+      "radius": 0.5
+    },
+    {
+      "motion_type": "waypoint",
+      "waypoints": [
+        [
+          39.5448,
+          99.2826
+        ],
+        [
+          61.6132,
+          -45.7884
+        ]
+      ],
+      "speed": 0.4,
+      "radius": 0.5
+    },
+    {
+      "motion_type": "waypoint",
+      "waypoints": [
+        [
+          71.9333,
+          16.2116
+        ],
+        [
+          -4.0123,
+          99.2832
+        ]
+      ],
+      "speed": 0.3,
+      "radius": 0.5
+    },
+    {
+      "motion_type": "waypoint",
+      "waypoints": [
+        [
+          77.4953,
+          45.0429
+        ],
+        [
+          1.0124,
+          27.9483
+        ]
+      ],
+      "speed": 0.2,
+      "radius": 0.5
+    }
+  ]
+}
