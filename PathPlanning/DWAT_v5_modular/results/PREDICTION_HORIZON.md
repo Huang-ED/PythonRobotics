@@ -101,7 +101,44 @@ Summing with a modest margin:
 T  ≳  T_act + 2·T_exec  ≈  20 + 16  =  36 s        i.e.  T / T_act ≈ 1.8
 ```
 
-That is the **floor**. It is not the recommendation — see §4.
+That is the **floor** as originally derived. It is not the recommendation — see
+§4 — and **it is also too low**, for a reason the derivation misses.
+
+#### The floor has a fourth term: you must be able to SEE the target
+
+`T_act + T_exec + T_verify` prices *developing, executing and confirming* a
+manoeuvre. It never asks whether the obstacle is inside the rollout **at the
+range where the decision is made**. It is not, if the horizon is at the floor.
+
+The planner sees a threat only where its rollout meets the target's
+extrapolated track, i.e. within `(v_own + v_target)·T` of closing. So there is a
+detection term:
+
+```
+T  ≥  d_decide / (v_own + v_target)
+```
+
+where `d_decide` is the separation at which the cost must already discriminate
+between candidates. Measured on v21.9 (`T_act` 9.10 s, closing 0.9 u/s), taking
+the spread of the barrier term across the yaw window at a 20 u gap:
+
+| `T` | `T/T_act` | barrier spread `B` | G/B |
+|---|---|---|---|
+| 54.62 | 6.00 | 0.1220 | 0.228 |
+| 36.41 | 4.00 | 0.1491 | 0.187 |
+| 27.31 | 3.00 | 0.1620 | 0.172 |
+| **18.96** | **2.08 (the floor)** | **0.0001** | **200.75** |
+
+**At the floor the barrier spread collapses by three orders of magnitude.** A
+19 s horizon covers 17.1 u of closing, so a target 20 u away is *outside the
+rollout entirely*: every candidate scores the same and the planner is blind at
+exactly the range where it should be choosing. The floor is not conservative —
+it is unusable, and nothing in the original three-term derivation says so.
+
+For the open-water suite `d_decide ≈ 20 u` gives `T ≥ 22 s`, which is close
+enough to the three-term floor of 19 s that it does not move the recommendation
+— but it is the term that *should* bind as encounters get faster, and the only
+one that scales with the traffic rather than with the ship.
 
 ### 3.2 The upper bound: the time discount already truncates it
 
@@ -123,6 +160,29 @@ This is not hypothetical. A `v21.x` config that had kept `λ = 0.1` while
 extending `T` to 78.76 s would have sat at `λ·T = 7.9` — **the last 60% of the
 rollout weighted below 0.5%**, pure waste. That is why `λ` was reduced to
 0.01269 alongside the horizon, giving `λ·T = 1.0`.
+
+#### A third coupling: the horizon sets the barrier's STRENGTH
+
+`dynamic_ob_cost` is a **time-weighted mean over the rollout**, so the CPA's
+share of that mean is `~1/T`. Shortening the horizon therefore *strengthens* the
+barrier relative to `to_goal_cost` — the same manoeuvre scores a bigger penalty.
+Measured on v21.9, `head_on`, holding everything else fixed:
+
+| `T` | `side_cost_gain` | clearance |
+|---|---|---|
+| 54.62 | 1.20 | 0.590 |
+| **36.41** | 1.20 | **0.731** |
+| 36.41 | 0.98 | 0.644 |
+
+So `predict_time_obstacle` and `side_cost_gain` **cannot be tuned
+independently**: cutting the horizon by a third raised clearance by 24% at fixed
+gain, and ≈0.98 is the gain that holds the balance. Any horizon change needs the
+gain re-derived, or the clearance result silently moves with it.
+
+⚠ This is why the note that `side_cost_gain` needed a "1.90× dilution
+correction" was **wrongly retracted** as having nil effect. It was measured when
+`G/B` was 5.56 and `to_goal_cost` swamped every other term, so nothing moved.
+The dilution is real; it was masked by a different defect.
 
 **The two bounds must be designed together**, which gives a consistency rule:
 
@@ -273,6 +333,32 @@ available — but it changes the reference case, so it is a proposal, not a patc
 This is a concrete, independent prediction: **if the horizon is the cause of that
 abort, raising `predict_time_obstacle` to ~218 s should change the outcome.**
 That is a one-run experiment and it does not depend on any other backlog item.
+
+---
+
+## 5.1 Applied to v21.x — and a warning about how NOT to derive it
+
+`v21.5` through `v21.9` all set `predict_time_obstacle` by **scaling the AIS
+config by the time factor** (120 s × 0.4552 = 54.62 s), not by this document's
+rule. With `T_act = 9.10 s` that is `T/T_act = 6.00`, **50% longer than the
+4·T_act recommended here**, and it survived four config revisions unquestioned
+because it looked principled — it came from the reference suite.
+
+The tell was geometric: the rollout ran `v·T` = **27.3 u** while the ego steers
+at a local goal **7.0 u** ahead, i.e. 3.9× beyond its own reference. Detection
+range was 49.2 u on a 100 u map, yet the ego was measured not reacting until a
+6.45 u gap. The extra horizon bought no earlier action whatsoever.
+
+`v21.10` sets `T = 36.41 s` (`4·T_act` exactly), `λ = 0.02746` (holding
+`λ·T = 1.0`), and `side_cost_gain = 0.98` (holding `G/B ≈ 0.228`). Against
+v21.9: clearance **0.590 → 0.644** on `head_on`, rollout **548 → 366 rows**, and
+wall-clock **~35 min → 24.1 min, a 40% saving**.
+
+**The general lesson.** A horizon scaled from a reference config carries that
+config's `T_act`, not this one's. Scale the *inputs* (`max_accel`,
+`max_delta_yaw_rate`) and then **derive** the horizon; never scale the horizon
+itself. The identical mistake put `dist_localgoal` at 20.69 u in v21.8 when its
+own rates permitted 4.55 u.
 
 ---
 
