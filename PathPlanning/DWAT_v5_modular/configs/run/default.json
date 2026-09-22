@@ -1,9 +1,14 @@
 {
   "show_animation": true,
   "save_animation_to_figs": true,
-  "show_global_planner_search": true,
+  "show_global_planner_search": false,
   "plot_predicted_dynamic_obstacles": true,
   "plot_candidate_trajectories": true,
   "candidate_plot_stride": 20,
-  "candidate_plot_max_count": 120
+  "candidate_plot_max_count": 120,
+  "frames_root": "/tmp/dwat-frames",
+  "log_candidates_every": 10,
+  "candidate_point_stride": 10,
+  "max_sim_steps": 8000,
+  "progress_every_s": 120.0
 }

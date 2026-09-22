@@ -1,0 +1,11 @@
+{
+  "show_animation": false,
+  "save_animation_to_figs": false,
+  "show_global_planner_search": false,
+  "plot_predicted_dynamic_obstacles": false,
+  "plot_candidate_trajectories": false,
+  "log_candidates_every": 10,
+  "candidate_point_stride": 10,
+  "max_sim_steps": 8000,
+  "progress_every_s": 120.0
+}

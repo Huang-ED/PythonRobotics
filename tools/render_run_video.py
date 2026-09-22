@@ -1,7 +1,24 @@
 """Render a run's animation straight from log_details.json -- no re-planning.
 
 Draws the dist_localgoal corridor, which is what the item-15 failures cross.
+
+NAMING: output belongs beside the run as ``video_from_log.mp4``, never
+``video.mp4``. The two are not interchangeable and the difference matters when
+reading an old run:
+
+    video.mp4            assembled from frames/ that the RUN itself wrote, so
+                         it carries whatever the planner drew live -- the
+                         candidate fan, the global-planner search.
+    video_from_log.mp4   reconstructed afterwards from log_details.json. Ego,
+                         targets, local goal and the predicted obstacle tracks
+                         are exact; the candidate fan appears ONLY if the run
+                         set ``log_candidates_every``, and the planner search
+                         never does.
+
+DEFAULT_OUTPUT_NAME below is the one to use when writing into a run directory.
 """
+
+DEFAULT_OUTPUT_NAME = "video_from_log.mp4"
 import json, math, os, sys
 import numpy as np
 import matplotlib
@@ -20,9 +37,30 @@ def render(run_dir, out_path, stride=5, fps=25, title=None):
     T = min(len(traj), len(obs))
     traj, obs, lg = traj[:T], obs[:T], lg[:T]
 
-    sc = json.load(open(json.load(open(os.path.join(run_dir, "run.json")))["inputs"]["scenario"]))
+    sc_path = json.load(open(os.path.join(run_dir, "run.json")))["inputs"]["scenario"]
+    sc = json.load(open(sc_path))
     start = np.array(sc["start_position"], float)
     goal = np.array(sc["goal_position"], float)
+
+    # Land, and the actual global path. Neither is in log_details.json, so
+    # rebuild the map context from the scenario the run recorded. Without this
+    # a land route renders as open water -- the v3crowd7 run that BEACHED on a
+    # static obstacle showed nothing to beach on -- and the look-ahead corridor
+    # gets drawn about a straight start->goal line that is not the path.
+    static_xy, road_map = None, None
+    try:
+        import importlib
+        _mc = importlib.import_module("PathPlanning.DWAT_v5_modular.map_creation")
+        _main = importlib.import_module("PathPlanning.DWAT_v5_modular.main")
+        _cfgd = dict(cfg)
+        _mod = importlib.import_module(
+            _cfgd.pop("dwa_module", "PathPlanning.DWAT_v4_st.dwa_average_weighted_side"))
+        _c = _main.apply_algorithm_overrides(_mod.Config(), _cfgd)
+        _ctx = _mc.create_map_context(_c, sc_path)
+        static_xy = np.asarray(_ctx.map_manager.get_static_obstacles(), float)
+        road_map = np.asarray(_ctx.road_map, float)
+    except Exception as exc:
+        print(f"  [warn] map not rebuilt, rendering without land: {exc}")
     R = float(cfg["dist_localgoal"])
     half = max(0.5 * (cfg["robot_length"] - cfg["robot_width"]), 0.0)
     er = cfg["robot_width"] / 2.0
@@ -35,12 +73,20 @@ def render(run_dir, out_path, stride=5, fps=25, title=None):
     ax.set_xlim(lo, hi)
     ax.set_ylim(min(goal[1], traj[:, 1].min()) - 6, max(start[1], traj[:, 1].max()) + 6)
 
-    # reference leg and the dist_localgoal corridor it must stay inside
-    ax.plot([start[0], goal[0]], [start[1], goal[1]], "--", c="0.6", lw=1, zorder=1)
-    for s in (-1, 1):
-        ax.plot([start[0] + s * R, goal[0] + s * R], [start[1], goal[1]],
-                ":", c="crimson", lw=1.2, zorder=1)
-    ax.text(goal[0] + R, start[1] + 2, f" dist_localgoal = {R:g}", color="crimson", fontsize=8)
+    # Land first, so everything else draws over it.
+    if static_xy is not None and len(static_xy):
+        ax.plot(static_xy[:, 0], static_xy[:, 1], "s", c="0.45", ms=2.0,
+                mec="none", zorder=0, label="land")
+
+    # The global path the follower is tracking -- the real Theta* road map when
+    # it could be rebuilt, else the straight start->goal line as a fallback.
+    if road_map is not None and len(road_map) >= 2:
+        ax.plot(road_map[:, 0], road_map[:, 1], "--", c="0.35", lw=1.2, zorder=1)
+        ax.plot(road_map[:, 0], road_map[:, 1], ".", c="0.35", ms=4, zorder=1)
+    else:
+        ax.plot([start[0], goal[0]], [start[1], goal[1]], "--", c="0.6", lw=1, zorder=1)
+    ax.text(0.02, 0.02, f"dist_localgoal = {R:g}", transform=ax.transAxes,
+            color="crimson", fontsize=8)
     ax.plot(*goal, "*", c="darkgreen", ms=15, zorder=3)
 
     # Candidate fan (only present when the run set log_candidates_every) and
@@ -70,6 +116,23 @@ def render(run_dir, out_path, stride=5, fps=25, title=None):
     ax.set_title(title or os.path.basename(run_dir), fontsize=10)
     ax.grid(alpha=.25)
 
+    def _cross_track(p):
+        """Distance to the global path -- the polyline, not a straight line.
+
+        |x - 50| was hardcoded for the open-water route and read 21.74 on every
+        v3crowd run, whose path is (70,90) -> (60,10). Identical values across
+        six different runs was the tell.
+        """
+        if road_map is None or len(road_map) < 2:
+            return abs(p[0] - start[0])
+        a, b = road_map[:-1], road_map[1:]
+        ab = b - a
+        L2 = np.sum(ab * ab, axis=1)
+        L2 = np.where(L2 < 1e-12, 1e-12, L2)
+        t = np.clip(np.sum((p - a) * ab, axis=1) / L2, 0.0, 1.0)
+        proj = a + t[:, None] * ab
+        return float(np.min(np.hypot(*(p - proj).T)))
+
     idx = list(range(0, T, stride)) + [T - 1]
 
     def upd(k):
@@ -97,9 +160,9 @@ def render(run_dir, out_path, stride=5, fps=25, title=None):
             to = obs[k, j] - np.array([x, y])
             p = np.clip(to @ h, -half, half)
             dmin = min(dmin, float(np.hypot(*(to - p * h))) - ob_r - er)
-        dev = abs(x - start[0])
-        flag = "  <-- OUTSIDE CORRIDOR" if dev > R else ""
-        txt.set_text(f"t = {k*0.1:6.1f} s\nclearance = {dmin:7.3f}\ncross-track = {dev:6.3f}{flag}")
+        dev = _cross_track(np.array([x, y]))
+        flag = "  <-- BEYOND dist_localgoal" if dev > R else ""
+        txt.set_text(f"t = {k*0.1:6.1f} s\nclearance  = {dmin:7.3f}\ncross-track = {dev:6.3f}{flag}")
         return ()
 
     FuncAnimation(fig, upd, frames=idx, interval=1000 / fps, blit=False).save(
@@ -109,4 +172,12 @@ def render(run_dir, out_path, stride=5, fps=25, title=None):
 
 
 if __name__ == "__main__":
-    print(render(sys.argv[1], sys.argv[2], title=sys.argv[3] if len(sys.argv) > 3 else None))
+    run_dir = sys.argv[1]
+    out = sys.argv[2] if len(sys.argv) > 2 else os.path.join(run_dir, DEFAULT_OUTPUT_NAME)
+    if os.path.isdir(out):
+        out = os.path.join(out, DEFAULT_OUTPUT_NAME)
+    if os.path.basename(out) == "video.mp4":
+        raise SystemExit(
+            "refusing to write video.mp4: that name is reserved for a video "
+            "assembled from the run's own frames/. Use " + DEFAULT_OUTPUT_NAME)
+    print(render(run_dir, out, title=sys.argv[3] if len(sys.argv) > 3 else None))
