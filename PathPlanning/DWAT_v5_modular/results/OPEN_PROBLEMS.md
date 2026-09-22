@@ -671,6 +671,14 @@ no blocking dependency, so either can proceed.
 
 ### Track 1 — open water: finish what `predict_time_to_goal` opened
 
+> **Revised 2026-09-23 -- see `OSCILLATION.md` sections 3.3, 4.4 and 4.5.** The
+> lag constant is `T_yaw = max_yaw_rate/max_delta_yaw_rate`, not
+> `max(T_surge, T_yaw)`; `dist_localgoal` does not reduce the peak excursion at
+> all (7 -> 18 moves it 0.05%); re-weighting the cost gains cannot help, because
+> the speed term is omega-free so the gain cancels from the yaw stationarity
+> condition; and `v21.10`'s v3crowd failures were caused by an undeclared
+> `start_yaw`, not by the config -- it passes 3/3 when the heading is declared.
+>
 > **See `OSCILLATION.md`** (2026-09-22). Item 16's "preview must exceed `T_act`"
 > turns out to be the **Routh–Hurwitz boundary** of pure pursuit with steering
 > lag. The whole oscillation collapses to one number,

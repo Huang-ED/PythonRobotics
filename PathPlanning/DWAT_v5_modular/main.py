@@ -244,6 +244,7 @@ def main() -> int:
         run_config_path=_resolve_config_path(args.run_config),
         config=config,
         runtime=runtime,
+        road_map=map_ctx.road_map,
     )
 
     artifacts = build_output_artifacts(renderer=renderer, log_file=log_file)

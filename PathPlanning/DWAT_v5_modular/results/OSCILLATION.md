@@ -18,10 +18,18 @@ what it does not settle.
 >
 > **Small-signal**, near the path, is governed by **one dimensionless number**:
 > ```
->     mu = dist_localgoal / (max_speed * T_act)
->     T_act = max(max_speed/max_accel, max_yaw_rate/max_delta_yaw_rate)
+>     mu = (dist_localgoal/max_speed + predict_time_to_goal) / T_yaw
+>     T_yaw = max_yaw_rate / max_delta_yaw_rate
 > ```
-> `mu > 1` is a hard stability boundary. `mu ~ 4` minimises settling time.
+> `mu > 1` is a hard stability boundary. Raising `mu` improves **damping**.
+>
+> **Corrected 2026-09-23.** This document first wrote the lag as
+> `T_act = max(max_speed/max_accel, T_yaw)`, carried over from
+> `PREDICTION_HORIZON.md`. That is wrong here: oscillation is a *steering*
+> phenomenon and surge acceleration belongs to the speed loop. An 11-config
+> screen separates them decisively -- see section 4.4. The earlier evidence
+> could not: only `v20.7.8-2` distinguishes the two forms, and it is stable
+> under both.
 >
 > **Large-signal**, acquiring the track from a heading error `psi0`, is not
 > governed by `mu` at all. It is a rate-limited manoeuvre whose excursion is
@@ -31,6 +39,11 @@ what it does not settle.
 > and no amount of look-ahead changes it.
 
 Confusing the two is how three of this investigation's wrong turns happened.
+
+> **The two regimes are now separated by experiment, not by argument.** Varying
+> `dist_localgoal` alone from 7 to 18 -- a 2.4x change in `mu` at constant
+> `t_acq` -- moves the peak excursion by **0.05%** while helm saturation falls
+> monotonically from 0.776 to 0.490. Section 4.4.
 
 ---
 
@@ -66,16 +79,16 @@ Pure pursuit on a straight line, for small cross-track `e` and heading error
 
 **Ideal pure pursuit is always well damped, at any speed.** So the oscillation
 cannot come from the geometry. It comes from what the ideal model leaves out:
-the yaw rate cannot change instantly. Inserting a first-order lag `tau = T_act`:
+the yaw rate cannot change instantly. Inserting a first-order lag `tau = T_yaw`:
 
 ```
-    T_act s^3 + s^2 + (2v/L_d) s + 2 v^2/L_d^2 = 0
+    T_yaw s^3 + s^2 + (2v/L_d) s + 2 v^2/L_d^2 = 0
 ```
 
-Substituting `s = sigma/T_act` removes every dimensional quantity:
+Substituting `s = sigma/T_yaw` removes every dimensional quantity:
 
 ```
-    sigma^3 + sigma^2 + (2/mu) sigma + 2/mu^2 = 0,     mu = L_d/(v * T_act)
+    sigma^3 + sigma^2 + (2/mu) sigma + 2/mu^2 = 0,     mu = L_d/(v * T_yaw)
 ```
 
 **Speed, look-ahead and actuation lag enter only through their ratio.** That is
@@ -85,12 +98,26 @@ why raising `max_delta_yaw_rate` by 2.2x and raising `dist_localgoal` from 7 to
 Routh-Hurwitz on `sigma^3 + sigma^2 + a sigma + b` requires `a > b`:
 
 ```
-    2/mu > 2/mu^2       =>       mu > 1       i.e.   dist_localgoal > v * T_act
+    2/mu > 2/mu^2       =>       mu > 1       i.e.   dist_localgoal > v * T_yaw
 ```
+
+**The goal rollout adds lead, so it belongs in `mu`.** `calc_to_goal_cost`
+scores the heading at the *end* of a `predict_time_to_goal` rollout, which is
+`v * T_goal` of preview on top of the look-ahead:
+
+```
+    mu = (L_d/v + T_goal) / T_yaw
+```
+
+This is what separates `v21.5` from `v21.6`: identical ships and identical
+`dist_localgoal`, differing only in `T_goal` (8.0 vs 2.0), giving `mu` = 1.10
+and 0.80 -- one side of the stability boundary each. `v21.5` grazed but did not
+ring; `v21.6` diverged at x1.49. Plain `L_d/(v*T_yaw)` = 0.70 for both and
+cannot tell them apart.
 
 Solving for the dominant pole gives the design curve:
 
-| `mu` | `zeta` | overshoot | decay/cycle | `t_settle`/`T_act` | `T_osc`/`T_act` |
+| `mu` | `zeta` | overshoot | decay/cycle | `t_settle`/`T_yaw` | `T_osc`/`T_yaw` |
 |---|---|---|---|---|---|
 | 0.70 | −0.076 | — | **grows** | — | — |
 | 1.00 | 0.000 | 100% | ×1.00 | inf | 4.4 |
@@ -121,7 +148,72 @@ rate saturates. With `omega(t) = min(alpha t, omega_max)`:
 not of the controller** — which is exactly why tripling `dist_localgoal` left
 it at 3.24 u.
 
-### 3.3 What counts as acceptable
+### 3.3 Why the gains cannot fix it
+
+A natural first move is to re-weight the cost. The algebra says it will not
+work, and the experiment agrees. On a clear path only two terms are live:
+
+```
+    J(v,w) = G * dpsi(v,w) + S * (v_max - v_end(v))
+```
+
+Two consequences follow immediately:
+
+1. **`argmin` is invariant under a common positive scaling**, so at most ONE
+   dimensionless gain can matter: `rho = to_goal_cost_gain / speed_cost_gain`
+   (shipped: 0.6). There are not four knobs here; there is one.
+2. **The speed term does not contain `w`.** `v_end` depends only on the sampled
+   `v`. So
+
+   ```
+       dJ/dw = G * d(dpsi)/dw      =>   stationarity:  d(dpsi)/dw = 0
+   ```
+
+   **The gain cancels out of the yaw stationarity condition.** Gains can reach
+   the yaw decision only by changing which `v` is selected.
+
+Replaying 456 real states of the ringing run and re-minimising: the chosen `w`
+is **bit-identical** from `rho` = 0.075 to 20, a 267x range, `max|dw|` =
+0.00000. Only `v` moves, and only past `rho ~ 5.
+
+**Where gains do reach the oscillation** is through `e_acq`, which is
+proportional to `v`:
+
+| `rho` | mean `v` in the launch turn | predicted `e_acq` scale |
+|---|---|---|
+| 0.6 *(shipped)* | 0.441 | x1.00 |
+| 9.6 | 0.338 | x0.765 |
+| 20.0 | 0.292 | x0.663 |
+
+That is a real mechanism, and it must be applied to **`speed_cost_gain`, never
+`to_goal_cost_gain`**: `G/B` contains no `S`, so cutting `S` raises `rho` at
+zero graze cost, whereas raising `G` to the same `rho` would put `G/B` at 4.76,
+worse than the `T_goal = 8.0` that produced the 0.000 graze.
+
+**It fails anyway.** Both runs stalled and never reached the goal:
+
+| config | `rho` | outcome | path | steps at `v ~ 0` |
+|---|---|---|---|---|
+| `bal-spd030` | 2.0 | stalled near the last waypoint | 94.4 / 103 u | 0.5% |
+| `bal-spd006` | 9.6 | stalled a third of the way | 49.8 / 103 u | **29.7%** |
+
+The speed term is the only thing opposing "stand still and point at the goal",
+so weakening it enough to shrink `e_acq` removes the incentive to move at all.
+
+**One caveat on the theorem.** It holds only where the cost has just those two
+terms. This route has land, and the static term
+
+```
+    obstacle_cost_gain * max(0, max_obstacle_cost_dist - dist_static)
+```
+
+*is* `w`-dependent and does *not* scale with `S`, so dividing through by `S`
+leaves two ratios changing, not one. Measured: the static term is non-zero on
+**63%** of steps, and `w` then differs on 2.2% of steps at `rho` = 2.0 and 18.9%
+at `rho` = 9.6. That is why `bal-spd030`, predicted bit-identical, diverged.
+**Gains are provably yaw-blind only in genuinely clear water.**
+
+### 3.4 What counts as acceptable
 
 Two independent criteria, and both must hold:
 
@@ -133,25 +225,44 @@ Two independent criteria, and both must hold:
 
 Criterion 1 is what the v3crowd runs violate.
 
+A third, purely diagnostic measure turns out to order the configs better than
+either: **helm saturation**, the fraction of control steps spent slewing at
+`max_delta_yaw_rate`. It is a per-step statistic, so it needs no peaks, no
+period and no window -- it is immune to all the artefacts in section 7. The ego
+that spends 78% of its steps at the rate limit merely holding a straight line
+has little authority left for an encounter.
+
 ---
 
 ## 4. What the evidence says
 
 ### 4.1 The stability boundary predicts every observed divergence
 
-| config | `L_d` | `T_act` | `mu` | predicted | **measured** |
-|---|---|---|---|---|---|
-| v20.7.8-2 | 7.0 | 2.50 | 5.60 | stable | max xte 0.70, no ringing |
-| **v21.5 / v21.6** | 7.0 | 20.00 | **0.70** | **UNSTABLE** | **diverged, ×1.49 growth** |
-| v21.7 preview-20 | 20.0 | 20.00 | 2.00 | stable, ×0.28 | settles ×0.37 |
-| v21.9 / v21.10 | 7.0 | 9.10 | 1.54 | stable, ×0.48 | settles ×0.24–0.66 |
+| config | `L_d` | `T_goal` | `T_yaw` | `mu` | predicted | **measured** |
+|---|---|---|---|---|---|---|
+| v20.7.8-2 | 7.0 | 1.0 | 1.00 | 15.00 | stable | max xte 0.70, no ringing |
+| **v21.5** | 7.0 | 8.0 | 20.00 | **1.10** | marginal | grazed, one peak, no ringing |
+| **v21.6** | 7.0 | 2.0 | 20.00 | **0.80** | **UNSTABLE** | **diverged, ×1.49 growth** |
+| v21.7 preview-20 | 20.0 | 2.0 | 20.00 | 2.10 | stable | settles ×0.37 |
+| v21.9 / v21.10 | 7.0 | 2.0 | 9.10 | 1.76 | stable, poorly damped | rings all run, helm sat 0.78 |
+| **bal-mix-T33** | 9.0 | 2.0 | 6.74 | 2.97 | stable, damped | settles, helm sat 0.39 |
+
+Restated in `T_yaw` (2026-09-23). `v21.5` and `v21.6` were previously listed as
+one row at `mu` = 0.70; they are the same ship with different `T_goal`, and
+splitting them is what shows the boundary lying between them.
 
 The v21.6 divergence — visible in the videos as a cross-track that keeps
-growing after the pass — sits at `mu = 0.70`, below the Routh-Hurwitz boundary.
+growing after the pass — sits at `mu = 0.80`, below the Routh-Hurwitz boundary.
 It was not a tuning failure. It was linear instability.
 
-Predicted ringing period at `mu = 1.54` is `6.0 * T_act` = **54.5 s**; measured
+Predicted ringing period for v21.6 is `6.0 * T_yaw` = **54.5 s**; measured
 between the v21.6 peaks at t=97.6 and 125.1 s: **55 s**.
+
+**This agreement does not transfer.** On the v3 route at `v21.10` the same
+formula predicts 54.6 s and the measured ringing period is **~36 s**. The
+period column of section 3.1's table should not be trusted outside the
+configuration it was fitted on; the amplitude and stability results are what
+carried over.
 
 ### 4.2 The acquisition integral predicts the excursion
 
@@ -172,7 +283,7 @@ And on the v3 route (`psi0` = 99.7°): predicted **3.27 u**, measured **3.24 u**
 
 ### 4.3 Why v3crowd fails
 
-`v21.10` runs at `mu = 1.54`, so `t_settle` = **299 s** — longer than the entire
+`v21.10` runs at `mu = 1.76`, so `t_settle` = **299 s** — longer than the entire
 200 s transit. The v3 scenarios declare no `start_yaw`, so the ego begins 99.7°
 off its first leg and injects a 3.24 u transient. The first target meets it at
 **t = 38 s**, while the ego is still ringing. Every encounter is handled
@@ -180,31 +291,173 @@ mid-transient, the excursions add, and cross-track passes `dist_localgoal`.
 
 Both criteria of §3.3 are violated at once.
 
+### 4.4 The parameter screen, and which model each result belongs to
+
+Eleven configs, one fixed scenario (`v3_baseline_step`: the real six-corner v3
+route, clean water, no targets, `start_yaw` omitted so the ego begins 99.7 deg
+off its first leg). One excitation, one variable at a time.
+
+| config | `dLG` | `T_yaw` | `T_goal` | `v` | `S` | **`xte_max`** | helm sat. | goal |
+|---|---|---|---|---|---|---|---|---|
+| `bal-helm35` | 7 | **3.50** | 2 | 0.5 | 1.0 | **1.942** | 0.342 | reached |
+| `bal-helm52` | 7 | **5.20** | 2 | 0.5 | 1.0 | **2.322** | 0.456 | reached |
+| `bal-mix` | **9** | **6.74** | 2 | 0.5 | 1.0 | **2.679** | 0.447 | reached |
+| `bal-mix-tg` | 9 | 6.74 | **4** | 0.5 | 1.0 | 2.706 | 0.440 | reached |
+| `bal-v040` | 7 | 9.10 | 2 | **0.4** | 1.0 | 2.916 | 0.584 | reached |
+| `bal-dlg10` | **10** | 9.10 | 2 | 0.5 | 1.0 | 3.238 | 0.602 | reached |
+| `v21.10` | 7 | 9.10 | 2 | 0.5 | 1.0 | 3.238 | 0.776 | reached |
+| `bal-tg5` | 7 | 9.10 | **5** | 0.5 | 1.0 | 3.249 | 0.406 | reached |
+| `bal-spd030` | 7 | 9.10 | 2 | 0.5 | **0.30** | -- | -- | **stalled** |
+| `bal-spd006` | 7 | 9.10 | 2 | 0.5 | **0.0625** | -- | -- | **stalled** |
+
+**The separating experiment.** Vary `dist_localgoal` alone. `t_acq` is untouched
+and `mu` changes by 2.4x, so the two regimes make opposite predictions:
+
+```
+    dLG        7      10      12      18        mu_yaw 1.76 -> 4.17
+    xte_max    3.238   3.238   3.238   3.240    spread 0.0016 u = 0.05%
+    helm_sat   0.776   0.602   0.582   0.490    monotone
+```
+
+**Both models are confirmed, each about its own regime.** Look-ahead does not
+touch the peak -- `L_d` is absent from `e_acq`, exactly as section 3.2 says --
+and it does improve damping, exactly as section 3.1 says.
+
+**Model B predicts the peak to 5.5%.** Using `t_acq = T_yaw + psi0/w_max` and
+`e_acq ~ v * t_acq`, calibrated on `v21.10` alone:
+
+| config | `t_acq` | predicted | measured | error |
+|---|---|---|---|---|
+| `bal-helm35` | 12.69 | 2.246 | 1.942 | -13.5% |
+| `bal-helm52` | 14.39 | 2.547 | 2.322 | -8.8% |
+| `bal-mix` | 15.93 | 2.820 | 2.679 | -5.0% |
+| `bal-v040` | 18.29 | 2.591 | 2.916 | **+12.6%** |
+| `bal-dlg10` | 18.29 | 3.238 | 3.238 | **0.0%** |
+| `bal-tg5` | 18.29 | 3.238 | 3.249 | +0.3% |
+
+Mean |error| **5.5%**, max 13.5%, n=8. The `max_speed` case is the worst fit:
+`e_acq ~ v` over-predicts the benefit of slowing.
+
+**Model A: the published `T_act` does not order the data; `T_yaw` does.**
+
+| `mu` computed with | corr. with helm sat. | corr. with `xte_max` |
+|---|---|---|
+| `max(T_surge, T_yaw)` *(as first published)* | **-0.057** | +0.051 |
+| **`T_yaw` alone** | **-0.736** | **-0.917** |
+
+Oscillation is a steering phenomenon; surge acceleration belongs to the speed
+loop. The `max()` was borrowed from `PREDICTION_HORIZON.md`, where it correctly
+means "the horizon must cover both actuators" -- using it as a *steering lag*
+was a category error.
+
+**Do not read the -0.917 as independent support.** `mu_yaw` is proportional to
+`1/T_yaw` and `t_acq` is nearly linear in `T_yaw`, so that correlation largely
+restates Model B. The independent evidence for `mu` is the helm-saturation
+column of the `dLG` series above, where `t_acq` is pinned by construction.
+
+### 4.5 The encounter suites
+
+`v3crowd5/6/7`, five to seven targets on the six-corner route, run in both
+conditions. Clearance is metres between hull and obstacle surface.
+
+| config | aligned start | | unaligned start (99.7 deg) | |
+|---|---|---|---|---|
+| | reach | min clear | reach | min clear |
+| `v21.10` | 3/3 | **0.758** | **0/3** | -- |
+| `bal-dlg10` | 3/3 | 0.765 | **2/3** | 0.828 |
+| `bal-mix` | 3/3 | 0.656 | 3/3 | 0.713 |
+| **`bal-mix-T33`** | 3/3 | **0.689** | 3/3 | **0.743** |
+| `bal-helm52` | 3/3 | 0.560 | 3/3 | 0.617 |
+| `bal-helm35` | 3/3 | **0.414** | 3/3 | 0.508 |
+
+Three things this says that the single-scenario screen could not:
+
+- **`v21.10` was never broken on an aligned start.** It is the *best* config
+  there. Its v3crowd failures are entirely the undeclared `start_yaw`.
+- **The oscillation ranking inverts on clearance.** `bal-helm35` is best on
+  every oscillation metric and worst on clearance -- 0.414, below
+  `v20.7.8-2`'s 0.482, so not shippable. A nimbler ship defers its avoidance.
+- **`bal-dlg10` fails by stalling**, not by the corridor abort: 1112 steps, no
+  error. A wider corridor let it stray until the stall guard fired.
+
+`bal-mix-T33` is `bal-mix` with the horizon re-derived: lowering `T_yaw` moved
+`T_act` to 8.345 s, so `predict_time_obstacle` becomes `4*T_act` = 33.38 and
+`lambda` = 1/T = 0.029958. Because the barrier is a *mean* over the horizon,
+shortening it strengthens the barrier -- and it recovers about a third of the
+clearance `bal-mix` gave up, in both conditions. That is `PREDICTION_HORIZON.md`
+section 5.1's coupling, predicted in advance and confirmed here.
+
 ---
 
 ## 5. Recommendation
 
 ```
-    mu = dist_localgoal / (max_speed * T_act)        target mu ~ 4
+    mu = (dist_localgoal/max_speed + predict_time_to_goal) / T_yaw
+    T_yaw = max_yaw_rate / max_delta_yaw_rate
 ```
 
-- **Never ship `mu < 1`.** That is linear instability, not a tuning choice.
-- **`mu ~ 4`** minimises settling time (`16 * T_act`) at `zeta = 0.5`.
-- For v21.10 (`v` 0.5, `T_act` 9.10) that is **`dist_localgoal` ~ 18 u**, against
-  the current 7.0.
-- Raising `mu` by cutting `T_act` — i.e. a more responsive ship — is equally
-  valid and shortens acquisition too, which `L_d` cannot.
-- **Declare `start_yaw` along the first leg** in every scenario. Not because the
-  follower needs it, but because an undeclared one silently injects the largest
-  transient in the run. Open-water scenarios already do; no v3 scenario did.
+**Superseded 2026-09-23.** This section previously recommended
+`dist_localgoal ~ 18` for v21.10, derived from the `mu ~ 4` settling optimum and
+flagged in section 6 as "derived, not measured". It has now been measured, and
+the recommendation was wrong: `dLG` 7 -> 18 changes the peak excursion by
+**0.05%**. The `mu ~ 4` optimum is real but it is an optimum for *damping*, and
+damping was never what the v3crowd runs were failing on.
 
----
+**Set the parameters in this order.**
+
+1. **Never ship `mu < 1`.** That is linear instability, not a tuning choice.
+   `v21.6` sat at 0.80 and diverged at x1.49.
+2. **Size the peak excursion with `max_delta_yaw_rate`, not `dist_localgoal`.**
+   `e_acq ~ v * t_acq` and `t_acq = T_yaw + psi0/w_max`. This is the only
+   parameter that shrinks the swing. Budget it against criterion 2 of
+   section 3.4.
+3. **Then set `dist_localgoal` for damping and corridor width.** It buys both,
+   and nothing else buys the corridor. Diminishing returns are sharp: 7 -> 10
+   drops helm saturation 0.776 -> 0.602, 10 -> 18 only 0.602 -> 0.490.
+4. **Re-derive `predict_time_obstacle` whenever `T_yaw` moves.** `4*T_act`, with
+   `lambda = 1/T`. Skipping this costs real clearance -- 0.656 vs 0.689 on the
+   aligned suites, for no other change.
+5. **Do not tune the gains for this.** Section 3.3: the yaw stationarity
+   condition has no gain in it, and the one path that does work stalls the ship.
+6. **Declare `start_yaw` along the first leg in every scenario.** Not because
+   the follower needs it, but because an undeclared one silently injects the
+   largest transient in the run, and it is the difference between `v21.10`
+   passing v3crowd 3/3 and failing 0/3.
+
+**The best config measured is `bal-mix-T33`**: `dist_localgoal` 9,
+`max_delta_yaw_rate` 0.028100 (full helm 6.74 s), `predict_time_obstacle` 33.38,
+`time_decay_lambda` 0.029958. Three configs reach the goal in both conditions
+with clearance above `v20.7.8-2`'s 0.482 -- `bal-mix` (0.656/0.713),
+`bal-helm52` (0.560/0.617) and `bal-mix-T33` (**0.689/0.743**) -- and
+`bal-mix-T33` has the most clearance of them. Neither of its parameters moved
+more than 35% from `v21.10`. `bal-helm35` is excluded: 0.414 is below the
+`v20.7.8-2` bar despite winning every oscillation metric.
+
+**Its cost is real and is not hidden here:** on an aligned start, clearance
+falls from `v21.10`'s 0.758 to 0.689. Robustness to an undeclared heading is
+bought with clearance. If every scenario declares `start_yaw`, `v21.10` is the
+better config and this whole trade is unnecessary.
+
+**The helm-rate change is a claim about the ship, not a free parameter.** Full
+helm in 6.74 s is 3.0x faster than the AIS-matched 20 s (`v21.10` already took
+2.2x of that). Whether the vessel being modelled can do this is a naval
+architecture question this document cannot answer.
 
 ## 6. What this does not settle
 
-- **The `mu ~ 4` optimum is derived, not measured.** No run has yet been done at
-  `dist_localgoal` = 18 with the encounter suite scored on both clearance and
-  settling. Until then it is a prediction.
+- **RESOLVED: the `mu ~ 4` optimum is now measured, and it does not do what
+  section 5 once claimed.** `dLG` = 18 was run. It changes the peak excursion by
+  0.05% and improves helm saturation by 19% over `dLG` = 10. See section 4.4.
+- **Why `e_acq ~ v` over-predicts the benefit of slowing is unexplained.**
+  `bal-v040` is the worst fit in the whole table at +12.6%, and it is the only
+  config that varies `max_speed`. One more speed point would settle whether the
+  model is wrong or that run is.
+- **`t_settle` is never measured directly.** Every damping claim here rests on
+  helm saturation and tail RMS, which are proxies. The settling column of
+  section 3.1's table remains untested.
+- **Clearance and oscillation trade against each other and nothing here
+  predicts the exchange rate.** Section 4.5 measures it for five configs; there
+  is no model for it.
 - **Large-signal damping is better than the linear model says.** The 67.5° step
   settled by t ~ 105 s where the linear `t_settle` is 299 s — rate saturation
   adds damping the model omits. So §3.1's settling column is conservative, by an
@@ -221,7 +474,7 @@ Both criteria of §3.3 are violated at once.
 
 ---
 
-## 7. Four metric artefacts this analysis produced
+## 7. Six metric artefacts this analysis produced
 
 Recorded because each one briefly produced a confident wrong answer:
 

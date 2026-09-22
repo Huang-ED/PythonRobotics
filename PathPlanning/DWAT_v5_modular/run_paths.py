@@ -133,11 +133,18 @@ def write_run_manifest(
     run_config_path: Path,
     config: Any,
     runtime: Any,
+    road_map: Any = None,
 ) -> Path:
     """Record what was run, so the folder is self-describing.
 
     Paths are stored repo-relative where possible; an absolute path outside the
     repo is kept as-is rather than forced into a misleading relative form.
+
+    ``road_map`` is the global planner's output -- the polyline the ego is
+    meant to follow. Without it a run cannot be scored for cross-track error
+    except by guessing the path, which is how ``|x - 50|`` came to be used as
+    "cross-track" on a route that runs (70,90) -> (60,10). It is a handful of
+    vertices, so it costs nothing to keep.
     """
     root = _repo_root()
 
@@ -160,6 +167,8 @@ def write_run_manifest(
         "config": _attrs(config),
         "runtime": _attrs(runtime),
     }
+    if road_map is not None:
+        manifest["road_map"] = _jsonable(road_map)
 
     manifest_path = run_dir / "run.json"
     with manifest_path.open("w", encoding="utf-8") as f:
