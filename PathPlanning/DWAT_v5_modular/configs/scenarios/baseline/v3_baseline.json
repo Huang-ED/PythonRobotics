@@ -14,5 +14,6 @@
     60.0,
     10.0
   ],
-  "dynamic_obstacles": []
+  "dynamic_obstacles": [],
+  "start_yaw": -2.13196
 }

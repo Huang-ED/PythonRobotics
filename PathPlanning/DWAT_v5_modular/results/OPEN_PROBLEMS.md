@@ -320,7 +320,7 @@ cleaner and gives a working order for free.
 | **13** | **Nothing penalises indefinite speed-matching** | ✅ **same cause as item 12, 2026-09-20** | `overtake_ego`: the ego closes to 3.07 u, locks to the target's speed (**exactly 0.200**) and station-keeps for 173 s — 263.5 s against a 153.3 s baseline, **72% longer**, never passing. "Unmoved by barrier gain or shape" was right: the barrier was never the lever. At `predict_time_to_goal = 2.0` the ego **overtakes**, in 176.6 s. Not a separate defect. |
 | **14** | **A perfectly symmetric encounter has no side preference** | **new — found 2026-09-20** | On an exactly collinear head-on the planner chatters ±1 yaw cell — **149 sign flips in 199 steps, net turn exactly zero** — until float noise breaks the tie. **Not a cause of the grazes** (§5.1), but it is the missing COLREGs Rule 14 side rule made load-bearing. Masked until v21.3, when `pin_path_endpoints` removed the 0.707 u Theta\* snap that had been breaking the tie by accident. |
 | **15** | **The ego has no restoring term toward the global path** | **reopened 2026-09-22 — the fix is wrong** | The pure-pursuit follower intersects a circle of radius `dist_localgoal` with the path; stray further and there is no intersection and the run **aborts** (`No intersection points found…`). So `dist_localgoal = 7.0` silently caps evasion at 7 u. Measured on the multi-leg `v3crowd` route at v21.10, **3 of 3 abort** this way with clearances of 0.65–0.88 — the avoidance completed and the *path-tracking* gave out. Pre-existing: `v3crowd_suite/README.md` documents the identical abort and names the cause — **nothing in the cost function pulls the ego back toward the global path, so lateral error has no restoring term**. ⚠ **`local_goal_recovery: "rejoin"` is NOT the fix and must stay off.** It recovers `v3crowd5/6` (goal reached, clearances unchanged at 0.653/0.805, since it only acts after the abort point) but **sails `v3crowd7` into land** — `_rejoin_point` returns a point on the leg without checking the straight line to it is navigable, which only a map with static obstacles can expose. It also costs a 2× detour: 313 s and 269 s against a ~150 s transit. The real fix is a cross-track term in the cost function, not a patch in the follower. |
-| **16** | **The path follower's look-ahead was never rescaled** | ✅ **resolved 2026-09-21** | The goal rollout's *length* is what makes `to_goal_cost` anticipatory. Shorten it and the loop loses its lead while keeping a 20 s actuation lag, and the cross-track error diverges (growth 1.3–2.1× per half-cycle on every manoeuvring case). The parameter has **three conflicting roles** — see §5.1. Fixing item 12 must not go through it. |
+| **16** | **The path follower's look-ahead was never rescaled** | ✅ **resolved, and generalised 2026-09-22** | The goal rollout's *length* is what makes `to_goal_cost` anticipatory. Shorten it and the loop loses its lead while keeping a 20 s actuation lag, and the cross-track error diverges (growth 1.3–2.1× per half-cycle on every manoeuvring case). The parameter has **three conflicting roles** — see §5.1. Fixing item 12 must not go through it. |
 | **17** | **A scenario silently overrides the algorithm config** | **new — found 2026-09-20** | `map_creation.py:306` lets a scenario's `enable_map_boundary_obstacles` win over the algorithm config's. Every `owenc215_*` run has had 396 boundary obstacles active while `v21.5`/`v21.6` declared `false`. **Inert here** — measured min distance to any boundary is 14.5 u against `max_obstacle_cost_dist` of 8.0, and runs with boundaries on and off are bit-identical — but the precedence is undocumented and the same mechanism applies to every shared key. |
 
 Items 1, 5, 9 and 11 are the same defect in four fields of the same function.
@@ -670,6 +670,17 @@ function is tuned; the AIS track is where Stage 1's physics is wrong. They share
 no blocking dependency, so either can proceed.
 
 ### Track 1 — open water: finish what `predict_time_to_goal` opened
+
+> **See `OSCILLATION.md`** (2026-09-22). Item 16's "preview must exceed `T_act`"
+> turns out to be the **Routh–Hurwitz boundary** of pure pursuit with steering
+> lag. The whole oscillation collapses to one number,
+> `mu = dist_localgoal / (max_speed * T_act)`: `mu < 1` is linear instability
+> (v21.5 sits at 0.70 and diverged), and `mu ~ 4` minimises settling time.
+> Separately, acquiring the track from a heading error is a rate-limited
+> manoeuvre that `mu` does not affect at all — which is why tripling the
+> look-ahead left the v3 launch excursion at 3.24 u. v21.10 runs at `mu = 1.54`,
+> giving `t_settle` = 299 s against a 200 s transit, so every v3crowd encounter
+> is handled mid-transient.
 
 1. ~~**Validate a fix across all 11 `owenc215_*` cases.**~~ ✅ **done 2026-09-21
    — v21.7 passes 11/11 on both criteria.** `T_goal = 2.0` alone failed (5 abort,

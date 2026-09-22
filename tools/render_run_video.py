@@ -34,8 +34,15 @@ def render(run_dir, out_path, stride=5, fps=25, title=None):
     traj = np.asarray(d["trajectory"], float)
     obs = np.asarray([e["dynamic_obstacles_pos"] for e in d["log_entries"]], float)
     lg = np.asarray([[e["local_goal_x"], e["local_goal_y"]] for e in d["log_entries"]], float)
-    T = min(len(traj), len(obs))
-    traj, obs, lg = traj[:T], obs[:T], lg[:T]
+    # trajectory carries the initial state too, so it is one longer than
+    # log_entries; clamp to whichever is shortest or the last frame overruns.
+    T = min(len(traj), len(d["log_entries"]))
+    if obs.size:
+        T = min(T, len(obs))
+    traj, lg = traj[:T], lg[:T]
+    # An obstacle-free run logs an empty list per step, giving shape (T, 0) or
+    # (T,) instead of (T, N, 2). Normalise so every consumer can index [:, :, k].
+    obs = obs[:T].reshape(T, -1, 2) if obs.size else np.zeros((T, 0, 2))
 
     sc_path = json.load(open(os.path.join(run_dir, "run.json")))["inputs"]["scenario"]
     sc = json.load(open(sc_path))
@@ -64,14 +71,20 @@ def render(run_dir, out_path, stride=5, fps=25, title=None):
     R = float(cfg["dist_localgoal"])
     half = max(0.5 * (cfg["robot_length"] - cfg["robot_width"]), 0.0)
     er = cfg["robot_width"] / 2.0
-    ob_r = float(sc["dynamic_obstacles"][0].get("radius", 0.5))
+    # An obstacle-free reference run has no targets at all, and those are
+    # exactly the runs worth rendering to see PATH TRACKING on its own.
+    _dyn = sc.get("dynamic_obstacles") or []
+    ob_r = float(_dyn[0].get("radius", 0.5)) if _dyn else 0.5
 
     fig, ax = plt.subplots(figsize=(7.2, 7.2), dpi=110)
     ax.set_aspect("equal")
-    lo = min(traj[:, 0].min(), obs[:, :, 0].min()) - 6
-    hi = max(traj[:, 0].max(), obs[:, :, 0].max()) + 6
+    _xs = [traj[:, 0]] + ([obs[:, :, 0].ravel()] if obs.shape[1] else [])
+    lo = min(a.min() for a in _xs) - 6
+    hi = max(a.max() for a in _xs) + 6
     ax.set_xlim(lo, hi)
-    ax.set_ylim(min(goal[1], traj[:, 1].min()) - 6, max(start[1], traj[:, 1].max()) + 6)
+    _ys = [traj[:, 1]] + ([obs[:, :, 1].ravel()] if obs.shape[1] else [])
+    ax.set_ylim(min(goal[1], min(a.min() for a in _ys)) - 6,
+                max(start[1], max(a.max() for a in _ys)) + 6)
 
     # Land first, so everything else draws over it.
     if static_xy is not None and len(static_xy):
@@ -96,8 +109,8 @@ def render(run_dir, out_path, stride=5, fps=25, title=None):
     n_cand_max = max((len(e.get("candidates") or []) for e in d["log_entries"]), default=0)
     for _ in range(n_cand_max):
         cand_lines.append(ax.plot([], [], "-", c="deepskyblue", lw=0.8, alpha=0.25, zorder=2)[0])
-    ob_vel = np.zeros_like(obs[0])
-    if len(obs) > 1:
+    ob_vel = np.zeros((obs.shape[1], 2))
+    if len(obs) > 1 and obs.shape[1]:
         ob_vel = (obs[1] - obs[0]) / float(cfg["dt"])
     pred_t = np.arange(0.0, float(cfg["predict_time_obstacle"]) + float(cfg["dt"]), float(cfg["dt"]))
     pred_lines = [ax.plot([], [], "--", c="peru", lw=1.0, alpha=0.8, zorder=3)[0]
@@ -153,16 +166,18 @@ def render(run_dir, out_path, stride=5, fps=25, title=None):
             line.set_data(obs[k, j, 0] + ob_vel[j, 0] * pred_t,
                           obs[k, j, 1] + ob_vel[j, 1] * pred_t)
         lgpt.set_data([lg[k, 0]], [lg[k, 1]])
-        dmin = 9e9
+        dmin = float("nan")
         for j, c in enumerate(tg):
             c.center = (obs[k, j, 0], obs[k, j, 1])
             tgtrail[j].set_data(obs[:k + 1, j, 0], obs[:k + 1, j, 1])
             to = obs[k, j] - np.array([x, y])
             p = np.clip(to @ h, -half, half)
-            dmin = min(dmin, float(np.hypot(*(to - p * h))) - ob_r - er)
+            _d = float(np.hypot(*(to - p * h))) - ob_r - er
+            dmin = _d if (dmin != dmin) else min(dmin, _d)
         dev = _cross_track(np.array([x, y]))
         flag = "  <-- BEYOND dist_localgoal" if dev > R else ""
-        txt.set_text(f"t = {k*0.1:6.1f} s\nclearance  = {dmin:7.3f}\ncross-track = {dev:6.3f}{flag}")
+        _clr = "     n/a" if dmin != dmin else f"{dmin:7.3f}"
+        txt.set_text(f"t = {k*0.1:6.1f} s\nclearance  = {_clr}\ncross-track = {dev:6.3f}{flag}")
         return ()
 
     FuncAnimation(fig, upd, frames=idx, interval=1000 / fps, blit=False).save(
