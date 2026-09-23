@@ -10,8 +10,17 @@ runs/<version>/<group>/<scenario>__<timestamp>/
     run.json          config paths and resolved parameters for this run
     log_details.json  trajectory, per-iteration log, outcome
     frames/           frame_0.png, ...
-    video.mp4
+    video.mp4           assembled by ffmpeg from THIS run's own frames/
+    video_from_log.mp4  reconstructed afterwards by tools/render_run_video.py
 ```
+
+The two video names are not interchangeable. `video.mp4` shows exactly what
+the planner drew live (candidate fan, predicted tracks). `video_from_log.mp4`
+is redrawn from `log_details.json`: positions are exact, the candidate fan
+appears only if the run set `log_candidates_every`, and it adds a cross-track
+and clearance readout. Name a video by how it was **made**, never by
+convenience; older runs used `animation.mp4` for inline videos and were renamed
+to `video.mp4` on 2026-09-23 after matching frame counts against their frames.
 
 - **version** — where the algorithm config sits under `configs/algorithm/`.
   `v20.7.8-2/predT10.json` gives `v20.7.8-2/predT10`, so an ablation sweep reads

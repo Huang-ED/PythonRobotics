@@ -80,12 +80,16 @@ def scan(runs_root: Path, with_sizes: bool = False):
         names = set(filenames)
         has_log = "log_details.json" in names
         has_frames = "frames" in dirnames
+        # Two videos, not interchangeable (see tools/render_run_video.py):
+        # video.mp4 is built from the run's own frames/, video_from_log.mp4 is
+        # reconstructed afterwards from log_details.json.
         has_video = "video.mp4" in names
+        has_log_video = "video_from_log.mp4" in names
 
         if has_frames:
             dirnames.remove("frames")     # never descend into a run's frames
 
-        if not (has_log or has_frames or has_video):
+        if not (has_log or has_frames or has_video or has_log_video):
             continue
         dirnames[:] = []                  # a run directory holds no run directories
 
@@ -106,6 +110,8 @@ def scan(runs_root: Path, with_sizes: bool = False):
             artifacts.append(f"frames({n})")
         if has_video:
             artifacts.append("video")
+        if has_log_video:
+            artifacts.append("video_from_log")
 
         rec = {
             "version": version,
