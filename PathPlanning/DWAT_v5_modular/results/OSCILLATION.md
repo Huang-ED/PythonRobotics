@@ -446,7 +446,7 @@ damping was never what the v3crowd runs were failing on.
    passing v3crowd 3/3 and failing 0/3.
 
 **The best config measured is `bal-mix-T33`**: `dist_localgoal` 9,
-`max_delta_yaw_rate` 0.028100 (full helm 6.74 s), `predict_time_obstacle` 33.38,
+`max_delta_yaw_rate` 0.028099 (full helm 6.74 s), `predict_time_obstacle` 33.38,
 `time_decay_lambda` 0.029958. Three configs reach the goal in both conditions
 with clearance above `v20.7.8-2`'s 0.482 -- `bal-mix` (0.656/0.713),
 `bal-helm52` (0.560/0.617) and `bal-mix-T33` (**0.689/0.743**) -- and
