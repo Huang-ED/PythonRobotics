@@ -190,15 +190,25 @@ That is a real mechanism, and it must be applied to **`speed_cost_gain`, never
 zero graze cost, whereas raising `G` to the same `rho` would put `G/B` at 4.76,
 worse than the `T_goal = 8.0` that produced the 0.000 graze.
 
-**It fails anyway.** Both runs stalled and never reached the goal:
+**It fails anyway.** All three runs ran aground on land and none reached the
+goal (the collision is recorded in `collision_event`, not in `error`):
 
-| config | `rho` | outcome | path | steps at `v ~ 0` |
+| config | `rho` | at the start | ended | where |
 |---|---|---|---|---|
-| `bal-spd030` | 2.0 | stalled near the last waypoint | 94.4 / 103 u | 0.5% |
-| `bal-spd006` | 9.6 | stalled a third of the way | 49.8 / 103 u | **29.7%** |
+| `bal-spd030` | 2.0 | normal launch | **grounded**, t = 194.7 s | land cell (67,27), corner of legs 5/6 |
+| `bal-spd006` | 9.6 | **stationary 0-48 s**, pivoting | **grounded**, t = 160.0 s | land cell (46,46), corner of legs 2/3 |
+| `bal-spd003` | 20.0 | **stationary 0-67 s**, pivoting | **grounded**, t = 180.8 s | land cell (46,46), same corner |
 
-The speed term is the only thing opposing "stand still and point at the goal",
-so weakening it enough to shrink `e_acq` removes the incentive to move at all.
+The launch behaves exactly as the acquisition model says. At `rho` >= 9.6 the
+ego turns the whole 99.7 deg at zero speed, so `e_acq ~ v` goes to zero and
+there is no launch swing at all -- at the price of standing still for up to a
+minute. What ends the runs is different: all three later clip land at a
+corner where the global path runs close to it. So the gain change does not
+fail by stalling the ship. It fails by grounding.
+
+*Corrected 2026-09-23: first recorded as "stalled", from `reached_goal = False`
+with `error = None`, without reading `collision_event`. The videos showed the
+groundings.*
 
 **One caveat on the theorem.** It holds only where the cost has just those two
 terms. This route has land, and the static term
@@ -315,8 +325,8 @@ raises `predict_time_to_goal`; `bal-v040` lowers `max_speed`.
 | `bal-dlg10` | **10** | 9.10 | 2 | 0.5 | 1.0 | 3.238 | 0.602 | reached |
 | `v21.10` | 7 | 9.10 | 2 | 0.5 | 1.0 | 3.238 | 0.776 | reached |
 | `bal-tg5` | 7 | 9.10 | **5** | 0.5 | 1.0 | 3.249 | 0.406 | reached |
-| `bal-spd030` | 7 | 9.10 | 2 | 0.5 | **0.30** | -- | -- | **stalled** |
-| `bal-spd006` | 7 | 9.10 | 2 | 0.5 | **0.0625** | -- | -- | **stalled** |
+| `bal-spd030` | 7 | 9.10 | 2 | 0.5 | **0.30** | -- | -- | **grounded** |
+| `bal-spd006` | 7 | 9.10 | 2 | 0.5 | **0.0625** | -- | -- | **grounded** |
 
 **The separating experiment.** Vary `dist_localgoal` alone. `t_acq` is untouched
 and `mu` changes by 2.4x, so the two regimes make opposite predictions:
@@ -385,8 +395,10 @@ Three things this says that the single-scenario screen could not:
 - **The oscillation ranking inverts on clearance.** `bal-helm35` is best on
   every oscillation metric and worst on clearance -- 0.414, below
   `v20.7.8-2`'s 0.482, so not shippable. A nimbler ship defers its avoidance.
-- **`bal-dlg10` fails by stalling**, not by the corridor abort: 1112 steps, no
-  error. A wider corridor let it stray until the stall guard fired.
+- **`bal-dlg10` fails by grounding**, not by the corridor abort. At t = 111 s,
+  still swinging from the unaligned start, it cuts the first corner toward a
+  local goal at the vertex (48,55) with land between, and touches the land cell
+  at (53,59). *(First recorded here as a stall; corrected from the video.)*
 
 `bal-mix-T33` is `bal-mix` with the horizon re-derived: lowering `T_yaw` moved
 `T_act` to 8.345 s, so `predict_time_obstacle` becomes `4*T_act` = 33.38 and
@@ -426,7 +438,8 @@ damping was never what the v3crowd runs were failing on.
    `lambda = 1/T`. Skipping this costs real clearance -- 0.656 vs 0.689 on the
    aligned suites, for no other change.
 5. **Do not tune the gains for this.** Section 3.3: the yaw stationarity
-   condition has no gain in it, and the one path that does work stalls the ship.
+   condition has no gain in it, and the one path that does work -- slowing the
+   ship -- pivots it in place for up to a minute and then runs it aground.
 6. **Declare `start_yaw` along the first leg in every scenario.** Not because
    the follower needs it, but because an undeclared one silently injects the
    largest transient in the run, and it is the difference between `v21.10`
@@ -463,6 +476,13 @@ architecture question this document cannot answer.
 - **`t_settle` is never measured directly.** Every damping claim here rests on
   helm saturation and tail RMS, which are proxies. The settling column of
   section 3.1's table remains untested.
+- **Every failure among the candidate configs is a grounding at a corner.**
+  `bal-dlg10` at (53,59), the three gain runs at (46,46) and (67,27), and the
+  earlier `rejoin` at (52,58): each where the Theta* path turns close to land.
+  Pure pursuit cuts corners, and by more for a longer look-ahead, which would
+  put an *upper* bound on `dist_localgoal` that nothing in this document
+  derives. One `dLG` case is not enough to call it; a corner-clearance measure
+  run across the `dLG` series would.
 - **Clearance and oscillation trade against each other and nothing here
   predicts the exchange rate.** Section 4.5 measures it for five configs; there
   is no model for it.
@@ -500,6 +520,20 @@ Recorded because each one briefly produced a confident wrong answer:
    across six different runs was the tell.
 4. **A run that never manoeuvres scores as perfectly damped.** `overtake_ego`
    read ×0.00 "settles" while trailing its target for 270 s.
+5. **A run that ends early scores well on a maximum statistic.** `bal-spd006`
+   read `xte_max` = 1.358, the best of any config, because it ran aground at
+   t = 160 s, before the parts of the route where the swings happen. Caught
+   only because mean `v` 0.311 over ~50 u of a 103 u route did not add up.
+   **Read the peak alongside how and when the run ended.**
+6. **Comparing two runs whose scenario changed between them.** `start_yaw` was
+   added to the v3crowd suites mid-investigation, so "12/12 versus 0/3" was
+   measuring the scenario edit, not the configs. `git log -S` on the scenario
+   file is the check; the fair baseline reversed the conclusion (section 4.5).
+
+And one diagnosis error of the same family: **"did not reach the goal, no
+error" is not "stalled".** A collision ends the run with `error = None`; the
+cause is in `collision_event`. Four runs were first recorded here as stalls and
+all four were groundings.
 
 The shared cause: a measure built for one configuration, reused on another
 without rechecking what it assumed.
