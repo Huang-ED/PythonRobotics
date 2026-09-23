@@ -376,25 +376,33 @@ column of the `dLG` series above, where `t_acq` is pinned by construction.
 ### 4.5 The encounter suites
 
 `v3crowd5/6/7`, five to seven targets on the six-corner route, run in both
-conditions. Clearance is metres between hull and obstacle surface.
+conditions. Clearance is the worst of the three cases, measured by
+`adapters/encounter_report.py`: surface to surface against the capsule hull,
+so hull length counts. That is the measure behind every committed clearance,
+including `v20.7.8-2`'s 0.483.
 
 | config | aligned start | | unaligned start (99.7 deg) | |
 |---|---|---|---|---|
 | | reach | min clear | reach | min clear |
-| `v21.10` | 3/3 | **0.758** | **0/3** | -- |
-| `bal-dlg10` | 3/3 | 0.765 | **2/3** | 0.828 |
-| `bal-mix` | 3/3 | 0.656 | 3/3 | 0.713 |
-| **`bal-mix-T33`** | 3/3 | **0.689** | 3/3 | **0.743** |
-| `bal-helm52` | 3/3 | 0.560 | 3/3 | 0.617 |
-| `bal-helm35` | 3/3 | **0.414** | 3/3 | 0.508 |
+| `v21.10` | 3/3 | **0.724** | **0/3** | -- |
+| `bal-dlg10` | 3/3 | 0.724 | **2/3** | 0.729 |
+| `bal-mix` | 3/3 | 0.614 | 3/3 | 0.660 |
+| **`bal-mix-T33` = `v21.11`** | 3/3 | **0.649** | 3/3 | **0.692** |
+| `bal-helm52` | 3/3 | 0.519 | 3/3 | 0.567 |
+| `bal-helm35` | 3/3 | **0.368** | 3/3 | 0.458 |
+
+*Corrected 2026-09-23. This table first carried clearances from a scratch
+scorer that measured from the hull centre and ignored its length, reading
+0.04-0.11 high (e.g. `v21.10` 0.758, `bal-helm35` 0.414). The ranking is
+unchanged; every value above is from the official scorer.*
 
 Three things this says that the single-scenario screen could not:
 
 - **`v21.10` was never broken on an aligned start.** It is the *best* config
   there. Its v3crowd failures are entirely the undeclared `start_yaw`.
 - **The oscillation ranking inverts on clearance.** `bal-helm35` is best on
-  every oscillation metric and worst on clearance -- 0.414, below
-  `v20.7.8-2`'s 0.482, so not shippable. A nimbler ship defers its avoidance.
+  every oscillation metric and worst on clearance -- 0.368 aligned, 0.458
+  unaligned, both below `v20.7.8-2`'s 0.483, so not shippable. A nimbler ship defers its avoidance.
 - **`bal-dlg10` fails by grounding**, not by the corridor abort. At t = 111 s,
   still swinging from the unaligned start, it cuts the first corner toward a
   local goal at the vertex (48,55) with land between, and touches the land cell
@@ -404,8 +412,46 @@ Three things this says that the single-scenario screen could not:
 `T_act` to 8.345 s, so `predict_time_obstacle` becomes `4*T_act` = 33.38 and
 `lambda` = 1/T = 0.029958. Because the barrier is a *mean* over the horizon,
 shortening it strengthens the barrier -- and it recovers about a third of the
-clearance `bal-mix` gave up, in both conditions. That is `PREDICTION_HORIZON.md`
+clearance `bal-mix` gave up on the aligned suites (0.614 -> 0.649 against
+`v21.10`'s 0.724), and 0.660 -> 0.692 unaligned. That is `PREDICTION_HORIZON.md`
 section 5.1's coupling, predicted in advance and confirmed here.
+
+### 4.6 Open-water verification of v21.11
+
+The full 13-case open-water suite, never run on this config before, each run
+rendered inline. Official scorer, each version against its own obstacle-free
+baseline (151.0 s for both):
+
+| case | clearance v21.10 | v21.11 | delay v21.10 | v21.11 | max deviation v21.10 | v21.11 |
+|---|---|---|---|---|---|---|
+| `head_on` | 0.644 | 0.527 | +1.7 s | +0.8 s | 2.08 | 1.73 |
+| `cross_*_045` | 0.628 | 0.522 | +0.5 | +0.3 | 1.24 | 1.09 |
+| `cross_*_090` | 0.719 | 0.630 | +0.6 | +0.4 | 1.38 | 1.27 |
+| `cross_*_135` | 0.899 | 0.851 | +1.2 | +0.8 | 2.19 | 2.14 |
+| `overtake_ego` | 0.864 | 0.815 | +0.9 | +0.7 | 1.78 | 1.75 |
+| `overtaken_ego` | 0.842 | 0.750 | +1.4 | +1.2 | 2.78 | 2.80 |
+| `overtaken_ego_fast` | 0.753 | 0.663 | +1.0 | +0.8 | 1.94 | 1.91 |
+| `null_safe_pass` *(control)* | 4.356 | 4.356 | 0.0 | 0.0 | **0.000** | **0.000** |
+| `ow_sequence215` | 0.630 | 0.529 | +3.6 | **+7.1** | 2.30 | **5.15** |
+| `ow_simultaneous215` | 0.655 | 0.505 | +3.6 | +1.0 | 2.25 | 2.19 |
+
+**13/13 reach the goal, no collision, and the no-threat control still deviates
+exactly 0.000.** Worst encounter clearance 0.628 -> **0.522**, still above
+`v20.7.8-2`'s 0.483; mean over the seven geometries 0.764 -> 0.680.
+
+The trade is the one section 4.5 predicted: **less clearance, but earlier and
+smaller manoeuvres.** Every single-encounter delay is shorter and nine of ten
+deviations are smaller. A ship that can turn faster waits longer to turn, and
+passes closer.
+
+**One regression, and it is not the oscillation.** In `ow_sequence215` the
+second target crosses from the ego's starboard side. The ego turns *east*, the
+way the target is going, runs alongside it (clearance 0.529 at t ~ 93 s), and
+circles back: 5.15 u of deviation and 7.1 s of delay against 2.30 and 3.6. The
+cost function has no side preference -- open item 14 -- so which way the ego
+breaks in a crossing is decided by small numerical differences, and v21.11's
+differences broke the other way from v21.10's. A COLREGs side rule fixes
+this; no oscillation parameter does.
 
 ---
 
@@ -435,7 +481,7 @@ damping was never what the v3crowd runs were failing on.
    and nothing else buys the corridor. Diminishing returns are sharp: 7 -> 10
    drops helm saturation 0.776 -> 0.602, 10 -> 18 only 0.602 -> 0.490.
 4. **Re-derive `predict_time_obstacle` whenever `T_yaw` moves.** `4*T_act`, with
-   `lambda = 1/T`. Skipping this costs real clearance -- 0.656 vs 0.689 on the
+   `lambda = 1/T`. Skipping this costs real clearance -- 0.614 vs 0.649 on the
    aligned suites, for no other change.
 5. **Do not tune the gains for this.** Section 3.3: the yaw stationarity
    condition has no gain in it, and the one path that does work -- slowing the
@@ -445,17 +491,18 @@ damping was never what the v3crowd runs were failing on.
    largest transient in the run, and it is the difference between `v21.10`
    passing v3crowd 3/3 and failing 0/3.
 
-**The best config measured is `bal-mix-T33`**: `dist_localgoal` 9,
-`max_delta_yaw_rate` 0.028099 (full helm 6.74 s), `predict_time_obstacle` 33.38,
-`time_decay_lambda` 0.029958. Three configs reach the goal in both conditions
-with clearance above `v20.7.8-2`'s 0.482 -- `bal-mix` (0.656/0.713),
-`bal-helm52` (0.560/0.617) and `bal-mix-T33` (**0.689/0.743**) -- and
-`bal-mix-T33` has the most clearance of them. Neither of its parameters moved
-more than 35% from `v21.10`. `bal-helm35` is excluded: 0.414 is below the
-`v20.7.8-2` bar despite winning every oscillation metric.
+**The best config measured is `bal-mix-T33`, promoted to `v21.11`**:
+`dist_localgoal` 9, `max_delta_yaw_rate` 0.028099 (full helm 6.74 s),
+`predict_time_obstacle` 33.38, `time_decay_lambda` 0.029958. Three configs reach
+the goal in both conditions with clearance above `v20.7.8-2`'s 0.483 --
+`bal-mix` (0.614/0.660), `bal-helm52` (0.519/0.567) and `v21.11`
+(**0.649/0.692**) -- and `v21.11` has the most clearance of them. Neither of its
+parameters moved more than 35% from `v21.10`. `bal-helm35` is excluded: 0.368
+is below the `v20.7.8-2` bar despite winning every oscillation metric.
 
 **Its cost is real and is not hidden here:** on an aligned start, clearance
-falls from `v21.10`'s 0.758 to 0.689. Robustness to an undeclared heading is
+falls from `v21.10`'s 0.724 to 0.649 on v3crowd, and from 0.628 to 0.522 on
+open water (section 4.6). Robustness to an undeclared heading is
 bought with clearance. If every scenario declares `start_yaw`, `v21.10` is the
 better config and this whole trade is unnecessary.
 
@@ -502,7 +549,7 @@ architecture question this document cannot answer.
 
 ---
 
-## 7. Six metric artefacts this analysis produced
+## 7. Seven metric artefacts this analysis produced
 
 Recorded because each one briefly produced a confident wrong answer:
 
@@ -529,6 +576,14 @@ Recorded because each one briefly produced a confident wrong answer:
    added to the v3crowd suites mid-investigation, so "12/12 versus 0/3" was
    measuring the scenario edit, not the configs. `git log -S` on the scenario
    file is the check; the fair baseline reversed the conclusion (section 4.5).
+7. **A clearance that ignores hull length.** The scratch scorer used for
+   sections 4.4-4.5 measured from the hull centre with the half-beam as radius,
+   so a 1.2-long hull passing abeam read 0.04-0.13 too high. The committed
+   figures -- including the 0.483 bar everything is compared against -- come
+   from `encounter_report.py`, which measures to the hull axis. Comparing one
+   against the other made `bal-helm35` look like 0.414 against 0.482 when it is
+   0.368 against 0.483. Caught when `v21.10`'s open-water worst case read 0.718
+   here against the 0.628 in its own validation commit.
 
 And one diagnosis error of the same family: **"did not reach the goal, no
 error" is not "stalled".** A collision ends the run with `error = None`; the
