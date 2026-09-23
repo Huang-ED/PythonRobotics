@@ -297,6 +297,14 @@ Eleven configs, one fixed scenario (`v3_baseline_step`: the real six-corner v3
 route, clean water, no targets, `start_yaw` omitted so the ego begins 99.7 deg
 off its first leg). One excitation, one variable at a time.
 
+**Names.** Every `bal-*` ("balance") config is `v21.10` with one or two keys
+changed, in `configs/algorithm/v21.10/`. **"Helm" means `max_delta_yaw_rate`**,
+quoted as time to full helm, `T_yaw = max_yaw_rate / max_delta_yaw_rate`:
+`bal-helm35` reaches full helm in 3.5 s against `v21.10`'s 9.10 s. `bal-mix`
+moves both levers about 30% instead of one lever far: `dist_localgoal` 7 -> 9
+and full helm 9.10 -> 6.74 s. `bal-spd*` lower `speed_cost_gain`; `bal-tg5`
+raises `predict_time_to_goal`; `bal-v040` lowers `max_speed`.
+
 | config | `dLG` | `T_yaw` | `T_goal` | `v` | `S` | **`xte_max`** | helm sat. | goal |
 |---|---|---|---|---|---|---|---|---|
 | `bal-helm35` | 7 | **3.50** | 2 | 0.5 | 1.0 | **1.942** | 0.342 | reached |
@@ -323,7 +331,7 @@ and `mu` changes by 2.4x, so the two regimes make opposite predictions:
 touch the peak -- `L_d` is absent from `e_acq`, exactly as section 3.2 says --
 and it does improve damping, exactly as section 3.1 says.
 
-**Model B predicts the peak to 5.5%.** Using `t_acq = T_yaw + psi0/w_max` and
+**The acquisition model (section 3.2) predicts the peak to 5.5%.** Using `t_acq = T_yaw + psi0/w_max` and
 `e_acq ~ v * t_acq`, calibrated on `v21.10` alone:
 
 | config | `t_acq` | predicted | measured | error |
@@ -338,7 +346,7 @@ and it does improve damping, exactly as section 3.1 says.
 Mean |error| **5.5%**, max 13.5%, n=8. The `max_speed` case is the worst fit:
 `e_acq ~ v` over-predicts the benefit of slowing.
 
-**Model A: the published `T_act` does not order the data; `T_yaw` does.**
+**The small-signal model (section 3.1): the published `T_act` does not order the data; `T_yaw` does.**
 
 | `mu` computed with | corr. with helm sat. | corr. with `xte_max` |
 |---|---|---|
@@ -352,7 +360,7 @@ was a category error.
 
 **Do not read the -0.917 as independent support.** `mu_yaw` is proportional to
 `1/T_yaw` and `t_acq` is nearly linear in `T_yaw`, so that correlation largely
-restates Model B. The independent evidence for `mu` is the helm-saturation
+restates the acquisition model. The independent evidence for `mu` is the helm-saturation
 column of the `dLG` series above, where `t_acq` is pinned by construction.
 
 ### 4.5 The encounter suites
