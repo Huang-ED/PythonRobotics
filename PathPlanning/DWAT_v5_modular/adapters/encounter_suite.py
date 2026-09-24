@@ -500,24 +500,28 @@ def _apply_t_meet(args, cases, suite_name):
     accepted and then silently ignored for every combined set -- which is the
     only way to de-conflict targets that collide with EACH OTHER.
     """
-    overrides = {}
-    for spec in args.t_meet:
-        name, _, val = spec.partition("=")
-        if not val:
-            raise SystemExit(f"--t-meet expects NAME=SECONDS, got {spec!r}")
-        overrides[name.strip()] = float(val)
-    if not overrides:
-        return cases
     known = {c["name"] for c in cases}
-    unknown = set(overrides) - known
-    if unknown:
-        raise SystemExit(
-            f"--t-meet names not in {suite_name!r}: {sorted(unknown)}\n"
-            f"  available: {sorted(known)}")
-    for n, v in sorted(overrides.items()):
-        was = next(c["t_meet"] for c in cases if c["name"] == n)
-        print(f"t_meet override: {n} {was} -> {v} s")
-    return [dict(c, t_meet=overrides.get(c["name"], c["t_meet"])) for c in cases]
+    out = [dict(c) for c in cases]
+    # --speed works the same way. A meeting time alone cannot always keep a
+    # target in water: on the v3 route the v3crowd7 overtake target crosses land
+    # for every t_meet within +-25 s at its shipped 0.40, and clears at 0.45.
+    for flag, key, unit in (("t_meet", "t_meet", "s"), ("speed", "speed", "u/s")):
+        overrides = {}
+        for spec in getattr(args, flag, None) or []:
+            name, _, val = spec.partition("=")
+            if not val:
+                raise SystemExit(f"--{flag.replace('_', '-')} expects NAME=VALUE, got {spec!r}")
+            overrides[name.strip()] = float(val)
+        unknown = set(overrides) - known
+        if unknown:
+            raise SystemExit(
+                f"--{flag.replace('_', '-')} names not in {suite_name!r}: {sorted(unknown)}\n"
+                f"  available: {sorted(known)}")
+        for c in out:
+            if c["name"] in overrides:
+                print(f"{key} override: {c['name']} {c[key]} -> {overrides[c['name']]} {unit}")
+                c[key] = overrides[c["name"]]
+    return out
 
 
 def _emit_combined(args, base, base_path, traj, dt, sim_duration, static_obs,
@@ -549,6 +553,10 @@ def _emit_combined(args, base, base_path, traj, dt, sim_duration, static_obs,
 
     scenario = dict(base)
     scenario["dynamic_obstacles"] = obstacles
+    # Same rule as the --suite path: the scene files itself under the group it
+    # is written to, not the base's. Cloning baseline/v3_baseline_step.json
+    # otherwise sends every combined run to runs/<version>/baseline/.
+    scenario["group"] = out_dir.name
     out_path = out_dir / f"{prefix}.json"
     with out_path.open("w", encoding="utf-8") as f:
         json.dump(scenario, f, indent=2)
@@ -633,6 +641,9 @@ def main() -> int:
                              "cruising at 0.5; a different ego reaches a different point at "
                              "the same time, which can push an astern target's spawn off the "
                              "map. This retunes without forking the case list.")
+    parser.add_argument("--speed", action="append", default=[], metavar="NAME=U_PER_S",
+                        help="override a case's target speed, e.g. --speed T5_overtake=0.45. "
+                             "Repeatable. For when no --t-meet keeps a target's track in water.")
     parser.add_argument("--no-map-check", action="store_true",
                         help="skip the check that each target's track stays in water")
     args = parser.parse_args()

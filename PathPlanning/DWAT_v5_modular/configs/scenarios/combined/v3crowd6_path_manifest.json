@@ -1,0 +1,158 @@
+[
+  {
+    "meeting_point": [
+      60.95,
+      75.61
+    ],
+    "t_meet_s": 34.0,
+    "ego_heading_deg": -122.2,
+    "ego_speed": 0.5,
+    "spawn": [
+      53.76,
+      80.13
+    ],
+    "target_course_deg": -32.2,
+    "course_rel_deg": 90.0,
+    "target_speed": 0.25,
+    "closing_speed": 0.559,
+    "rel_bearing_deg": 26.6,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 0.0,
+    "name": "T1_cross_stbd_090",
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "spawn_in_map": true
+  },
+  {
+    "meeting_point": [
+      54.57,
+      65.45
+    ],
+    "t_meet_s": 58.0,
+    "ego_heading_deg": -122.2,
+    "ego_speed": 0.5,
+    "spawn": [
+      34.78,
+      60.93
+    ],
+    "target_course_deg": 12.8,
+    "course_rel_deg": 135.0,
+    "target_speed": 0.35,
+    "closing_speed": 0.787,
+    "rel_bearing_deg": 18.3,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 26.2,
+    "name": "T2_cross_stbd_135",
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "spawn_in_map": true
+  },
+  {
+    "meeting_point": [
+      49.25,
+      56.98
+    ],
+    "t_meet_s": 78.0,
+    "ego_heading_deg": -122.2,
+    "ego_speed": 0.5,
+    "spawn": [
+      36.79,
+      37.17
+    ],
+    "target_course_deg": 57.8,
+    "course_rel_deg": 180.0,
+    "target_speed": 0.3,
+    "closing_speed": 0.8,
+    "rel_bearing_deg": 0.0,
+    "sector": "head-on (R14)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 46.8,
+    "name": "T3_head_on",
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "spawn_in_map": true
+  },
+  {
+    "meeting_point": [
+      45.11,
+      43.42
+    ],
+    "t_meet_s": 108.0,
+    "ego_heading_deg": -66.8,
+    "ego_speed": 0.5,
+    "spawn": [
+      25.96,
+      88.09
+    ],
+    "target_course_deg": -66.8,
+    "course_rel_deg": 0.0,
+    "target_speed": 0.45,
+    "closing_speed": 0.05,
+    "rel_bearing_deg": 0.0,
+    "sector": "overtaking, ego overtakes (R13, give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 0.0,
+    "name": "T4_overtake",
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "spawn_in_map": true
+  },
+  {
+    "meeting_point": [
+      52.6,
+      36.35
+    ],
+    "t_meet_s": 130.0,
+    "ego_heading_deg": -25.3,
+    "ego_speed": 0.5,
+    "spawn": [
+      77.08,
+      45.09
+    ],
+    "target_course_deg": -160.3,
+    "course_rel_deg": -135.0,
+    "target_speed": 0.2,
+    "closing_speed": 0.657,
+    "rel_bearing_deg": 347.6,
+    "sector": "crossing from port (R17, ego stand-on)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 91.9,
+    "name": "T5_cross_port_135",
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "spawn_in_map": true
+  },
+  {
+    "meeting_point": [
+      59.83,
+      32.92
+    ],
+    "t_meet_s": 146.0,
+    "ego_heading_deg": -25.3,
+    "ego_speed": 0.5,
+    "spawn": [
+      94.2,
+      45.2
+    ],
+    "target_course_deg": -160.3,
+    "course_rel_deg": -135.0,
+    "target_speed": 0.25,
+    "closing_speed": 0.699,
+    "rel_bearing_deg": 345.4,
+    "sector": "crossing from port (R17, ego stand-on)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 110.3,
+    "name": "T6_cross_port_135",
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "spawn_in_map": true
+  }
+]

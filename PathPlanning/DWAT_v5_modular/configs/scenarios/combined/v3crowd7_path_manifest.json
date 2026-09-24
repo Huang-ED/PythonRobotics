@@ -1,0 +1,184 @@
+[
+  {
+    "meeting_point": [
+      60.42,
+      74.76
+    ],
+    "t_meet_s": 36.0,
+    "ego_heading_deg": -122.2,
+    "ego_speed": 0.5,
+    "spawn": [
+      57.62,
+      87.05
+    ],
+    "target_course_deg": -77.2,
+    "course_rel_deg": 45.0,
+    "target_speed": 0.35,
+    "closing_speed": 0.354,
+    "rel_bearing_deg": 44.4,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 0.0,
+    "name": "T1_cross_stbd_045",
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "spawn_in_map": true
+  },
+  {
+    "meeting_point": [
+      56.16,
+      67.99
+    ],
+    "t_meet_s": 52.0,
+    "ego_heading_deg": -122.2,
+    "ego_speed": 0.5,
+    "spawn": [
+      43.49,
+      65.1
+    ],
+    "target_course_deg": 12.8,
+    "course_rel_deg": 135.0,
+    "target_speed": 0.25,
+    "closing_speed": 0.699,
+    "rel_bearing_deg": 14.6,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 16.3,
+    "name": "T2_cross_stbd_135",
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "spawn_in_map": true
+  },
+  {
+    "meeting_point": [
+      50.84,
+      59.52
+    ],
+    "t_meet_s": 72.0,
+    "ego_heading_deg": -122.2,
+    "ego_speed": 0.5,
+    "spawn": [
+      22.76,
+      53.12
+    ],
+    "target_course_deg": 12.8,
+    "course_rel_deg": 135.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.832,
+    "rel_bearing_deg": 19.9,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 42.0,
+    "name": "T3_cross_stbd_135",
+    "land_samples": 1,
+    "first_land_t": 77.0,
+    "navigable": false,
+    "spawn_in_map": true
+  },
+  {
+    "meeting_point": [
+      46.11,
+      50.74
+    ],
+    "t_meet_s": 92.0,
+    "ego_heading_deg": -114.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      38.63,
+      33.93
+    ],
+    "target_course_deg": 66.0,
+    "course_rel_deg": 180.0,
+    "target_speed": 0.2,
+    "closing_speed": 0.7,
+    "rel_bearing_deg": 0.0,
+    "sector": "head-on (R14)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 56.3,
+    "name": "T4_head_on",
+    "land_samples": 7,
+    "first_land_t": 0.0,
+    "navigable": false,
+    "spawn_in_map": true
+  },
+  {
+    "meeting_point": [
+      46.29,
+      40.66
+    ],
+    "t_meet_s": 114.0,
+    "ego_heading_deg": -66.8,
+    "ego_speed": 0.5,
+    "spawn": [
+      28.33,
+      82.57
+    ],
+    "target_course_deg": -66.8,
+    "course_rel_deg": 0.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.1,
+    "rel_bearing_deg": 0.0,
+    "sector": "overtaking, ego overtakes (R13, give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 0.0,
+    "name": "T5_overtake",
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "spawn_in_map": true
+  },
+  {
+    "meeting_point": [
+      53.5,
+      35.92
+    ],
+    "t_meet_s": 132.0,
+    "ego_heading_deg": -25.3,
+    "ego_speed": 0.5,
+    "spawn": [
+      90.8,
+      49.24
+    ],
+    "target_course_deg": -160.3,
+    "course_rel_deg": -135.0,
+    "target_speed": 0.3,
+    "closing_speed": 0.743,
+    "rel_bearing_deg": 343.4,
+    "sector": "crossing from port (R17, ego stand-on)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 98.4,
+    "name": "T6_cross_port_135",
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "spawn_in_map": true
+  },
+  {
+    "meeting_point": [
+      60.73,
+      32.5
+    ],
+    "t_meet_s": 148.0,
+    "ego_heading_deg": -25.3,
+    "ego_speed": 0.5,
+    "spawn": [
+      88.61,
+      42.45
+    ],
+    "target_course_deg": -160.3,
+    "course_rel_deg": -135.0,
+    "target_speed": 0.2,
+    "closing_speed": 0.657,
+    "rel_bearing_deg": 347.6,
+    "sector": "crossing from port (R17, ego stand-on)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 109.9,
+    "name": "T7_cross_port_135",
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "spawn_in_map": true
+  }
+]
