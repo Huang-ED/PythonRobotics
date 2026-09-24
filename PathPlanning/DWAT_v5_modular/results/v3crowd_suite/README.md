@@ -140,6 +140,35 @@ changes only candidate *scoring*. **v20.7.9 neither fixes nor worsens
 
 Runs are under `runs/v20.7.9/combined/`.
 
+## The rescaled suites, and why they had to be re-aimed (2026-09-24)
+
+Everything above is the original, unscaled suite on v20.7.8-2, aimed at and
+run with the same config -- valid for what it tested. The rescaled versions are
+a different story.
+
+| files | aimed at | collision courses for a do-nothing ego | status |
+|---|---|---|---|
+| `v3crowd?215` | v21.10's obstacle-free run from an undeclared heading (the weaving run) | 2/18 once `start_yaw` was added to the files | **stale -- do not use for avoidance claims** |
+| `v3crowd?215_step` | same | threats only to v21.10 itself | stale for any other config |
+| `v3crowd?_path` | the planned route at 0.5 u/s from t = 0 | 5/18 for v21.11 undeclared; 15/18 aligned | debugging only |
+| **`v3crowd?_v2111`** | v21.11's own obstacle-free run, undeclared heading | **18/18** | **current, for v21.11** |
+
+"Do-nothing" means the ego's obstacle-free trajectory against each target's
+fixed track; targets are open-loop, so the check is exact. The `_v2111` files
+carry no `start_yaw`: turning onto the first leg is part of the test.
+
+To regenerate for another config, run it on `baseline/v3_baseline_step.json`,
+pass that log as `--reference-log`, reuse the meeting times from the
+`_v2111` manifests, and **re-run the do-nothing check** -- retime (`--t-meet`)
+or re-speed (`--speed`) any target whose track crosses land before its meeting.
+The `_v2111` retimings were v3crowd5 T4 115 s, v3crowd6 T5 131 s, v3crowd7 T5
+116 s at 0.45 u/s.
+
+v21.11 on the `_v2111` suites: v3crowd5 goal (+24 s, one full round turn),
+v3crowd6 **grounded** at t = 80.3 s while evading the head-on target toward the
+coast, v3crowd7 goal (+10 s, closest 0.367). See
+`../OSCILLATION.md` section 4.7 and `../OPEN_PROBLEMS.md` items 19-20.
+
 ## Where the runs are
 
 `runs/` is git-ignored, so these are local paths.

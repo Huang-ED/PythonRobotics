@@ -373,7 +373,24 @@ was a category error.
 restates the acquisition model. The independent evidence for `mu` is the helm-saturation
 column of the `dLG` series above, where `t_acq` is pinned by construction.
 
-### 4.5 The encounter suites
+### 4.5 The encounter suites *(superseded -- see 4.7)*
+
+> **These suites did not test what they claimed to.** Measured 2026-09-24 with
+> the ego doing nothing -- its obstacle-free trajectory against each target's
+> fixed track -- only **2 of 18** targets in the aligned `v3crowd*215` files are
+> on a collision course. They were aimed (`planned_cpa` 0.0) at v21.10's
+> obstacle-free run from an *undeclared* heading, the weaving one; `start_yaw`
+> was added afterwards, the ego began sailing straight down the leg, and every
+> meeting point moved. The unaligned `*_step` copies are threats only to
+> v21.10 itself, the run they were aimed at.
+>
+> So the clearances below measure passes against mostly non-threatening
+> traffic, and the "3/3" results are not evidence of collision avoidance.
+> What still stands: **v21.10's unaligned failures are real** (on the one
+> suite aimed at its own path, and it failed by losing the path, not by
+> collision), and **the clearance-for-damping trade is real** -- section 4.6
+> shows it on the open-water suite, whose targets were verified valid. The
+> valid v3crowd results are in section 4.7.
 
 `v3crowd5/6/7`, five to seven targets on the six-corner route, run in both
 conditions. Clearance is the worst of the three cases, measured by
@@ -398,8 +415,9 @@ unchanged; every value above is from the official scorer.*
 
 Three things this says that the single-scenario screen could not:
 
-- **`v21.10` was never broken on an aligned start.** It is the *best* config
-  there. Its v3crowd failures are entirely the undeclared `start_yaw`.
+- **`v21.10` did not fail from an aligned start** -- but against traffic that
+  was mostly not in its way, so this is weak evidence. Its failures from an
+  undeclared start were real: it lost its own path.
 - **The oscillation ranking inverts on clearance.** `bal-helm35` is best on
   every oscillation metric and worst on clearance -- 0.368 aligned, 0.458
   unaligned, both below `v20.7.8-2`'s 0.483, so not shippable. A nimbler ship defers its avoidance.
@@ -407,6 +425,12 @@ Three things this says that the single-scenario screen could not:
   still swinging from the unaligned start, it cuts the first corner toward a
   local goal at the vertex (48,55) with land between, and touches the land cell
   at (53,59). *(First recorded here as a stall; corrected from the video.)*
+  Its local goal was parked on the vertex at the time -- a side effect of
+  `catch_turning_point_dist` (7) being smaller than `dist_localgoal` (10), see
+  `OPEN_PROBLEMS.md` item 18 -- but that did not cause the grounding: re-run
+  with the two equal, the local goal never parks and the ego grounds on the
+  same cell at t = 111.3 s against 111.2 s, never more than 0.05 u from the
+  original path.
 
 `bal-mix-T33` is `bal-mix` with the horizon re-derived: lowering `T_yaw` moved
 `T_act` to 8.345 s, so `predict_time_obstacle` becomes `4*T_act` = 33.38 and
@@ -414,7 +438,8 @@ Three things this says that the single-scenario screen could not:
 shortening it strengthens the barrier -- and it recovers about a third of the
 clearance `bal-mix` gave up on the aligned suites (0.614 -> 0.649 against
 `v21.10`'s 0.724), and 0.660 -> 0.692 unaligned. That is `PREDICTION_HORIZON.md`
-section 5.1's coupling, predicted in advance and confirmed here.
+section 5.1's coupling, predicted in advance -- though measured here on suites
+whose targets were mostly not threats, so it wants re-confirming on valid ones.
 
 ### 4.6 Open-water verification of v21.11
 
@@ -453,6 +478,59 @@ breaks in a crossing is decided by small numerical differences, and v21.11's
 differences broke the other way from v21.10's. A COLREGs side rule fixes
 this; no oscillation parameter does.
 
+### 4.7 The v3crowd suites, re-aimed and verified
+
+The v3crowd targets were regenerated so that every one is a genuine collision
+course **for the ego that actually sails**, then checked with the ego doing
+nothing before any run.
+
+Two ways of aiming them were tried, both from the scenario with **no**
+`start_yaw` -- turning onto the first leg is part of the test, not something to
+be declared away:
+
+| aimed at | collide with a do-nothing v21.11 | with a do-nothing v21.10 | files |
+|---|---|---|---|
+| the planned route at 0.5 u/s from t = 0 (config-independent) | **5/18** | 0/18 | `v3crowd?_path` |
+| v21.11's own obstacle-free run | **18/18** | 1/18 | `v3crowd?_v2111` |
+
+Aiming at the planned route fails from an undeclared heading: the ego spends
+its first ~15 s turning onto the leg from rest and reaches every meeting point
+4-7 s late, so most targets cross ahead. It works for an aligned start (15/18),
+and those files are kept for debugging. The `_v2111` suites are exact but
+**specific to v21.11**; another config needs its own.
+
+Three targets crossed land on their way in and were retimed: v3crowd5 T4
+114 -> 115 s, v3crowd6 T5 130 -> 131 s, v3crowd7 T5 116 s at 0.45 u/s.
+
+**v21.11 against genuine threats**, inline-rendered:
+
+| suite | outcome | closest pass (official) | time lost |
+|---|---|---|---|
+| `v3crowd5_v2111` | reached goal | 0.817 | +24 s |
+| `v3crowd6_v2111` | **grounded**, t = 80.3 s | 0.546 before grounding | -- |
+| `v3crowd7_v2111` | reached goal | **0.367** | +10 s |
+
+**2 of 3, and the one pass that got through below `v20.7.8-2`'s 0.483.** At
+every encounter the ego sits 2-12 u from where it would have been with no
+targets: the targets now drive the run, which the old suites never did.
+
+- **v3crowd6 grounds while evading, not while oscillating.** The start swing
+  leaves the ego east of the route, on the coast side; the head-on T3 comes up
+  the route; evading pushes the ego further east onto the land spit at (53,59)
+  -- 0.2 s after clearing T3 by 1.06. Nothing prefers a starboard pass (item
+  14), which here would have been west, away from the land, and the land term
+  (`obstacle_cost_gain` 0.05) cannot hold the ego off the coast against the
+  target's push. The same cell grounded `bal-dlg10` and `rejoin`; the route
+  runs about 2.5 u from it.
+- **v3crowd5 makes a full round turn** around the head-on T2 at ~65 s, then
+  rejoins and finishes 24 s late. The 12 u reported deviation is that time lag,
+  not distance off the route.
+- **v3crowd7** clears all seven targets within 5 u of deviation; the 0.367 is
+  T6, crossing from port.
+
+What remains is not the oscillation this document is about. It is the choice
+of *side* and the weight of the *land*.
+
 ---
 
 ## 5. Recommendation
@@ -486,25 +564,35 @@ damping was never what the v3crowd runs were failing on.
 5. **Do not tune the gains for this.** Section 3.3: the yaw stationarity
    condition has no gain in it, and the one path that does work -- slowing the
    ship -- pivots it in place for up to a minute and then runs it aground.
-6. **Declare `start_yaw` along the first leg in every scenario.** Not because
-   the follower needs it, but because an undeclared one silently injects the
-   largest transient in the run, and it is the difference between `v21.10`
-   passing v3crowd 3/3 and failing 0/3.
+6. **Do not declare `start_yaw` away.** Turning onto the first leg from an
+   arbitrary heading is part of the sailing, and it is the largest transient in
+   the run -- it is what separates `v21.10` from `v21.11`. Keep an aligned
+   variant only for debugging. *(Revised 2026-09-24: this item first advised
+   declaring it in every scenario.)*
+7. **Verify every generated encounter against the config being tested.**
+   Targets aimed at one config's obstacle-free run stop being threats when the
+   config or the scenario changes; that has now happened three times (section
+   7, artefact 8). Before running a suite, check each target's closest approach
+   to the tested config's do-nothing trajectory.
 
 **The best config measured is `bal-mix-T33`, promoted to `v21.11`**:
 `dist_localgoal` 9, `max_delta_yaw_rate` 0.028099 (full helm 6.74 s),
-`predict_time_obstacle` 33.38, `time_decay_lambda` 0.029958. Three configs reach
-the goal in both conditions with clearance above `v20.7.8-2`'s 0.483 --
-`bal-mix` (0.614/0.660), `bal-helm52` (0.519/0.567) and `v21.11`
-(**0.649/0.692**) -- and `v21.11` has the most clearance of them. Neither of its
-parameters moved more than 35% from `v21.10`. `bal-helm35` is excluded: 0.368
-is below the `v20.7.8-2` bar despite winning every oscillation metric.
+`predict_time_obstacle` 33.38, `time_decay_lambda` 0.029958. Neither of its
+parameters moved more than 35% from `v21.10`. On clean water from the undeclared
+heading it tracks the route without the endless weave (section 4.4); on open
+water it passes all 13 verified encounters (section 4.6); on the verified
+v3crowd suites it reaches the goal in 2 of 3, grounding once while evading
+(section 4.7).
 
-**Its cost is real and is not hidden here:** on an aligned start, clearance
-falls from `v21.10`'s 0.724 to 0.649 on v3crowd, and from 0.628 to 0.522 on
-open water (section 4.6). Robustness to an undeclared heading is
-bought with clearance. If every scenario declares `start_yaw`, `v21.10` is the
-better config and this whole trade is unnecessary.
+**Its cost is real and is not hidden here:** it passes closer. Open-water worst
+clearance falls from `v21.10`'s 0.628 to 0.522; on v3crowd7 one pass is 0.367,
+below the `v20.7.8-2` bar. A ship that can turn faster waits longer to turn.
+`v21.10` keeps more clearance but cannot sail the v3 route from an undeclared
+heading at all.
+
+*Superseded, 2026-09-24:* the v3crowd comparison of `bal-mix`, `bal-helm52`,
+`v21.11` and `bal-helm35` first quoted here (0.614-0.692, 0.368) came from the
+invalid suites of section 4.5.
 
 **The helm-rate change is a claim about the ship, not a free parameter.** Full
 helm in 6.74 s is 3.0x faster than the AIS-matched 20 s (`v21.10` already took
@@ -529,7 +617,9 @@ architecture question this document cannot answer.
   Pure pursuit cuts corners, and by more for a longer look-ahead, which would
   put an *upper* bound on `dist_localgoal` that nothing in this document
   derives. One `dLG` case is not enough to call it; a corner-clearance measure
-  run across the `dLG` series would.
+  run across the `dLG` series would. The v21.11 grounding on `v3crowd6_v2111`
+  (section 4.7) is at the same cell, reached by evading rather than by
+  cutting the corner -- that spit is a hazard of the route itself.
 - **Clearance and oscillation trade against each other and nothing here
   predicts the exchange rate.** Section 4.5 measures it for five configs; there
   is no model for it.
@@ -549,7 +639,7 @@ architecture question this document cannot answer.
 
 ---
 
-## 7. Seven metric artefacts this analysis produced
+## 7. Eight metric artefacts this analysis produced
 
 Recorded because each one briefly produced a confident wrong answer:
 
@@ -584,6 +674,15 @@ Recorded because each one briefly produced a confident wrong answer:
    against the other made `bal-helm35` look like 0.414 against 0.482 when it is
    0.368 against 0.483. Caught when `v21.10`'s open-water worst case read 0.718
    here against the 0.628 in its own validation commit.
+8. **Encounters that no longer encounter.** Targets are placed to collide with
+   one reference trajectory. Change the config or the scenario and the ego is
+   somewhere else at the meeting time: the v3crowd suites went from 18/18
+   collision courses to **2/18** when `start_yaw` was added, and every "3/3"
+   measured on them afterwards was traffic passing clear. It is the third time
+   -- the open-water suite once became "a free pass" and the combined suites
+   went stale once before. The check is cheap and exact, because targets do not
+   react: the closest approach of each target's track to the ego's
+   obstacle-free run.
 
 And one diagnosis error of the same family: **"did not reach the goal, no
 error" is not "stalled".** A collision ends the run with `error = None`; the
