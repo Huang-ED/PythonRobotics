@@ -19,6 +19,15 @@ from typing import Any, Dict, Optional
 
 MISSING = "-"
 
+# Non-current buckets under runs/, in the order their tables appear, with the
+# one-line note printed above each. Unlisted "_" folders still get a table.
+BUCKETS = {
+    "_superseded": "Earlier v20.7.x versions, replaced by the v20.7.8-2 baseline.",
+    "_abandoned": "Failed trials (v20.8.x). A higher version number is not a better one.",
+    "_scene_export": "Runs on exported scenes, v20.9.x.",
+    "_archive": "Pre-v5 generations, one folder per generation.",
+}
+
 
 def repo_root() -> Path:
     return Path(__file__).resolve().parents[1]
@@ -144,14 +153,23 @@ def main() -> int:
     out_path = Path(args.out).resolve() if args.out else runs_root / "INDEX.md"
 
     records = list(scan(runs_root, with_sizes=args.sizes))
-    current = [r for r in records if not r["path"].startswith("_archive/")]
-    archived = [r for r in records if r["path"].startswith("_archive/")]
+    # Every top-level folder starting with "_" is a bucket of non-current runs
+    # and gets its own table; everything else is current.
+    buckets: Dict[str, list] = {}
+    current = []
+    for r in records:
+        top = r["path"].split("/", 1)[0]
+        if top.startswith("_"):
+            buckets.setdefault(top, []).append(r)
+        else:
+            current.append(r)
+    order = [b for b in BUCKETS if b in buckets] + sorted(b for b in buckets if b not in BUCKETS)
 
+    counts = ", ".join([f"{len(current)} current"] + [f"{len(buckets[b])} {b}" for b in order])
     lines = [
         "# Run index",
         "",
-        f"{len(records)} runs "
-        f"({len(current)} current, {len(archived)} archived). "
+        f"{len(records)} runs ({counts}). "
         "Regenerate with `python tools/build_run_index.py`.",
         "",
         "`outcome` comes from each run's `log_details.json`; `-` means the log "
@@ -159,9 +177,11 @@ def main() -> int:
         "",
     ]
 
-    def table(title: str, rows) -> None:
+    def table(title: str, rows, note: Optional[str] = None) -> None:
         lines.append(f"## {title}")
         lines.append("")
+        if note:
+            lines.extend([note, ""])
         if not rows:
             lines.extend(["_none_", ""])
             return
@@ -175,7 +195,8 @@ def main() -> int:
         lines.append("")
 
     table("Current", sorted(current, key=lambda r: (r["version"], r["group"], r["scenario"], r["timestamp"])))
-    table("Archive", sorted(archived, key=lambda r: (r["path"])))
+    for b in order:
+        table(f"`{b}`", sorted(buckets[b], key=lambda r: r["path"]), BUCKETS.get(b))
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
