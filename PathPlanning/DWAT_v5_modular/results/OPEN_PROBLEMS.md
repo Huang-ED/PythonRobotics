@@ -202,7 +202,15 @@ This is the ledger. Anything not in it is passing.
 | `ny_synth_00` | abort, iter 51 | **B** | **unknown** — Stage 1 pruned 287 candidates nobody has scored | *measure first* |
 | `ny_hist_367782880` | grounding, iter 59 | — | `dt` too coarse: 125 m/step vs 25 m shore cells | item 3 |
 | `ny_hist_367791550` | grounding, iter 52 | — | same | item 3 |
-| `v3crowd5` | fails 137.4 s | — | `_choose_local_goal` path-following divergence | **not this problem** |
+| `v3crowd5` *(original suite, v20.7.8-2)* | fails 137.4 s | — | `_choose_local_goal` path-following divergence | **not this problem** |
+| `v3crowd6_v2111` @ **v21.11** | grounding, t = 80.3 s | — | evading a head-on target toward the coast: no side rule + weak land term | items **20 + 14** |
+| v3crowd, undeclared heading @ v21.10 | abort, 3 of 3 | — | loses its own path: the start transient never settles | superseded by v21.11 (`OSCILLATION.md`) |
+
+*Ledger updated 2026-09-24.* The current config is **v21.11**: open water 13/13
+on verified encounters, v3crowd 2/3 on verified encounters (the row above).
+Passing but worth watching: `ow_sequence215`, where v21.11 turns the way a
+starboard-crossing target is heading and circles back (item 14), and
+`v3crowd7_v2111`, closest pass 0.367 against `v20.7.8-2`'s 0.483.
 
 Two things this table makes visible that earlier drafts did not:
 
@@ -672,88 +680,79 @@ There are **two independent tracks**. The open-water track is where the cost
 function is tuned; the AIS track is where Stage 1's physics is wrong. They share
 no blocking dependency, so either can proceed.
 
-### Track 1 — open water: finish what `predict_time_to_goal` opened
+### Track 1 — open water and the v3 route: v21.11's remaining failures
 
-> **Revised 2026-09-23 -- see `OSCILLATION.md` sections 3.3, 4.4 and 4.5.** The
-> lag constant is `T_yaw = max_yaw_rate/max_delta_yaw_rate`, not
-> `max(T_surge, T_yaw)`; `dist_localgoal` does not reduce the peak excursion at
-> all (7 -> 18 moves it 0.05%); re-weighting the cost gains cannot help, because
-> the speed term is omega-free so the gain cancels from the yaw stationarity
-> condition; and `v21.10`'s v3crowd failures were caused by an undeclared
-> `start_yaw`, not by the config -- it passes 3/3 when the heading is declared.
->
-> **Corrected 2026-09-24:** that "3/3 when the heading is declared" was against
-> traffic that was mostly not in its way -- only 2 of 18 targets in those files
-> were collision courses (item 19). The undeclared heading is the real test.
-> On re-aimed, verified suites v21.11 reaches the goal in 2 of 3, grounding
-> once while evading (item 20). `OSCILLATION.md` section 4.7.
->
-> **See `OSCILLATION.md`** (2026-09-22). Item 16's "preview must exceed `T_act`"
-> turns out to be the **Routh–Hurwitz boundary** of pure pursuit with steering
-> lag. The whole oscillation collapses to one number,
-> `mu = dist_localgoal / (max_speed * T_act)`: `mu < 1` is linear instability
-> (v21.5 sits at 0.70 and diverged), and `mu ~ 4` minimises settling time.
-> Separately, acquiring the track from a heading error is a rate-limited
-> manoeuvre that `mu` does not affect at all — which is why tripling the
-> look-ahead left the v3 launch excursion at 3.24 u. v21.10 runs at `mu = 1.54`,
-> giving `t_settle` = 299 s against a 200 s transit, so every v3crowd encounter
-> is handled mid-transient.
+*Re-sequenced 2026-09-24.* The previous Track 1 was written around v21.7 and is
+superseded: v21.11 is the config (`OSCILLATION.md` section 5), its open-water
+suite passes 13/13, and its v3crowd suites pass 2/3 on verified encounters. What
+is left is not oscillation; it is **side choice, land, and suite hygiene**.
 
-1. ~~**Validate a fix across all 11 `owenc215_*` cases.**~~ ✅ **done 2026-09-21
-   — v21.7 passes 11/11 on both criteria.** `T_goal = 2.0` alone failed (5 abort,
-   6 diverge); the cause was `dist_localgoal`, not `T_goal`. See §5.1.
-   **Remaining: carry v21.7 to the v3crowd suite**, and settle the multi-leg
-   look-ahead question below before it goes near AIS.
-2. **Split `predict_time_to_goal` into two parameters.** It sets the stiffness of
-   `to_goal_cost` *and* the authority of `speed_cost` from one number. The rescale
-   moved `max_yaw_rate` and `max_accel` by different factors (3.7× and 5.2×), so
-   no single value restores both — which is why the old 1.0 cannot simply be
-   copied back (it reaches 0.880 clearance and then loses the path).
-3. **Multi-leg look-ahead.** `dist_localgoal = 20` is validated only on a
-   *single straight leg* (`pin_path_endpoints` makes the open-water path one
-   segment). Corner-cutting on a path with turning points is **unmeasured**, and
-   `catch_turning_point_dist` is still 7.0, now inconsistent. This is the one
-   thing blocking v21.7 from the AIS track.
-4. **Item 15** — `local_goal_recovery: "rejoin"` is implemented and defaults
-   off. Now largely moot: a 20 u corridor does not cap a 3 u manoeuvre. Keep it
-   off unless a genuinely larger evasion appears.
-4. **Item 14** — a COLREGs Rule 14 side preference. The suite is now exactly
-   symmetric, so this is load-bearing rather than cosmetic. **Do not** "fix" the
-   symmetry by re-introducing a scenario offset; §5.1 shows the offset changes
-   the manoeuvre's shape and not its outcome.
+1. **Item 19 — build the do-nothing check into `encounter_suite.py`.** Closest
+   approach of each target's track to a given obstacle-free log; refuse or warn
+   below a threshold. Cheap, and it protects every later result. First because
+   this gap has now voided results three times, and because it was already on
+   the queue once (09-16, "verify every case is a real encounter") and was done
+   by hand instead of made permanent.
+2. **Item 18 — set `catch_turning_point_dist = dist_localgoal` in v21.11.**
+   `v21.11/ctp9.json` exists. Re-run the three `v3crowd?_v2111` suites; open
+   water cannot see it (single straight leg). If neutral or better, fold into
+   the next version.
+3. **Items 20 + 14 — the actual remaining failure.** Two separate, config-
+   restorable experiments on `v3crowd6_v2111`: a COLREGs side preference
+   (Rule 14/15 -- starboard on head-on, give-way to starboard crossers), and a
+   stronger land term (`obstacle_cost_gain` 0.05 is an order below what it
+   takes to hold the ego off the coast against a target). Re-check the
+   `ow_sequence215` regression under the side rule. **Do not** "fix" symmetry
+   with a scenario offset (§5.1).
+4. **Item 15 — a cross-track term toward the route.** Would also shrink the
+   undeclared-heading swing that set up the v3crowd6 grounding. `rejoin` stays
+   off.
+5. **Split `predict_time_to_goal`** into heading stiffness and speed authority.
+   Lower priority than before: G/B caps it near 3.5 s, and `OSCILLATION.md`
+   section 3.3 showed it is not the damping lever.
+6. **Helm-rate fidelity** *(your judgement, not an experiment)*. v21.11's full
+   helm in 6.74 s is 3.0x faster than the AIS-matched 20 s (v21.10 was 2.2x).
+   Whether the modelled vessel can do this decides whether v21.11's advantage is
+   admissible. Carried from the 09-16 queue ("`T_yaw` = 20 s -- needs a fidelity
+   justification"), where it was deferred and then dropped from the file.
+   Note, from 09-20: "making the ego slightly more flexible than the AIS data is
+   acceptable, since AIS probably did not capture each ship's maximum
+   manoeuvre."
 
-### Track 2 — AIS: Stage 1 is built on the wrong physics
+### Track 2 — AIS: Stage 1 is built on the wrong physics *(unchanged, not started)*
 
-5. ~~**Item 1** — capsule in `closest_obstacle_on_curve`.~~ ✅ done 2026-09-15.
-   Next action is to **re-measure `ny_hist_366962130`**: §4.1 predicted this
-   admits the blocking candidate, and the direction-dependence of a capsule's
-   reach (§4.1 ⚠) makes that prediction look optimistic.
-6. **Item 2** — `on_start`, defaulting to today's behaviour.
-7. **Re-baseline the AIS suite** on the corrected scene and hull. Expect
-   `ny_hist_366962130` to change outcome; if it does, it leaves the feasibility
-   backlog entirely and `ny_synth_00` becomes the only AIS instance of it.
-8. **Measure what Stage 1 prunes — before designing anything.** At the
-   `ny_synth_00` abort, score the 287 candidates Stage 1 rejected. If any is
-   collision-free, Stage 1 causes that abort too and item 6 is the whole job; if
-   none is, item 4 really is the answer there. **One instrumented call, and it
-   decides everything below it.** Take the item 9 (unbounded-span) number in the
-   same pass.
-9. **Item 4** — port `least_bad` to `dwa_average_weighted_side` (or run AIS on
-   `dwa_ramped`). Do this regardless of how step 8 turns out, for legibility.
-10. **Item 6** — design the replacement feasibility test, absorbing items 5 and 9.
-    Only now are its inputs trustworthy. Item 7 probably falls out; do not build
-    it separately.
-11. **Item 3** (`ais_v1.2`) — orthogonal, so "whenever convenient". But it fixes
-    half the suite's failures, so *convenient* should not mean *never*.
+7. **Re-measure `ny_hist_366962130`** after item 1 (capsule); §4.1 predicted it
+   admits the blocking candidate, and the capsule's direction-dependence makes
+   that look optimistic.
+8. **Item 2** — `on_start`, defaulting to today's behaviour.
+9. **Re-baseline the AIS suite** on the corrected scene and hull.
+10. **Measure what Stage 1 prunes — before designing anything.** Score the 287
+    candidates Stage 1 rejects at the `ny_synth_00` abort. One instrumented call;
+    it decides items 4 and 6. Take the item 9 (unbounded span) number in the
+    same pass.
+11. **Item 4** — port `least_bad` to `dwa_average_weighted_side`, for legibility.
+12. **Item 6** — the replacement feasibility test, absorbing 5, 9 and 11; item 7
+    probably falls out.
+13. **Item 3 / `ais_v1.2`** — per-ego `dt` (fixes both AIS groundings) **and**
+    carrying the v21.x configs back to the AIS data, requested 2026-09-22.
+    Blocked on one open question: re-measure `ais_v1.1` first (its numbers
+    predate the capsule fix), or go straight to v1.2? Derived v1.2 values then:
+    `side_cost_gain` must preserve `gain x max_side_weight_dist` (0.00653, not
+    0.98), and `dt` is 45x coarser relative to `T_act`.
 
 ### Also open, unsequenced
 
 - **Item 10** — `closest_obstacle_on_curve` misreports an obstacle it is already
-  touching. Independent of everything above.
-- **Cull obstacles outside the prediction horizon.** Should be behaviour-neutral;
-  worth doing for cost.
-- **`max` vs `mean` aggregation.** Deferred until parameter matching was done —
-  which §5.1 has now done, so it is eligible. Compare, do not dive deep.
+  touching.
+- **Item 17** — document that a scenario key overrides the algorithm config.
+- **Cull obstacles outside the prediction horizon.** Behaviour-neutral; cost only.
+- **`max` vs `mean` aggregation.** Eligible since parameter matching; compare, do
+  not dive deep.
+
+### Deferred by you
+
+- **`Advantages of v21.11.md`** -- asked for 2026-09-24, then deferred ("maybe
+  for a future version"). The material is gathered.
 
 ### Dropped
 
@@ -761,6 +760,12 @@ no blocking dependency, so either can proceed.
   optimisation worth ~23% of a run that now costs ~15 min. Not worth the churn of
   changing the reference case.
 - ~~**Silent-death investigation.**~~ Parked unless it recurs.
+- ~~**Test `mu ~ 4` / `dist_localgoal ~ 18`.**~~ Done 2026-09-23: it moves the
+  peak excursion 0.05%. `OSCILLATION.md` section 4.4.
+- ~~**Re-weight the cost gains to damp the oscillation.**~~ Done 2026-09-23: the
+  gain cancels out of the yaw decision in clear water, and the one path that
+  reaches it grounds the ship. `OSCILLATION.md` section 3.3.
+- ~~**Carry v21.7 to the v3crowd suite.**~~ Superseded by v21.11.
 
 Every step must stay **config-restorable**: new behaviour behind a key that
 defaults to the current one, per `../configs/algorithm/README.md`.
