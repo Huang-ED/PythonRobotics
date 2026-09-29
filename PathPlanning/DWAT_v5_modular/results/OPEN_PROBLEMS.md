@@ -312,30 +312,264 @@ The old grouping ("items 4, 5, 6, 7 are one problem") was close but misfiled the
 two that matter most. Grouping by **which stage of §1 the item touches** is
 cleaner and gives a working order for free.
 
+Each group opens with a one-line table; the paragraphs below it carry the
+detail. Measurements behind the items are in §5.1–§5.5 at the end of this
+section.
+
+| group | theme | items |
+|---|---|---|
+| **A** | Stage 1 is built on the wrong physics | 1 ✅, 5, 6, 7, 9, 10, 11 |
+| **B** | the inputs are wrong | 2, 3 |
+| **C** | failure handling | 4 |
+| **D** | open water and the v3 route: cost, path following, suites | 12 ✅, 13 ✅, 14, 15, 16 ✅, 17, 18, 19, 20 |
+| closed | | 8 ✅ |
+
 ### Group A — Stage 1 is built on the wrong physics *(the real work)*
 
-| # | item | status | what it is |
+| # | item | status | §1 row |
 |---|---|---|---|
-| **1** | **Capsule in `closest_obstacle_on_curve`** | ✅ **implemented 2026-09-15** | Row 2 of the §1 table. All three branches (`v≈0`, straight, arc) now honour `robot_collision_shape`; disc verified bit-identical. Whether it fixes `ny_hist_366962130` is **now in doubt** — see the ⚠ in §4.1. |
-| **5** | **Admissibility against *predicted* obstacle positions** | open, **upgraded** | Row 1 of the §1 table. Formerly "restore Guard A in a form a wide window cannot bypass" — same thing: give Stage 1 the obstacle velocities and it stops being a static-world rule. |
-| **9** | **Bound Stage 1's look-ahead to the horizon** | **new — was unnamed** | Row 3 of the §1 table. Impact unmeasured; one instrumented run from being known. |
-| **6** | **Replace braking feasibility with turn/CPA** | open | The synthesis of 1, 5 and 9. This is `ais_v2` and the stern-sector guard **at once** — one piece of work under two names. |
-| **7** | **Stern-sector cost term** | open, **scope narrowed 2026-09-19** | Per §3(b), falls out of item 6. **Do not build it first.** Scope: item 7 is the *Stage 1* defect — the braking test rewards deceleration when a faster ship closes from astern. It is **not** the overtaking counterpart (item 13), which is a Stage 2 cost balance. Measured at v21.5: both `overtaken_ego*` cases pass safely because the ego sees the target 13 u out with ~40 s of warning and steps aside. **Item 7 needs the cornered state**, which only the short-horizon `predT5` regime produces — untested at v21.x. |
-
-| **10** | **`closest_obstacle_on_curve` misreports an obstacle it is already touching** | **new — found 2026-09-15** | Pre-existing, independent of item 1, and it *pre-dates* the capsule. If the hull already overlaps an obstacle at `t = 0`, the arc branch reports the distance to the **far side** of the obstacle and the straight branch reports `inf` — "nothing ahead" — while in contact. |
-| **11** | **Stage 1 scores every candidate against a path and a speed the ego will not have** | **new — found 2026-09-19** | Row 4 of the §1 table. `closest_obstacle_on_curve` and the braking inequality are both handed the *setpoint* `(v, ω)`, but under `ramped_rollout` the setpoint is a target the ego approaches at `max_accel` — it is not the state. So the ego is judged on a path it is not on, at a speed it does not have. **Both halves, not one.** |
-| **12** | ~~The candidate set cannot express a wide pass~~ → **`predict_time_to_goal` is 4× too long** | ✅ **cause found 2026-09-20** | **Superseded.** The short menu was the *consequence* of reacting late, not the cause. `predict_time_to_goal` went 1.0 → 8.0 in the rescale, making `to_goal_cost` **70× stiffer** across the yaw window while `side_cost_gain` stayed at 0.6. Setting it to 2.0 restores v20.7.8-2's clearance **exactly**. See §5.1. |
-| **13** | **Nothing penalises indefinite speed-matching** | ✅ **same cause as item 12, 2026-09-20** | `overtake_ego`: the ego closes to 3.07 u, locks to the target's speed (**exactly 0.200**) and station-keeps for 173 s — 263.5 s against a 153.3 s baseline, **72% longer**, never passing. "Unmoved by barrier gain or shape" was right: the barrier was never the lever. At `predict_time_to_goal = 2.0` the ego **overtakes**, in 176.6 s. Not a separate defect. |
-| **14** | **A perfectly symmetric encounter has no side preference** | **new — found 2026-09-20** | On an exactly collinear head-on the planner chatters ±1 yaw cell — **149 sign flips in 199 steps, net turn exactly zero** — until float noise breaks the tie. **Not a cause of the grazes** (§5.1), but it is the missing COLREGs Rule 14 side rule made load-bearing. Masked until v21.3, when `pin_path_endpoints` removed the 0.707 u Theta\* snap that had been breaking the tie by accident. |
-| **15** | **The ego has no restoring term toward the global path** | **reopened 2026-09-22 — the fix is wrong** | The pure-pursuit follower intersects a circle of radius `dist_localgoal` with the path; stray further and there is no intersection and the run **aborts** (`No intersection points found…`). So `dist_localgoal = 7.0` silently caps evasion at 7 u. Measured on the multi-leg `v3crowd` route at v21.10, **3 of 3 abort** this way with clearances of 0.65–0.88 — the avoidance completed and the *path-tracking* gave out. Pre-existing: `v3crowd_suite/README.md` documents the identical abort and names the cause — **nothing in the cost function pulls the ego back toward the global path, so lateral error has no restoring term**. ⚠ **`local_goal_recovery: "rejoin"` is NOT the fix and must stay off.** It recovers `v3crowd5/6` (goal reached, clearances unchanged at 0.653/0.805, since it only acts after the abort point) but **sails `v3crowd7` into land** — `_rejoin_point` returns a point on the leg without checking the straight line to it is navigable, which only a map with static obstacles can expose. It also costs a 2× detour: 313 s and 269 s against a ~150 s transit. The real fix is a cross-track term in the cost function, not a patch in the follower. |
-| **16** | **The path follower's look-ahead was never rescaled** | ✅ **resolved, and generalised 2026-09-22** | The goal rollout's *length* is what makes `to_goal_cost` anticipatory. Shorten it and the loop loses its lead while keeping a 20 s actuation lag, and the cross-track error diverges (growth 1.3–2.1× per half-cycle on every manoeuvring case). The parameter has **three conflicting roles** — see §5.1. Fixing item 12 must not go through it. |
-| **17** | **A scenario silently overrides the algorithm config** | **new — found 2026-09-20** | `map_creation.py:306` lets a scenario's `enable_map_boundary_obstacles` win over the algorithm config's. Every `owenc215_*` run has had 396 boundary obstacles active while `v21.5`/`v21.6` declared `false`. **Inert here** — measured min distance to any boundary is 14.5 u against `max_obstacle_cost_dist` of 8.0, and runs with boundaries on and off are bit-identical — but the precedence is undocumented and the same mechanism applies to every shared key. |
-| **18** | **`catch_turning_point_dist` is not tied to `dist_localgoal`** | **new — found 2026-09-24** | `Config.__init__` sets `catch_turning_point_dist = self.dist_localgoal`, so the original design keeps them equal -- but that runs *before* the JSON overrides, so any config that raises `dist_localgoal` silently keeps the switch radius at 7.0. v21.7 (20), the `dlg12`/`dlg18` variants and **v21.11 (9)** all carry the mismatch; nobody chose it. Effect, measured: while the ego is between `C` and `L` from a vertex the look-ahead circle has passed the corner, so the local goal **parks on the vertex for `(L - C)/v`** (predicted and measured 4.0 s for v21.11, 10.0 s for `dlg12`, 22.0 s for `dlg18`) and then **jumps** onto the next leg (2.7-4.9 u for v21.11). With `C = L` it moves continuously (at most 0.33 u per step in v21.10). It did **not** cause the `bal-dlg10` corner grounding: re-run with `C = L = 10` the local goal never parks, yet the ego grounds on the same cell at the same moment, never more than 0.05 u from the original path. Whether it matters for v21.11 on the verified suites is untested. **Fix:** set it explicitly equal in every config that moves `dist_localgoal` (test configs `v21.11/ctp9.json`, `v21.10/bal-dlg10-ctp10.json` exist), or derive it at override time if it is left unset. |
-| **19** | **Generated encounters go stale when the config or scenario changes** | **fixed for v3crowd 2026-09-24; not yet guarded** | `encounter_suite.py` aims each target (`planned_cpa` 0.0) at *one* obstacle-free reference run. The `v3crowd*215` suites were aimed at v21.10's run from an undeclared heading; `start_yaw` was then added to the files, and with the ego doing nothing only **2 of 18** targets remained collision courses (the overtakes missed by ~10 u). Every v3crowd "3/3" measured afterwards was traffic passing clear. Third occurrence: the open-water suite once became a free pass, and the combined suites went stale once when v21.10 out-accelerated v20.7.8-2. Aiming at the planned route instead (config-independent, `v3crowd?_path`) gives only 5/18 against v21.11 from an undeclared heading -- the ego reaches each meeting 4-7 s late while it turns onto the leg. Aiming at the tested config's own obstacle-free run (`v3crowd?_v2111`) gives 18/18 but ties the suite to that config. **Remaining:** build the do-nothing check into the generator (closest approach of each target's track to a given obstacle-free log -- exact, since targets do not react) and run it before any suite is used. The open-water `owenc215_*` suite passes it for both v21.10 and v21.11 (all 10 threats overlap). |
-| **20** | **Evading a target can put the ego aground** | **new — found 2026-09-24** | v21.11 on `v3crowd6_v2111`: the undeclared-heading swing leaves the ego east of the route, on the coast side; the head-on T3 comes up the route; evading pushes the ego further east onto the land spit at (53,59), grounding at t = 80.3 s, 0.2 s after clearing T3 by 1.06. Two existing gaps combine: no side preference (item 14) -- a starboard pass would have been west, away from the land -- and a land term too weak to hold the ego off the coast against a target's push (`obstacle_cost_gain` 0.05, reaching 8 u). The same cell grounded `bal-dlg10` and `rejoin`; the Theta* route passes about 2.5 u from it. Item 14 also shows on open water: in `ow_sequence215` v21.11 turns the way a starboard-crossing target is heading and has to circle back (deviation 5.15 u against v21.10's 2.30). |
+| **1** | Capsule in `closest_obstacle_on_curve` | ✅ implemented 2026-09-15 | 2 — ego hull |
+| **5** | Admissibility against *predicted* obstacle positions | open, **upgraded** | 1 — obstacle motion |
+| **9** | Bound Stage 1's look-ahead to the horizon | new — was unnamed | 3 — look-ahead |
+| **11** | Stage 1 judges a path and speed the ego will not have | new — 2026-09-19 | 4 — ego's own path |
+| **10** | `closest_obstacle_on_curve` misreports an obstacle it already touches | new — 2026-09-15 | — |
+| **6** | Replace braking feasibility with turn/CPA | open | all of the above |
+| **7** | Stern-sector cost term | open, scope narrowed 2026-09-19 | falls out of 6 |
 
 Items 1, 5, 9 and 11 are the same defect in four fields of the same function.
 Item 6 is what you get if you fix them at once and stop patching.
+
+**Item 1 — capsule hull.** All three branches (`v≈0`, straight, arc) now honour
+`robot_collision_shape`; the disc is verified bit-identical. Whether it fixes
+`ny_hist_366962130` is **now in doubt**: see the ⚠ in §4.1.
+
+**Item 5 — predicted obstacle positions.** Formerly "restore Guard A in a form a
+wide window cannot bypass". It is the same thing: give Stage 1 the obstacle
+velocities and it stops being a static-world rule.
+
+**Item 9 — bounded look-ahead.** Impact unmeasured; one instrumented run from
+being known.
+
+**Item 11 — setpoint, not state.** `closest_obstacle_on_curve` and the braking
+inequality are both handed the *setpoint* `(v, ω)`. Under `ramped_rollout` the
+setpoint is a target the ego approaches at `max_accel`, not its state. So the ego
+is judged on a path it is not on, at a speed it does not have. **Both halves are
+wrong, not one.** Measured in §5.4.
+
+**Item 10 — already touching.** Pre-existing, independent of item 1, and older
+than the capsule. If the hull already overlaps an obstacle at `t = 0`, the arc
+branch reports the distance to the **far side** of the obstacle, and the straight
+branch reports `inf` ("nothing ahead") while in contact. Measured in §5.5.
+
+**Item 6 — the replacement.** The synthesis of 1, 5, 9 and 11. This is `ais_v2`
+and the stern-sector guard **at once**: one piece of work under two names.
+
+**Item 7 — stern sector.** Per §3(b), it falls out of item 6. **Do not build it
+first.**
+
+- *Scope:* item 7 is the **Stage 1** defect. The braking test rewards
+  deceleration when a faster ship closes from astern.
+- It is **not** the overtaking counterpart (item 13), which is a Stage 2 cost
+  balance.
+- Measured at v21.5: both `overtaken_ego*` cases pass safely, because the ego
+  sees the target 13 u out with ~40 s of warning and steps aside.
+- **Item 7 needs the cornered state**, which only the short-horizon `predT5`
+  regime produces. Untested at v21.x.
+
+### Group B — the inputs are wrong *(must land before any measurement means anything)*
+
+| # | item | status |
+|---|---|---|
+| **2** | `on_start` for replayed tracks | not started |
+| **3** | `ais_v1.2` — per-ego `dt` | evidenced, not adopted |
+
+**Item 2.** 17 of 78 vessels in one AIS scene are phantoms; one of them costs
+`ny_hist_366962130` its goal. It used to be filed as "independent / unrelated to
+feasibility", but it is **co-decisive with item 1** in that abort.
+
+**Item 3.** Config-only and orthogonal to Group A, **but it is the fix for both
+groundings**, i.e. half the AIS suite's failures. It stalled because it roughly
+doubles run cost and changes the reference case.
+
+### Group C — failure handling *(cheap, cosmetic, do it anyway)*
+
+| # | item | status |
+|---|---|---|
+| **4** | Guard B fallback for the AIS configs | exists in `dwa_ramped`, absent from `dwa_average_weighted_side` |
+
+**Item 4.** It used to be called "the smallest possible fix". It is **not a fix**:
+it handles Guard B's *symptom*. For `ny_hist_366962130` it would keep the ego
+creeping past a ship that does not exist. Port it for **legibility**: a run that
+degrades and continues says more than an abort.
+
+### Group D — open water and the v3 route: cost function, path following, suites
+
+These were filed under Group A, but none of them touches Stage 1. They are the
+subject of §6 Track 1.
+
+| # | item | status |
+|---|---|---|
+| **12** | ~~The candidate set cannot express a wide pass~~ → `predict_time_to_goal` is 4× too long | ✅ cause found 2026-09-20 |
+| **13** | Nothing penalises indefinite speed-matching | ✅ same cause as 12, 2026-09-20 |
+| **14** | A perfectly symmetric encounter has no side preference | open — 2026-09-20 |
+| **15** | The ego has no restoring term toward the global path | **reopened 2026-09-22** — the fix is wrong |
+| **16** | The path follower's look-ahead was never rescaled | ✅ resolved and generalised 2026-09-22 |
+| **17** | A scenario silently overrides the algorithm config | open — 2026-09-20 (inert here) |
+| **18** | `catch_turning_point_dist` is not tied to `dist_localgoal` | open — 2026-09-24 |
+| **19** | Generated encounters go stale when the config or scenario changes | fixed for v3crowd 2026-09-24; not yet guarded |
+| **20** | Evading a target can put the ego aground | open — 2026-09-24 |
+
+**Item 12 — superseded.** The short menu was the *consequence* of reacting late,
+not the cause. The rescale took `predict_time_to_goal` from 1.0 to 8.0, which
+made `to_goal_cost` **70× stiffer** across the yaw window while
+`side_cost_gain` stayed at 0.6. Setting it to 2.0 restores v20.7.8-2's clearance
+**exactly**. See §5.1 (cause) and §5.2 (original evidence).
+
+**Item 13 — same cause as item 12.** On `overtake_ego` the ego closes to 3.07 u,
+locks to the target's speed (**exactly 0.200**) and station-keeps for 173 s. That
+is 263.5 s against a 153.3 s baseline, **72% longer**, and it never passes. The
+note "unmoved by barrier gain or shape" was right: the barrier was never the
+lever. At `predict_time_to_goal = 2.0` the ego **overtakes**, in 176.6 s. Not a
+separate defect.
+
+**Item 14 — no side preference.** On an exactly collinear head-on the planner
+chatters ±1 yaw cell: **149 sign flips in 199 steps, net turn exactly zero**,
+until float noise breaks the tie.
+
+- **Not a cause of the grazes** (§5.1), but it makes the missing COLREGs Rule 14
+  side rule load-bearing.
+- Masked until v21.3, when `pin_path_endpoints` removed the 0.707 u Theta\* snap
+  that had been breaking the tie by accident.
+- Also shows on open water (item 20). Measured in §5.3.
+
+**Item 15 — no restoring term.** The pure-pursuit follower intersects a circle of
+radius `dist_localgoal` with the path. If the ego strays further, there is no
+intersection and the run **aborts** (`No intersection points found…`). So
+`dist_localgoal = 7.0` silently caps evasion at 7 u.
+
+- Measured on the multi-leg `v3crowd` route at v21.10: **3 of 3 abort** this way,
+  with clearances of 0.65–0.88. The avoidance completed; the *path tracking*
+  gave out.
+- Pre-existing: `v3crowd_suite/README.md` documents the identical abort and names
+  the cause. **Nothing in the cost function pulls the ego back toward the global
+  path, so lateral error has no restoring term.**
+- ⚠ **`local_goal_recovery: "rejoin"` is NOT the fix and must stay off.**
+  - It recovers `v3crowd5/6` (goal reached, clearances unchanged at 0.653/0.805,
+    since it only acts after the abort point).
+  - But it **sails `v3crowd7` into land**: `_rejoin_point` returns a point on the
+    leg without checking that the straight line to it is navigable, which only a
+    map with static obstacles can expose.
+  - It also costs a 2× detour: 313 s and 269 s against a ~150 s transit.
+- **The real fix** is a cross-track term in the cost function, not a patch in
+  the follower.
+
+**Item 16 — look-ahead never rescaled.** The goal rollout's *length* is what
+makes `to_goal_cost` anticipatory. Shorten it and the loop loses its lead while
+keeping a 20 s actuation lag, and the cross-track error diverges (growth
+1.3–2.1× per half-cycle on every manoeuvring case). The parameter has **three
+conflicting roles**; see §5.1. Fixing item 12 must not go through it.
+
+**Item 17 — scenario overrides config.** `map_creation.py:306` lets a scenario's
+`enable_map_boundary_obstacles` win over the algorithm config's. Every
+`owenc215_*` run has had 396 boundary obstacles active while `v21.5`/`v21.6`
+declared `false`.
+
+- **Inert here:** the measured minimum distance to any boundary is 14.5 u against
+  a `max_obstacle_cost_dist` of 8.0, and runs with boundaries on and off are
+  bit-identical.
+- But the precedence is undocumented, and the same mechanism applies to every
+  shared key.
+
+**Item 18 — `C` and `L` drift apart.** `Config.__init__` sets
+`catch_turning_point_dist = self.dist_localgoal`, so the original design keeps
+them equal. But that runs *before* the JSON overrides, so any config that raises
+`dist_localgoal` silently keeps the switch radius at 7.0. v21.7 (`L` = 20), the
+`dlg12`/`dlg18` variants and **v21.11 (`L` = 9)** all carry the mismatch; nobody
+chose it.
+
+- *Effect, measured.* While the ego is between `C` and `L` from a vertex, the
+  look-ahead circle has already passed the corner, so the local goal **parks on
+  the vertex for `(L − C)/v`** and then **jumps** onto the next leg.
+
+  | config | park time (predicted = measured) | jump onto next leg |
+  |---|---|---|
+  | v21.11 | 4.0 s | 2.7–4.9 u |
+  | `dlg12` | 10.0 s | — |
+  | `dlg18` | 22.0 s | — |
+  | v21.10 (`C = L`) | none — moves continuously | ≤ 0.33 u per step |
+
+- It did **not** cause the `bal-dlg10` corner grounding: re-run with
+  `C = L = 10` the local goal never parks, yet the ego grounds on the same cell at
+  the same moment, never more than 0.05 u from the original path.
+- Whether it matters for v21.11 on the verified suites is untested.
+- **Fix:** set the two explicitly equal in every config that moves
+  `dist_localgoal` (test configs `v21.11/ctp9.json` and
+  `v21.10/bal-dlg10-ctp10.json` exist), or derive `C` at override time when it is
+  left unset.
+
+**Item 19 — stale encounters.** `encounter_suite.py` aims each target
+(`planned_cpa` 0.0) at *one* obstacle-free reference run. When the config or the
+scenario changes, the targets no longer aim at anything.
+
+- *What happened.* The `v3crowd*215` suites were aimed at v21.10's run from an
+  undeclared heading. `start_yaw` was then added to the files, and with the ego
+  doing nothing only **2 of 18** targets remained collision courses (the
+  overtakes missed by ~10 u). Every v3crowd "3/3" measured afterwards was traffic
+  passing clear.
+- *Third occurrence.* The open-water suite once became a free pass, and the
+  combined suites went stale once when v21.10 out-accelerated v20.7.8-2.
+- *Two ways to aim, both imperfect:*
+
+  | aimed at | do-nothing hits vs v21.11 | drawback |
+  |---|---|---|
+  | the planned route (`v3crowd?_path`) | 5 / 18 | ego reaches each meeting 4–7 s late while it turns onto the leg |
+  | the tested config's own obstacle-free run (`v3crowd?_v2111`) | **18 / 18** | ties the suite to that config |
+
+- **Remaining:** build the do-nothing check into the generator (closest approach
+  of each target's track to a given obstacle-free log; exact, since targets do
+  not react) and run it before any suite is used. The open-water `owenc215_*`
+  suite passes it for both v21.10 and v21.11 (all 10 threats overlap).
+
+**Item 20 — evasion onto land.** v21.11 on `v3crowd6_v2111`:
+
+1. The undeclared-heading swing leaves the ego east of the route, on the coast
+   side.
+2. The head-on T3 comes up the route.
+3. Evading pushes the ego further east onto the land spit at (53, 59). It grounds
+   at t = 80.3 s, 0.2 s after clearing T3 by 1.06.
+
+Two existing gaps combine:
+
+- **No side preference** (item 14). A starboard pass would have gone west, away
+  from the land.
+- **A land term too weak** to hold the ego off the coast against a target's push
+  (`obstacle_cost_gain` 0.05, reaching 8 u).
+
+The same cell grounded `bal-dlg10` and `rejoin`; the Theta\* route passes about
+2.5 u from it. Item 14 also shows on open water: in `ow_sequence215` v21.11 turns
+the way a starboard-crossing target is heading and has to circle back (deviation
+5.15 u against v21.10's 2.30).
+
+### Closed
+
+| # | item | outcome |
+|---|---|---|
+| **8** | `v20.7.8-2 predT5 + least_bad`, narrow window | **✅ 2026-09-12.** The abort **was a save**. See §7.3. |
+
+Items 12, 13 and 16 are also resolved; they stay in Group D because §5.1 is
+still the live reference for them.
+
+### The renaming that dissolved most of the mess
+
+- "no admissible" named **two different guards** (§2).
+- `ais_v2` and "the stern-sector guard" were **the same work** under two names.
+- **Item 1 belongs *inside* Group A**, not as a chore preceding it: it is a
+  Stage 1 defect, identical in kind to item 5.
+- **Item 4 belongs *outside* Group A**: it touches neither stage.
+- **Items 12–20 moved from Group A to Group D** (2026-09-29): none touches
+  Stage 1.
+- **Item numbers are unchanged** from earlier drafts, so older notes still
+  resolve. Only the *grouping* is new; items 9–20 are the additions.
 
 ### 5.1 Items 12 and 13, solved: `predict_time_to_goal` was 4× too long
 
@@ -351,7 +585,7 @@ same state, same ship:
 
 **70×.** The barrier's own spread is ~0.049, so the competition *inverts*: at
 1.0 the barrier outweighs the goal term 12×, at 8.0 the goal term outweighs the
-barrier 5.6×. Nothing else in the rescale matters — `time_decay_lambda` and
+barrier 5.6×. Nothing else in the rescale matters: `time_decay_lambda` and
 `predict_time_obstacle` move the chosen clearance by **zero**.
 
 Closed loop on `owenc215_head_on` (clearance is surface-to-surface, so it is
@@ -365,115 +599,125 @@ comparable across hulls; centre distance is not):
 | v21.5 | 1.0 | ❌ item 15 | 0.880 | 1.663 | 6.963 |
 | v21.5 `side_cost_gain=2.11` | 8.0 | ✅ | **0.000** | 0.752 | 1.612 |
 
-On the offset geometry `T_goal = 2.0` reproduces the baseline **exactly** —
+On the offset geometry `T_goal = 2.0` reproduces the baseline **exactly**:
 `0.482` against v20.7.8-2's `0.482`, the centre distances differing only by hull
 (capsule 1.183, disc 1.632). Item 13 falls out at the same value: the ego stops
 station-keeping and **overtakes**, 263.4 s → **176.6 s**, `max |dev|` 0.003 →
 5.900.
 
-**`T_goal` is not monotone** and 1.0 is not the answer. The old value cannot be
-copied back because the ship changed: `max_accel` fell 5.2×, so at `T_goal = 1.0`
-the *speed* term loses its authority too (spread 0.0074, and free-space `argmin
-v` collapses to 0.12). `predict_time_to_goal` sets the stiffness of the heading
-term **and** the authority of the speed term from one number, and the rescale
-changed `max_yaw_rate` and `max_accel` by different factors (3.7× and 5.2×), so
-no single value restores both. Splitting them is the principled fix.
+**`T_goal` is not monotone**, and 1.0 is not the answer. The old value cannot be
+copied back because the ship changed: `max_accel` fell 5.2×, so at
+`T_goal = 1.0` the *speed* term loses its authority too (spread 0.0074, and
+free-space `argmin v` collapses to 0.12). `predict_time_to_goal` sets the
+stiffness of the heading term **and** the authority of the speed term from one
+number. The rescale changed `max_yaw_rate` and `max_accel` by different factors
+(3.7× and 5.2×), so no single value restores both. Splitting them is the
+principled fix.
 
-> ### ⚠ `T_goal = 2.0` is NOT the fix — it buys the clearance with a control instability
->
-> **Found 2026-09-20 by watching the videos, after the table above said it worked.**
-> At `T_goal = 2.0` the cross-track error does not settle after the encounter: it
-> oscillates with **growing** amplitude, and the heading error to the local goal
-> reaches **+136.9°** — the ego ends up pointing nearly backwards. Peak |xte|
-> per half-cycle, all 11 `owenc215_*` cases:
->
-> | case | peaks | growth |
-> |---|---|---|
-> | `head_on` *(reached goal)* | 1.68 → 1.42 → 2.12 → **3.49** | 1.49, 1.65 |
-> | `overtake_ego` *(reached goal)* | 1.86 → 1.71 → 2.99 → **5.90** | 1.74, 1.98 |
-> | `cross_port_045` *(reached goal)* | 1.92 → 1.59 → 2.76 → **5.35** | 1.73, 1.94 |
-> | `cross_port_135` *(failed)* | 4.20 → **6.47** | 1.54 |
-> | `overtaken_ego_fast` *(failed)* | 3.28 → **6.79** | 2.07 |
->
-> At `T_goal = 8.0` the same cases show **one peak and no oscillation**. So the
-> "6 of 11 reached the goal" result was an artefact: all six were diverging too
-> and merely finished before the amplitude passed `dist_localgoal`. The five
-> "failures" were only the fastest divergers. **Reaching the goal is not a pass
-> criterion on its own; the oscillation ratio must be checked with it.**
->
-> **Why a shorter horizon destabilises.** `calc_to_goal_cost` scores the heading
-> at the **end** of the goal rollout, i.e. the heading the ego *will have* after
-> turning for `T_goal` seconds. That is **phase lead**. Shortening `T_goal`
-> removes the anticipation while the actuation lag stays long (`ω` ramps at
-> `max_delta_yaw_rate`, 20 s to full helm). Lag without lead is a divergent loop.
->
-> So `predict_time_to_goal` has **three** roles, and they conflict:
->
-> | role | wants |
-> |---|---|
-> | stiffness of the heading term vs the barrier | **small** |
-> | authority of `speed_cost` (`max_accel · T`) | large |
-> | **phase lead of the path-following loop** | large |
->
-> No single value satisfies all three, which is why both 8.0 (grazes) and 2.0
-> (diverges) are wrong.
->
-> ### ✅ Resolved: `dist_localgoal` was the mis-scaled parameter, not `T_goal`
->
-> **The framing above blames the wrong parameter.** `predict_time_to_goal` was
-> never the loop's proper source of lead — it was *compensating* for a follower
-> whose look-ahead had not been rescaled. The controlling ratio is
->
-> ```
->     T_act = max(max_speed/max_accel, max_yaw_rate/max_delta_yaw_rate)
->     preview = dist_localgoal / max_speed        (needs preview > T_act)
-> ```
->
-> | | `T_act` | `dist_localgoal` needed | actual | margin |
-> |---|---|---|---|---|
-> | v20.7.8-2 | 2.50 s | 1.2 u | 7.0 u | **6×** |
-> | v21.x | **20.00 s** | **10.0 u** | 7.0 u | **0.7×** |
->
-> The rescale changed `max_delta_yaw_rate` by **73.7×** (full helm 1.00 s →
-> 20.00 s) and left `dist_localgoal` at 7.0. v20.7.8-2 had six times the margin
-> it needed, so the parameter never had to be right and nobody ever derived it.
-> v21.x is *below* the threshold: the ship takes longer to change heading than
-> its follower looks ahead. `T_goal = 8.0` was stable only because the goal
-> rollout contributed ~8 s of extra lead (14 + 8 = 22 s > 20 s) — **stable by
-> accident, and it paid for it with the graze.**
->
-> Confirmed by holding everything else fixed at `T_goal = 2.0` and varying only
-> `dist_localgoal`: **7.0 → ×1.49 DIVERGING, 15.0 → ×0.24 settles, 20.0 → ×0.37
-> settles.** This is the same `T_act` rule `PREDICTION_HORIZON.md` established
-> for `predict_time_obstacle`, never applied to the path follower.
->
-> **v21.7 = v21.5 + `dist_localgoal: 20.0` + `predict_time_to_goal: 2.0`.**
-> All 11 `owenc215_*` cases reach the goal and settle, no grazes, minimum
-> clearance **0.463** (`head_on`, against v20.7.8-2's 0.482). Item 13 resolves
-> with it: `overtake_ego` goes from 263.4 s of station-keeping to **154.0 s**
-> against a 153.3 s obstacle-free baseline — a 0.7 s delay. `null_safe_pass`
-> still deviates exactly 0.000. Item 15 dissolves: a 20 u corridor does not cap
-> a 3 u manoeuvre.
->
-> `to_goal_cost_gain = 0.075` at `T_goal = 8.0` also works (clearance 0.404,
-> ×0.11) but is a **compensator** — it leaves the loop at lag/preview = 1.43 with
-> the gain turned down, which a different geometry could re-excite. Recorded as
-> the fallback, not the fix.
->
+#### ⚠ `T_goal = 2.0` is NOT the fix: it buys the clearance with a control instability
+
+**Found 2026-09-20 by watching the videos, after the table above said it
+worked.** At `T_goal = 2.0` the cross-track error does not settle after the
+encounter: it oscillates with **growing** amplitude, and the heading error to the
+local goal reaches **+136.9°**, so the ego ends up pointing nearly backwards.
+Peak |xte| per half-cycle, all 11 `owenc215_*` cases:
+
+| case | peaks | growth |
+|---|---|---|
+| `head_on` *(reached goal)* | 1.68 → 1.42 → 2.12 → **3.49** | 1.49, 1.65 |
+| `overtake_ego` *(reached goal)* | 1.86 → 1.71 → 2.99 → **5.90** | 1.74, 1.98 |
+| `cross_port_045` *(reached goal)* | 1.92 → 1.59 → 2.76 → **5.35** | 1.73, 1.94 |
+| `cross_port_135` *(failed)* | 4.20 → **6.47** | 1.54 |
+| `overtaken_ego_fast` *(failed)* | 3.28 → **6.79** | 2.07 |
+
+At `T_goal = 8.0` the same cases show **one peak and no oscillation**. So the
+"6 of 11 reached the goal" result was an artefact: all six were diverging too
+and merely finished before the amplitude passed `dist_localgoal`. The five
+"failures" were only the fastest divergers. **Reaching the goal is not a pass
+criterion on its own; the oscillation ratio must be checked with it.**
+
+**Why a shorter horizon destabilises.** `calc_to_goal_cost` scores the heading
+at the **end** of the goal rollout, i.e. the heading the ego *will have* after
+turning for `T_goal` seconds. That is **phase lead**. Shortening `T_goal`
+removes the anticipation while the actuation lag stays long (`ω` ramps at
+`max_delta_yaw_rate`, 20 s to full helm). Lag without lead is a divergent loop.
+
+So `predict_time_to_goal` has **three** roles, and they conflict:
+
+| role | wants |
+|---|---|
+| stiffness of the heading term vs the barrier | **small** |
+| authority of `speed_cost` (`max_accel · T`) | large |
+| **phase lead of the path-following loop** | large |
+
+No single value satisfies all three, which is why both 8.0 (grazes) and 2.0
+(diverges) are wrong.
+
+#### ✅ Resolved: `dist_localgoal` was the mis-scaled parameter, not `T_goal`
+
+**The framing above blames the wrong parameter.** `predict_time_to_goal` was
+never the loop's proper source of lead; it was *compensating* for a follower
+whose look-ahead had not been rescaled. The controlling ratio is
+
+```
+    T_act   = max(max_speed/max_accel, max_yaw_rate/max_delta_yaw_rate)
+    preview = dist_localgoal / max_speed        (needs preview > T_act)
+```
+
+| | `T_act` | `dist_localgoal` needed | actual | margin |
+|---|---|---|---|---|
+| v20.7.8-2 | 2.50 s | 1.2 u | 7.0 u | **6×** |
+| v21.x | **20.00 s** | **10.0 u** | 7.0 u | **0.7×** |
+
+The rescale changed `max_delta_yaw_rate` by **73.7×** (full helm 1.00 s →
+20.00 s) and left `dist_localgoal` at 7.0. v20.7.8-2 had six times the margin
+it needed, so the parameter never had to be right and nobody ever derived it.
+v21.x is *below* the threshold: the ship takes longer to change heading than
+its follower looks ahead. `T_goal = 8.0` was stable only because the goal
+rollout contributed ~8 s of extra lead (14 + 8 = 22 s > 20 s). It was **stable
+by accident, and it paid for it with the graze.**
+
+Confirmed by holding everything else fixed at `T_goal = 2.0` and varying only
+`dist_localgoal`:
+
+| `dist_localgoal` | growth per half-cycle | verdict |
+|---|---|---|
+| 7.0 | ×1.49 | **diverging** |
+| 15.0 | ×0.24 | settles |
+| 20.0 | ×0.37 | settles |
+
+This is the same `T_act` rule `PREDICTION_HORIZON.md` established for
+`predict_time_obstacle`, never applied to the path follower.
+
+**v21.7 = v21.5 + `dist_localgoal: 20.0` + `predict_time_to_goal: 2.0`.**
+
+- All 11 `owenc215_*` cases reach the goal and settle, with no grazes; minimum
+  clearance **0.463** (`head_on`, against v20.7.8-2's 0.482).
+- Item 13 resolves with it: `overtake_ego` goes from 263.4 s of station-keeping
+  to **154.0 s** against a 153.3 s obstacle-free baseline, a 0.7 s delay.
+- `null_safe_pass` still deviates exactly 0.000.
+- Item 15 dissolves: a 20 u corridor does not cap a 3 u manoeuvre.
+
+`to_goal_cost_gain = 0.075` at `T_goal = 8.0` also works (clearance 0.404,
+×0.11) but is a **compensator**: it leaves the loop at lag/preview = 1.43 with
+the gain turned down, which a different geometry could re-excite. Recorded as
+the fallback, not the fix.
+
 > ⚠ **Untested where it matters most.** With `pin_path_endpoints` the open-water
 > path is a *single straight leg*, so a 20 u look-ahead has no corners to cut.
 > The AIS scenarios have real turning points, and `catch_turning_point_dist` is
-> still 7.0, now inconsistent with `dist_localgoal`. **Do not carry
+> still 7.0, now inconsistent with `dist_localgoal` (item 18). **Do not carry
 > `dist_localgoal = 20` to the AIS track without a multi-leg test.**
 
-**Where the v21.x derivation went wrong.** It bounded `predict_time_to_goal`
-from above by *overshoot* (`v·T > dist_localgoal` saturates the bearing) and
-concluded a "safe window [4, 12]", then took 8.0. The criterion was "does it cap
-the speed?" — the competition against the barrier was never in it. The working
-value, 2.0, lies **below** that window, and 4.0 — its lower edge — is the worst
-value tested.
+#### Where the v21.x derivation went wrong
 
-### Item 12's original evidence, and what it actually showed
+It bounded `predict_time_to_goal` from above by *overshoot*
+(`v·T > dist_localgoal` saturates the bearing), concluded a "safe window
+[4, 12]", then took 8.0. The criterion was "does it cap the speed?"; the
+competition against the barrier was never in it. The working value, 2.0, lies
+**below** that window, and 4.0 (its lower edge) is the worst value tested.
+
+### 5.2 Item 12's original evidence, and what it actually showed
 
 At the `head_on` decision 12 s before CPA, evaluating **every** yaw candidate at
 full speed:
@@ -486,17 +730,18 @@ full speed:
 | −0.00873 | −0.433 | 0.06359 | **COLLIDES** |
 | 0.00000 | −0.680 | 0.00512 | **COLLIDES** |
 
-**The best clearance any candidate can produce is 0.578 u.
-`max_side_weight_dist` is 2.0.** The ego is not declining to pass clear —
-passing clear is not on the menu. And the chosen candidate sits near the *top* of
-what is available: the planner is doing the best it can with the set it is given.
+**The best clearance any candidate can produce is 0.578 u, and
+`max_side_weight_dist` is 2.0.** The ego is not declining to pass clear:
+passing clear is not on the menu. And the chosen candidate sits near the *top*
+of what is available. The planner is doing the best it can with the set it is
+given.
 
 > ⚠ **This measurement is correct and its conclusion was not.** It was taken
 > **12 s before CPA**, by which time the menu really is that short. Evaluated
 > earlier, the same window is rich: at a centre gap of 20 u the widest available
 > candidate clears **4.742 u**, and at 30 u it clears **9.999 u**. The menu was
 > ample and the planner spent it standing still. *The short menu is the
-> consequence of reacting late, not the cause of it* — §5.1 has the cause. The
+> consequence of reacting late, not the cause of it*; §5.1 has the cause. The
 > general lesson: **measuring at the moment of failure finds the constraint that
 > binds last, which is rarely the one that can be fixed.**
 
@@ -504,8 +749,8 @@ what is available: the planner is doing the best it can with the set it is given
 one command for 78.76 s. At the window edge the ego curls into a circle of
 radius `v/ω = 5.2 u` and comes back, so the maximum lateral offset any *single*
 command can place at the CPA is ~0.58 u. "Turn now, straighten later" is not
-representable. This is v20.7.9's original defect — a manoeuvre the window cannot
-express — moved from the speed axis to the yaw axis.
+representable. This is v20.7.9's original defect (a manoeuvre the window cannot
+express) moved from the speed axis to the yaw axis.
 
 **Three fixes this falsified**, all aimed at the cost function rather than the
 candidate set:
@@ -518,13 +763,17 @@ candidate set:
 
 **All three verdicts stand, re-measured 2026-09-20.** `side_cost_gain = 2.11`
 closed-loop gives clearance **0.000** and min centre **0.752**, against the
-baseline's 0.000 / 0.751 — the gain really does nothing, and a single-step
-decomposition predicting 1.218 at a 20 u gap really is wrong. The barrier
-pathologies are real and worth recording — `A·exp(−λd²)` has **zero gradient at
-`d = 0`**, peaks at `d = 0.577`, and is **non-monotonic below zero**
-(`B(−0.5) = 1.37 < B(0) = 2.00`, so deeper overlap would score cheaper, reachable
-only because `is_collision` forces `inf` first) — but they are not what causes
-the grazes.
+baseline's 0.000 / 0.751. The gain really does nothing, and a single-step
+decomposition predicting 1.218 at a 20 u gap really is wrong.
+
+The barrier pathologies are real and worth recording, but they are not what
+causes the grazes. `A·exp(−λd²)`:
+
+- has **zero gradient at `d = 0`**;
+- peaks at `d = 0.577`;
+- is **non-monotonic below zero**: `B(−0.5) = 1.37 < B(0) = 2.00`, so deeper
+  overlap would score cheaper. This is reachable only because `is_collision`
+  forces `inf` first.
 
 What was wrong was the *inference drawn from* the three falsifications: that
 since no cost-function change helped, the candidate set must be at fault. Every
@@ -539,13 +788,13 @@ longer horizon. The reasoning is sound but the effect is **nil**: holding
 each move the chosen clearance by **0.000**. The mean-dilution term is real and
 irrelevant at this scale.
 
-### Item 14, measured — symmetry changes the manoeuvre, not the outcome
+### 5.3 Item 14, measured: symmetry changes the manoeuvre, not the outcome
 
 The cost function is mirror-symmetric in port/starboard (the open-water suite
 confirms it empirically: mirrored pairs agree to 2 d.p.). Until v21.3 every
-"collinear" case was in fact offset — Theta\* snapped the ego's start by
-**0.707 u** — and that accident was the only thing breaking the tie.
-`pin_path_endpoints` removed it and the suite regeneration put the target on
+"collinear" case was in fact offset: Theta\* snapped the ego's start by
+**0.707 u**, and that accident was the only thing breaking the tie.
+`pin_path_endpoints` removed it, and the suite regeneration put the target on
 `x = 50.0` exactly, so the encounter became genuinely symmetric for the first
 time. On the axis the planner chatters:
 
@@ -571,15 +820,15 @@ marginally worse**. The planner converges on the same ~0.72 u equilibrium howeve
 early it starts; reacting sooner only buys a smaller deviation. Symmetry sets the
 manoeuvre's *shape*, not its endpoint.
 
-So the exactly-symmetric suite is **better, not broken** — it stopped an
+So the exactly-symmetric suite is **better, not broken**: it stopped an
 accidental offset from masking a missing COLREGs Rule 14 side rule. Do not
 "fix" it by re-introducing an offset.
 
-### Item 11, measured
+### 5.4 Item 11, measured
 
 `closest_obstacle_on_curve(x, ob, radii, v, y, config)` takes the **setpoint**
-`v`, and `v` is what picks both the branch and the arc radius. With the ego at
-`v = 0.470`, `ω = −0.050` — genuinely on an arc of `R = 9.40 u`:
+`v`, and `v` picks both the branch and the arc radius. With the ego at
+`v = 0.470`, `ω = −0.050`, genuinely on an arc of `R = 9.40 u`:
 
 | setpoint `v` | branch taken | path scanned | dist returned |
 |---|---|---|---|
@@ -590,7 +839,7 @@ accidental offset from masking a missing COLREGs Rule 14 side rule. Do not
 | 0.500 | arc | `R = 10.00 u` | inf |
 
 Across a single window the candidates are scored against arcs from 1.0 to
-10.0 u — **and the ego is on none of them.** Under `ramped_rollout` its real
+10.0 u, **and the ego is on none of them.** Under `ramped_rollout` its real
 path is a spiral: `v` ramps toward the setpoint at `max_accel` while `ω` ramps
 at `max_delta_yaw_rate`, so the radius `v/ω` changes throughout. The `v = 0`
 candidate is the extreme case: it is scored along a straight ray the ship is
@@ -603,9 +852,9 @@ mechanism behind §7.1's "`v = 0` is always admissible", stated as a property of
 the candidate rather than of the window.
 
 **Both halves are still setpoint-based.** A correction was designed and
-validated numerically on 2026-09-17 — replace `v` with the speed actually
-reached after one `dt`, `v₁ = v₀ + clamp(v − v₀, ±a·dt)` — and shown to restore
-Guard A at the cornered state while remaining a no-op under the narrow window
+validated numerically on 2026-09-17: replace `v` with the speed actually
+reached after one `dt`, `v₁ = v₀ + clamp(v − v₀, ±a·dt)`. It restores Guard A at
+the cornered state and stays a no-op under the narrow window
 (`max |classic − real| = 0.0010 u` across the whole v20.7.8-2 window). **It was
 never implemented.** Fixing only the inequality would leave the path wrong, so
 the two belong together.
@@ -614,59 +863,30 @@ the two belong together.
 frozen. This is about the *ego's* own path and speed being wrong. Two different
 vessels, two different errors, same function.
 
-### Item 10, measured
+### 5.5 Item 10, measured
 
-Found while validating item 1 against a brute-force hull sweep. Ego 215.1 × 36.83 m,
-one obstacle (r = 20 m) centred 30.4 m away — inside the hull on any reading.
-**The correct answer is 0.0 m in every row:**
+Found while validating item 1 against a brute-force hull sweep. Ego
+215.1 × 36.83 m, one obstacle (r = 20 m) centred 30.4 m away, inside the hull on
+any reading. **The correct answer is 0.0 m in every row:**
 
 | branch | hull | returned |
 |---|---|---|
 | arc (`R` = 164 m) | disc, pre-item-1 | **165.65 m** |
-| arc | disc, post-item-1 | 165.65 m *(unchanged — this is not a regression)* |
+| arc | disc, post-item-1 | 165.65 m *(unchanged; not a regression)* |
 | arc | capsule | 0.45 m |
 | straight | disc, pre-item-1 | **`inf`** |
 | straight | capsule | 0.00 m |
 
-The cause is that both branches solve for where the path *enters* the obstacle's
-inflated circle, measuring forward from the current heading. Starting already
-inside, the forward entry is most of a lap away. Item 1's capsule improves the
-numbers by a lot but only the straight branch is exactly right.
+Both branches solve for where the path *enters* the obstacle's inflated circle,
+measuring forward from the current heading. Starting already inside, the forward
+entry is most of a lap away. Item 1's capsule improves the numbers a lot, but
+only the straight branch is exactly right.
 
 **Why this has stayed invisible:** `dist ≈ 0` makes Stage 1 reject every
-candidate with `v > 0`, so a correct reading here produces Guard A — the very
+candidate with `v > 0`, so a correct reading here produces Guard A, the very
 "cornered" report §7.3 shows is a *save*. A 165 m reading instead says the way
 ahead is clear. This interacts with items 5 and 9 and should be fixed as part of
 item 6 rather than patched alone.
-
-### Group B — the inputs are wrong *(must land before any measurement means anything)*
-
-| # | item | status | what it is |
-|---|---|---|---|
-| **2** | **`on_start` for replayed tracks** | not started | 17 of 78 vessels are phantoms in one AIS scene; one of them costs `ny_hist_366962130` its goal. Formerly filed "independent / unrelated to feasibility" — it is **co-decisive with item 1** in that abort. |
-| **3** | **`ais_v1.2` — per-ego `dt`** | evidenced, not adopted | Config-only, orthogonal to Group A — **but it is the fix for both groundings**, i.e. half the AIS suite's failures. Roughly doubles run cost and changes the reference case, which is why it stalled. |
-
-### Group C — failure handling *(cheap, cosmetic, do it anyway)*
-
-| # | item | status | what it is |
-|---|---|---|---|
-| **4** | **Guard B fallback for the AIS configs** | exists in `dwa_ramped`, absent from `dwa_average_weighted_side` | Formerly called "the smallest possible fix". It is **not a fix** — it handles Guard B's *symptom*. For `ny_hist_366962130` it would keep the ego creeping past a ship that does not exist. Port it for **legibility**: a degraded-but-continuing run says more than an abort. |
-
-### Closed
-
-| # | item | outcome |
-|---|---|---|
-| **8** | `v20.7.8-2 predT5 + least_bad`, narrow window | **✅ 2026-09-12.** The abort **was a save**. See §7.3. |
-
-### The renaming that dissolved most of the mess
-
-- "no admissible" named **two different guards** (§2).
-- `ais_v2` and "the stern-sector guard" were **the same work** under two names.
-- **Item 1 belongs *inside* Group A**, not as a chore preceding it — it is a
-  Stage 1 defect, identical in kind to item 5.
-- **Item 4 belongs *outside* Group A** — it touches neither stage.
-- **Item numbers are unchanged** from earlier drafts, so older notes still
-  resolve. Only the *grouping* is new; items 9 and 10 are the additions.
 
 ---
 
@@ -703,7 +923,7 @@ is left is not oscillation; it is **side choice, land, and suite hygiene**.
    stronger land term (`obstacle_cost_gain` 0.05 is an order below what it
    takes to hold the ego off the coast against a target). Re-check the
    `ow_sequence215` regression under the side rule. **Do not** "fix" symmetry
-   with a scenario offset (§5.1).
+   with a scenario offset (§5.3).
 4. **Item 15 — a cross-track term toward the route.** Would also shrink the
    undeclared-heading swing that set up the v3crowd6 grounding. `rejoin` stays
    off.
