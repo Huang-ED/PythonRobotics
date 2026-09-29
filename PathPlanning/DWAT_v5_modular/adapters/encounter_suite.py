@@ -42,7 +42,14 @@ Usage
     python PathPlanning/DWAT_v5_modular/adapters/encounter_suite.py \
         --reference-log runs/v20.7.8-2/baseline/openwater_baseline__<ts>/log_details.json \
         --base-scenario PathPlanning/DWAT_v5_modular/configs/scenarios/openwater_baseline.json \
-        --suite openwater
+        --suite openwater \
+        --check-log runs/v21.11/baseline/openwater_baseline__<ts>/log_details.json
+
+Every generated target is replayed against a do-nothing ego -- the reference
+run, plus each `--check-log` -- and the output says which intended collision
+courses would actually hit it. Aim at one config and test another, and targets
+can miss by metres (OPEN_PROBLEMS.md item 19); `--strict` refuses to write a
+suite with any miss. See do_nothing_check.py.
 """
 
 import argparse
@@ -52,6 +59,11 @@ import os
 from pathlib import Path
 
 import numpy as np
+
+try:
+    from . import do_nothing_check as dnc
+except ImportError:                     # run as a script
+    import do_nothing_check as dnc
 
 
 def _repo_root() -> Path:
@@ -524,8 +536,46 @@ def _apply_t_meet(args, cases, suite_name):
     return out
 
 
+def _load_checks(args, ref_path: Path, root: Path):
+    """[(label, traj, dt, cfg)]: the reference run, then every --check-log."""
+    checks = []
+    for p in [ref_path] + [Path(c) for c in args.check_log]:
+        p = p if p.is_absolute() else root / p
+        traj, dt, cfg = dnc.load_obstacle_free_log(p)
+        checks.append((_display(p, root), traj, dt, cfg))
+    return checks
+
+
+def _do_nothing(checks, names, obstacles, diags) -> int:
+    """Run the do-nothing check for every log; record it in the manifests.
+
+    Returns the number of (log, target) pairs meant to collide that miss.
+    """
+    expected = [dnc.expected_threat(d) for d in diags]
+    misses = 0
+    for i, (label, traj, dt, cfg) in enumerate(checks):
+        results = dnc.check_targets(obstacles, traj, dt, cfg)
+        misses += dnc.report(names, results, expected,
+                             label + ("  (reference)" if i == 0 else ""))
+        for d, r in zip(diags, results):
+            d.setdefault("do_nothing", []).append(dict(log=label, **r))
+    return misses
+
+
+def _refuse(args, misses: int) -> bool:
+    if not misses:
+        return False
+    print(f"\n{misses} intended collision course(s) miss a do-nothing ego: those "
+          "targets test traffic passing clear, not avoidance. Retime (--t-meet), "
+          "re-speed (--speed), or re-aim at the tested config's own obstacle-free run.")
+    if args.strict:
+        print("--strict: nothing written.")
+        return True
+    return False
+
+
 def _emit_combined(args, base, base_path, traj, dt, sim_duration, static_obs,
-                   out_dir, root, prefix) -> int:
+                   out_dir, root, prefix, checks) -> int:
     """Write a single scenario containing every target of a combined set."""
     cases = _apply_t_meet(args, COMBINED_SUITES[args.combine], args.combine)
     obstacles, diags = [], []
@@ -550,6 +600,10 @@ def _emit_combined(args, base, base_path, traj, dt, sim_duration, static_obs,
         diag["spawn_in_map"] = bool(0 <= sx <= 100 and 0 <= sy <= 100)
         obstacles.append(obstacle)
         diags.append(diag)
+
+    misses = _do_nothing(checks, [d["name"] for d in diags], obstacles, diags)
+    if _refuse(args, misses):
+        return 1
 
     scenario = dict(base)
     scenario["dynamic_obstacles"] = obstacles
@@ -644,6 +698,13 @@ def main() -> int:
     parser.add_argument("--speed", action="append", default=[], metavar="NAME=U_PER_S",
                         help="override a case's target speed, e.g. --speed T5_overtake=0.45. "
                              "Repeatable. For when no --t-meet keeps a target's track in water.")
+    parser.add_argument("--check-log", action="append", default=[], metavar="LOG",
+                        help="obstacle-free log_details.json of a config the suite will be "
+                             "run with; every target is replayed against it as a do-nothing "
+                             "ego. Repeatable. The reference log is always checked.")
+    parser.add_argument("--strict", action="store_true",
+                        help="write nothing if any intended collision course misses a "
+                             "do-nothing ego in any checked log")
     parser.add_argument("--no-map-check", action="store_true",
                         help="skip the check that each target's track stays in water")
     args = parser.parse_args()
@@ -670,6 +731,7 @@ def main() -> int:
     _group = out_dir.name
 
     traj, dt = load_reference(ref_path)
+    checks = _load_checks(args, ref_path, root)
     sim_duration = (traj.shape[0] - 1) * dt
     with base_path.open("r", encoding="utf-8") as f:
         base = json.load(f)
@@ -690,9 +752,10 @@ def main() -> int:
 
     if args.combine:
         return _emit_combined(args, base, base_path, traj, dt, sim_duration,
-                              static_obs, out_dir, root, prefix)
+                              static_obs, out_dir, root, prefix, checks)
 
     _cases = _apply_t_meet(args, SUITES[args.suite], args.suite)
+    pending = []
 
     for case in _cases:
         name = case["name"]
@@ -712,9 +775,7 @@ def main() -> int:
         scenario["dynamic_obstacles"] = [obstacle]
         scenario["group"] = _group
         out_path = out_dir / f"{prefix}_{name}.json"
-        with out_path.open("w", encoding="utf-8") as f:
-            json.dump(scenario, f, indent=2)
-            f.write("\n")
+        pending.append((out_path, scenario, obstacle))
 
         n_blocked, first_blocked = check_navigable(
             obstacle, static_obs, case["t_meet"], args.radius)
@@ -723,7 +784,7 @@ def main() -> int:
         diag["navigable"] = n_blocked == 0
 
         diag["name"] = name
-        diag["file"] = str(out_path.relative_to(root))
+        diag["file"] = _display(out_path, root)
         # A spawn outside the map is not fatal -- dynamic obstacles are not
         # bounds-checked -- but it means the target is invisible at t=0 and the
         # encounter will not look right on the animation.
@@ -731,8 +792,17 @@ def main() -> int:
         diag["spawn_in_map"] = bool(0 <= sx <= 100 and 0 <= sy <= 100)
         summary.append(diag)
 
-    print(f"\nreference: {ref_path.relative_to(root)}  ({sim_duration:.1f}s, dt={dt})")
-    print(f"suite: {args.suite}  ->  {len(summary)} scenarios in {out_dir.relative_to(root)}\n")
+    misses = _do_nothing(checks, [d["name"] for d in summary],
+                         [p[2] for p in pending], summary)
+    if _refuse(args, misses):
+        return 1
+    for out_path, scenario, _ in pending:
+        with out_path.open("w", encoding="utf-8") as f:
+            json.dump(scenario, f, indent=2)
+            f.write("\n")
+
+    print(f"\nreference: {_display(ref_path, root)}  ({sim_duration:.1f}s, dt={dt})")
+    print(f"suite: {args.suite}  ->  {len(summary)} scenarios in {_display(out_dir, root)}\n")
     header = f"{'case':<18}{'t_meet':>7}{'spawn':>18}{'v_t':>6}{'closing':>9}{'bearing':>9}{'t_det':>7}  sector"
     print(header)
     print("-" * len(header))
@@ -749,7 +819,7 @@ def main() -> int:
     with manifest.open("w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2)
         f.write("\n")
-    print(f"\nmanifest: {manifest.relative_to(root)}")
+    print(f"\nmanifest: {_display(manifest, root)}")
 
     bad = [d["name"] for d in summary
            if not d.get("navigable", True) or not d["spawn_in_map"]]
