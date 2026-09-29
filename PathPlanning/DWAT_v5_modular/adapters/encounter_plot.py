@@ -25,6 +25,13 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
+try:
+    from .encounter_report import paired_states
+    from .do_nothing_check import surface_clearance
+except ImportError:                     # run as a script
+    from encounter_report import paired_states
+    from do_nothing_check import surface_clearance
+
 
 def _repo_root() -> Path:
     return Path(__file__).resolve().parents[3]
@@ -119,15 +126,17 @@ def main() -> int:
             ax.plot(tracks[:, 0, 0], tracks[:, 0, 1], "-", color="saddlebrown",
                     lw=1.5, label="target")
             ax.plot(tracks[0, 0, 0], tracks[0, 0, 1], "o", color="saddlebrown", ms=5)
-            T = min(tracks.shape[0], traj.shape[0])
-            d = np.hypot(tracks[:T, 0, 0] - traj[:T, 0], tracks[:T, 0, 1] - traj[:T, 1])
-            k = int(d.argmin())
-            ax.plot([traj[k, 0], tracks[k, 0, 0]], [traj[k, 1], tracks[k, 0, 1]],
+            # Same instants and hull as encounter_report.py: the ego the runner
+            # has just moved against the targets it checked contact with, and
+            # the capsule when the run used one (this used the disc always).
+            ego, obs, times = paired_states(traj, tracks, data["config"]["dt"])
+            clr = surface_clearance(ego, obs[:, 0], m.get("radius", 0.5), data["config"])
+            k = int(clr.argmin())
+            ax.plot([ego[k, 0], obs[k, 0, 0]], [ego[k, 1], obs[k, 0, 1]],
                     "-", color="tab:green", lw=2.0)
-            ax.plot(traj[k, 0], traj[k, 1], "x", color="tab:green", ms=9, mew=2)
-            cpa = d[k] - m.get("radius", 0.5) - math.hypot(
-                data["config"]["robot_length"] / 2.0, data["config"]["robot_width"] / 2.0)
-            sub = f"CPA {cpa:.2f} @ t={k * data['config']['dt']:.0f}s"
+            ax.plot(ego[k, 0], ego[k, 1], "x", color="tab:green", ms=9, mew=2)
+            cpa = clr[k]
+            sub = f"CPA {cpa:.2f} @ t={times[k]:.0f}s"
         else:
             sub = "no target logged"
 

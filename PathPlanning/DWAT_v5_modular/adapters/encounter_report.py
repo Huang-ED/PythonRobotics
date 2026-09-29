@@ -67,6 +67,26 @@ def obstacle_tracks(data):
     return np.array([r[:n] for r in rows], dtype=float)
 
 
+def paired_states(traj: np.ndarray, tracks: np.ndarray, dt: float, legacy: bool = False):
+    """(ego (T, 5), targets (T, n, 2), times (T,)) at the same instants.
+
+    ``log_entries[k]`` is written after the targets have moved for iteration
+    k, so it holds them at t = (k+1)*dt, while ``trajectory[k]`` is the ego at
+    t = k*dt (row 0 is the start). The runner checks contact between the ego
+    it has just moved, ``trajectory[k+1]``, and those targets -- so that is the
+    pair to score. Verified: a straight-leg target's logged position equals
+    ``spawn + v * (k+1) * dt`` exactly.
+
+    ``legacy=True`` reproduces the pairing used before 2026-09-29,
+    ``trajectory[k]`` against ``log_entries[k]`` -- one step late, which moves
+    clearances by up to (closing speed * dt), 0.02-0.075 u in open water. Kept
+    only so previously recorded numbers can be regenerated.
+    """
+    off = 0 if legacy else 1
+    T = min(tracks.shape[0], traj.shape[0] - off)
+    return traj[off:off + T], tracks[:T], (np.arange(T) + off) * dt
+
+
 def cross_track_error(points: np.ndarray, path: np.ndarray) -> np.ndarray:
     """Perpendicular distance from each point to the polyline `path`."""
     out = np.empty(points.shape[0])
@@ -81,7 +101,8 @@ def cross_track_error(points: np.ndarray, path: np.ndarray) -> np.ndarray:
     return out
 
 
-def analyse(run_path: Path, baseline_traj: np.ndarray, manifest: dict, path_xy=None):
+def analyse(run_path: Path, baseline_traj: np.ndarray, manifest: dict, path_xy=None,
+            legacy_pairing: bool = False):
     data = load_run(run_path)
     traj = np.asarray(data["trajectory"], dtype=float)
     dt = float(data["config"]["dt"])
@@ -128,14 +149,13 @@ def analyse(run_path: Path, baseline_traj: np.ndarray, manifest: dict, path_xy=N
 
     tracks = obstacle_tracks(data)
     if tracks is not None:
-        T = min(tracks.shape[0], traj.shape[0])
-        ego = traj[:T, 0:2]
-        obs = tracks[:T]
+        ego_s, obs, times = paired_states(traj, tracks, dt, legacy_pairing)
+        ego = ego_s[:, 0:2]
         target_r = manifest.get("radius", cfg.get("obstacle_radius", 0.5))
         if _capsule:
             # Distance to the hull AXIS, not to the hull centre: project each
             # target onto the heading and clamp to the segment.
-            yaw = traj[:T, 2]
+            yaw = ego_s[:, 2]
             axis = np.stack([np.cos(yaw), np.sin(yaw)], axis=-1)[:, None, :]
             to_ob = obs - ego[:, None, :]
             proj = np.clip(np.sum(to_ob * axis, axis=2), -_half, _half)
@@ -147,11 +167,11 @@ def analyse(run_path: Path, baseline_traj: np.ndarray, manifest: dict, path_xy=N
         k = int(np.unravel_index(np.argmin(clearance), clearance.shape)[0])
         j = int(np.unravel_index(np.argmin(clearance), clearance.shape)[1])
         result["min_clearance"] = round(float(clearance[k, j]), 3)
-        result["t_cpa_s"] = round(k * dt, 1)
+        result["t_cpa_s"] = round(float(times[k]), 1)
 
         # Side of the ego the target sat on at closest approach: cross product of
         # the ego's heading with the bearing to the target.
-        heading = traj[k, 2]
+        heading = ego_s[k, 2]
         to_t = obs[k, j] - ego[k]
         cross = math.cos(heading) * to_t[1] - math.sin(heading) * to_t[0]
         result["target_side_at_cpa"] = "port" if cross > 0 else "starboard"
@@ -189,6 +209,9 @@ def main() -> int:
                              "and the intended geometry of each case")
     parser.add_argument("--runs", nargs="+", required=True)
     parser.add_argument("--json-out", default=None)
+    parser.add_argument("--legacy-pairing", action="store_true",
+                        help="score trajectory[k] against the targets at (k+1)*dt, as before "
+                             "2026-09-29 -- only to regenerate previously recorded numbers")
     args = parser.parse_args()
 
     root = _repo_root()
@@ -219,7 +242,8 @@ def main() -> int:
         # ("overtake_ego" vs "overtaken_ego") cannot shadow it.
         hits = [n for n in manifest_by_name if n in p.parent.name]
         name = max(hits, key=len) if hits else None
-        rows.append((name, analyse(p, baseline_traj, manifest_by_name.get(name, {}))))
+        rows.append((name, analyse(p, baseline_traj, manifest_by_name.get(name, {}),
+                                     legacy_pairing=args.legacy_pairing)))
 
     hdr = (f"{'case':<20}{'goal':>6}{'clear':>8}{'t_cpa':>7}{'side':>10}"
            f"{'dev':>8}{'delay':>7}{'vmin':>7}  notes")
