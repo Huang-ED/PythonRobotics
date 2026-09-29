@@ -116,6 +116,15 @@ class Config:
         # Treat a sampled (v, omega) as a setpoint approached at max_accel /
         # max_delta_yaw_rate, instead of a velocity applied instantly.
         self.ramped_rollout = False
+        # Stage 1, the braking admissibility test that decides which candidates
+        # are scored at all (Guard A fires when it rejects every one).
+        # "static_arc" (default) reproduces every existing run:
+        # closest_obstacle_on_curve plus v^2 + 2 a v dt > 2 a dist.
+        # "braking_rollout" asks the same question by simulating the braking
+        # manoeuvre -- real ego dynamics, moving obstacles, bounded look-ahead,
+        # contact at t = 0 -- i.e. OPEN_PROBLEMS items 5, 9, 10, 11 corrected.
+        # See braking_rollout_admissible.
+        self.admissibility_mode = "static_arc"
         # What to do when every candidate that PASSED admissibility scores inf
         # -- i.e. Guard B, "No best trajectory found":
         # "raise" -> ValueError (classic), "least_bad" -> keep the safest one.
@@ -540,22 +549,30 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
             f"limits max_speed={config.max_speed} max_yaw_rate={config.max_yaw_rate}"
         )
 
+    _adm_mode, _s1_ob = stage1_setup(x, static_ob, static_ob_radii, dynamic_ob_pos,
+                                     dynamic_ob_radii, dynamic_ob_vel, config)
+    _s1_step = lambda s, u: motion(s, u, config.dt)
+
     # evaluate all trajectory with sampled input in dynamic window
     _grid = str(getattr(config, "sample_grid_anchor", "window"))
     _vs = _sample_axis(dw[0], dw[1], config.v_resolution, config.min_speed, _grid)
     _ws = _sample_axis(dw[2], dw[3], config.yaw_rate_resolution, 0.0, _grid)
     for v in _vs:
         for y in _ws:
-            
-            # --- Admissible velocities check ---
-            dist_all = float("inf")
-            if has_all_ob:
-                dist_all, _ = closest_obstacle_on_curve(
-                    x.copy(), all_ob, all_ob_radii_np, v, y, config
-                )
-            
-            if v**2 + 2 * config.max_accel * v * config.dt > 2 * config.max_accel * dist_all:
-                continue
+
+            if _adm_mode == "braking_rollout":
+                if not braking_rollout_admissible(x, v, y, *_s1_ob, config, _s1_step):
+                    continue
+            else:
+                # --- Admissible velocities check ---
+                dist_all = float("inf")
+                if has_all_ob:
+                    dist_all, _ = closest_obstacle_on_curve(
+                        x.copy(), all_ob, all_ob_radii_np, v, y, config
+                    )
+
+                if v**2 + 2 * config.max_accel * v * config.dt > 2 * config.max_accel * dist_all:
+                    continue
                 
             # These two rollouts are the SAME integration -- same initial state,
             # same (v, omega), same step function -- differing only in how long
@@ -939,6 +956,178 @@ def closest_obstacle_on_curve(x, ob, ob_radii, v, omega, config):
                     min_time = time
                     
         return min_dist, min_time
+
+
+# --- Stage 1, admissibility_mode "braking_rollout" -------------------------
+#
+# The same question the historical test asks -- "if I take this command and
+# then brake at max_accel, do I stop before touching anything?" -- answered by
+# simulating the manoeuvre instead of by closest_obstacle_on_curve plus
+# `v^2 + 2 a v dt > 2 a dist`. That corrects four defects of the historical
+# test (OPEN_PROBLEMS.md section 1) without changing the criterion:
+#
+#   item 11  The historical test runs the SETPOINT (v, omega) as a constant-
+#            velocity arc and puts the setpoint v in the inequality. Here the
+#            reaction step uses the module's real step function (ramped or
+#            classic), so the ego brakes from the speed and turn rate it
+#            actually has.
+#   item 5   Obstacles move: ob + vel * t, the same extrapolation as Stage 2.
+#            Static obstacles are passed with zero velocity.
+#   item 9   The scan ends when the ego is at rest, or at predict_time_obstacle,
+#            whichever is first -- not a full circle.
+#   item 10  Contact at t = 0 is contact, not the far side of the obstacle.
+#
+# Contact counts only while the hull is moving: an obstacle that runs into an
+# ego at rest does not make the command inadmissible. That is passive safety,
+# the braking test's own guarantee carried over to a moving world -- in a
+# static world a stopped ship can never be hit, so the historical test never
+# had to say. It also means a target closing from astern is still not this
+# test's business (item 7): see OPEN_PROBLEMS.md.
+
+def braking_path(x, v, omega, config, step):
+    """States of the manoeuvre "command (v, omega) for one dt, then brake".
+
+    ``step(state, u)`` advances one dt with the planner's motion model. Braking
+    keeps the path curvature fixed (omega scales with v), as the historical
+    test's "braking room along the arc" does, and decelerates at max_accel
+    until at rest or until predict_time_obstacle.
+
+    Braking distance per step is exact -- the trapezoid, or v^2/(2a) in the
+    step where the ego stops -- not the Euler step of ``motion``. At the AIS
+    dt of 10 s a 3 m/s ship stops inside one step, and Euler would put its
+    braking distance at 0 m instead of 15 m.
+    """
+    dt, a = config.dt, config.max_accel
+    s = np.array(x, dtype=float)
+    rows = [s.copy()]
+    s = step(s.copy(), [v, omega])
+    rows.append(s.copy())
+    kappa = s[4] / s[3] if abs(s[3]) > 1e-9 else 0.0
+    t = dt
+    while abs(s[3]) > 1e-9 and t + dt <= config.predict_time_obstacle + 1e-9:
+        v0 = abs(s[3])
+        v1 = max(0.0, v0 - a * dt)
+        ds = 0.5 * (v0 + v1) * dt if v1 > 0.0 else v0 * v0 / (2.0 * a)
+        ds = math.copysign(ds, s[3])
+        yaw_mid = s[2] + 0.5 * kappa * ds
+        s[0] += ds * math.cos(yaw_mid)
+        s[1] += ds * math.sin(yaw_mid)
+        s[2] += kappa * ds
+        s[3] = math.copysign(v1, s[3])
+        s[4] = kappa * s[3]
+        rows.append(s.copy())
+        t += dt
+    return np.array(rows)
+
+
+def stage1_obstacles(x, ob, ob_radii, ob_vel, config):
+    """Obstacles a braking manoeuvre from state x could possibly touch.
+
+    A pre-filter, once per planning call, so the per-candidate test scans tens
+    of obstacles rather than every map cell. Bounds are generous: the ego at
+    max_speed for the whole manoeuvre, the circumscribed hull at the largest
+    side_clearance_factor (1.1), each obstacle at its own speed.
+    """
+    ob = np.asarray(ob, dtype=float).reshape(-1, 2)
+    ob_radii = np.asarray(ob_radii, dtype=float)
+    ob_vel = np.asarray(ob_vel, dtype=float).reshape(-1, 2)
+    if ob.shape[0] == 0:
+        return ob, ob_radii, ob_vel
+    t_max = min(config.predict_time_obstacle,
+                config.dt + max(config.max_speed, abs(x[3])) / config.max_accel)
+    reach = max(config.max_speed, abs(x[3])) * t_max
+    if config.robot_type == RobotType.rectangle:
+        hull = math.hypot(config.robot_length / 2, config.robot_width / 2) * 1.1
+    else:
+        hull = config.robot_radius * 1.1
+    gap = np.hypot(ob[:, 0] - x[0], ob[:, 1] - x[1]) - ob_radii
+    keep = gap <= reach + hull + np.hypot(ob_vel[:, 0], ob_vel[:, 1]) * t_max
+    return ob[keep], ob_radii[keep], ob_vel[keep]
+
+
+def stage1_setup(x, static_ob, static_ob_radii, dynamic_ob_pos, dynamic_ob_radii,
+                 dynamic_ob_vel, config):
+    """(mode, obstacles) for Stage 1, once per planning call.
+
+    ``admissibility_mode``: "static_arc" (default, the historical test) or
+    "braking_rollout". For "braking_rollout" the obstacles are
+    ``(pos, radii, vel)`` pre-filtered by reach; for "static_arc" they are None
+    and the caller keeps its historical code path untouched.
+    """
+    mode = str(getattr(config, "admissibility_mode", "static_arc"))
+    if mode == "static_arc":
+        return mode, None
+    if mode != "braking_rollout":
+        raise ValueError(f"unknown admissibility_mode {mode!r}; "
+                         "expected 'static_arc' or 'braking_rollout'")
+    pos, radii, vel = [np.empty((0, 2))], [], [np.empty((0, 2))]
+    if static_ob is not None and len(static_ob) > 0:
+        pos.append(np.asarray(static_ob, dtype=float).reshape(-1, 2))
+        radii.extend(static_ob_radii)
+        vel.append(np.zeros((len(static_ob), 2)))
+    if dynamic_ob_pos is not None and len(dynamic_ob_pos) > 0:
+        pos.append(np.asarray(dynamic_ob_pos, dtype=float).reshape(-1, 2))
+        radii.extend(dynamic_ob_radii)
+        vel.append(np.asarray(dynamic_ob_vel, dtype=float).reshape(-1, 2))
+    return mode, stage1_obstacles(x, np.vstack(pos), radii, np.vstack(vel), config)
+
+
+def braking_rollout_admissible(x, v, omega, ob, ob_radii, ob_vel, config, step):
+    """Can the ego take (v, omega) and still brake to rest without contact?"""
+    if ob is None or len(ob) == 0:
+        return True
+    rows = braking_path(x, v, omega, config, step)
+    dt = config.dt
+
+    # Moving flags per segment, and whether row 0 itself is in motion.
+    seg_moves = (np.hypot(np.diff(rows[:, 0]), np.diff(rows[:, 1])) > 1e-12) \
+        | (np.abs(np.diff(rows[:, 2])) > 1e-12)
+    if not seg_moves.any() and abs(rows[0, 3]) <= 1e-9 and abs(rows[0, 4]) <= 1e-9:
+        return True                       # stays at rest: passively safe
+
+    # Same side_clearance_factor and hull as the historical test.
+    f = 0.1 * v / config.max_speed + 1.0
+    if config.robot_type == RobotType.rectangle:
+        half, hull_r = _swept_hull_extent(config, f)     # capsule or disc
+    else:
+        half, hull_r = 0.0, config.robot_radius * f
+    thresh = np.asarray(ob_radii, dtype=float) + hull_r
+
+    # Densify so a fast ego cannot step over a small obstacle between rows
+    # (dt is 10 s in the AIS configs): at most half a contact radius per point.
+    step_len = float(np.max(np.hypot(np.diff(rows[:, 0]), np.diff(rows[:, 1])),
+                            initial=0.0))
+    m = int(min(50, max(1, math.ceil(step_len / max(0.5 * float(thresh.min()), 1e-9)))))
+    frac = np.arange(m) / m
+    p0, p1 = rows[:-1, None, 0:2], rows[1:, None, 0:2]
+    dyaw = (rows[1:, 2] - rows[:-1, 2] + math.pi) % (2 * math.pi) - math.pi
+    pos = (p0 + frac[None, :, None] * (p1 - p0)).reshape(-1, 2)
+    yaw = (rows[:-1, None, 2] + frac[None, :] * dyaw[:, None]).reshape(-1)
+    t = ((np.arange(len(rows) - 1)[:, None] + frac[None, :]) * dt).reshape(-1)
+    # A point counts if the hull is moving there: inside a moving segment, or
+    # at a row that motion arrives at or departs from. Row 0 "arrives" moving
+    # if the ego already has speed or turn rate.
+    moving0 = abs(rows[0, 3]) > 1e-9 or abs(rows[0, 4]) > 1e-9
+    arrives = np.concatenate(([moving0], seg_moves[:-1]))
+    counted = np.repeat(seg_moves, m).reshape(-1, m)
+    counted[:, 0] |= arrives
+    counted = np.append(counted.reshape(-1), seg_moves[-1])
+    pos = np.vstack((pos, rows[-1, 0:2]))
+    yaw = np.append(yaw, rows[-1, 2])
+    t = np.append(t, (len(rows) - 1) * dt)
+
+    ob_t = np.asarray(ob, dtype=float)[:, None, :] \
+        + np.asarray(ob_vel, dtype=float)[:, None, :] * t[None, :, None]   # (N, T, 2)
+    to_ob = ob_t - pos[None, :, :]
+    if half > 0.0:
+        axis = np.stack([np.cos(yaw), np.sin(yaw)], axis=-1)[None, :, :]
+        proj = np.clip(np.sum(to_ob * axis, axis=2), -half, half)
+        perp = to_ob - proj[:, :, None] * axis
+        d = np.hypot(perp[:, :, 0], perp[:, :, 1])
+    else:
+        d = np.hypot(to_ob[:, :, 0], to_ob[:, :, 1])
+    contact = d <= thresh[:, None]
+    return not bool(np.any(contact[:, counted]))
 
 
 def _sample_axis(lo, hi, resolution, anchor, mode):

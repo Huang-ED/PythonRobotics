@@ -171,7 +171,7 @@ setpoints, so setpoint and speed coincide. v20.7.9 opened it by widening the
 window beyond one-`dt` reach while Stage 1 kept treating setpoints as reached.
 Test the real speed — `admissibility_mode: "braking_rollout"` brakes from
 `v₀ ± a·dt` whatever the setpoint — and the window width stops mattering: Guard A
-is reachable in v21.11, and fired in 7 of the first 8 runs (see §5).
+is reachable in v21.11, and fired in 11 of 18 validation runs (§5.6).
 
 ### The inference to *not* make
 
@@ -376,10 +376,10 @@ section.
 | # | item | status | §1 row |
 |---|---|---|---|
 | **1** | Capsule in `closest_obstacle_on_curve` | ✅ implemented 2026-09-15 | 2 — ego hull |
-| **5** | Admissibility against *predicted* obstacle positions | open, **upgraded** | 1 — obstacle motion |
-| **9** | Bound Stage 1's look-ahead to the horizon | new — was unnamed | 3 — look-ahead |
-| **11** | Stage 1 judges a path and speed the ego will not have | new — 2026-09-19 | 4 — ego's own path |
-| **10** | `closest_obstacle_on_curve` misreports an obstacle it already touches | new — 2026-09-15 | — |
+| **5** | Admissibility against *predicted* obstacle positions | option `braking_rollout` (2026-09-29), off by default | 1 — obstacle motion |
+| **9** | Bound Stage 1's look-ahead to the horizon | option `braking_rollout` (2026-09-29), off by default | 3 — look-ahead |
+| **11** | Stage 1 judges a path and speed the ego will not have | option `braking_rollout` (2026-09-29), off by default | 4 — ego's own path |
+| **10** | `closest_obstacle_on_curve` misreports an obstacle it already touches | option `braking_rollout` (2026-09-29), off by default | — |
 | **6** | Replace braking feasibility with turn/CPA | open | all of the above |
 | **7** | Stern-sector cost term | open, scope narrowed 2026-09-19 | falls out of 6 |
 
@@ -463,7 +463,7 @@ subject of §6 Track 1.
 | **16** | The path follower's look-ahead was never rescaled | ✅ resolved and generalised 2026-09-22 |
 | **17** | A scenario silently overrides the algorithm config | open — 2026-09-20 (inert here) |
 | **18** | `catch_turning_point_dist` is not tied to `dist_localgoal` | open — 2026-09-24 |
-| **19** | Generated encounters go stale when the config or scenario changes | fixed for v3crowd 2026-09-24; not yet guarded |
+| **19** | Generated encounters go stale when the config or scenario changes | ✅ guarded 2026-09-29 (`4c2dc75`) |
 | **20** | Evading a target can put the ego aground | open — 2026-09-24 |
 
 **Item 12 — superseded.** The short menu was the *consequence* of reacting late,
@@ -935,6 +935,54 @@ candidate with `v > 0`, so a correct reading here produces Guard A, the very
 ahead is clear. This interacts with items 5 and 9 and should be fixed as part of
 item 6 rather than patched alone.
 
+### 5.6 Items 5, 9, 10, 11 corrected together: `braking_rollout`, measured
+
+**Implemented 2026-09-29** as `admissibility_mode: "braking_rollout"` (default
+`"static_arc"`, bit-identical to before on 300/300 random states). Same
+criterion as the historical test — *take the command for one `dt`, then brake at
+`max_accel`; do I stop without contact?* — answered by simulating it: the real
+(ramped) step (item 11), obstacles at `ob + vel·t` (5), stopping at rest or the
+horizon (9), contact at `t = 0` counted (10). Contact while the ego is at rest
+does not count: passive safety, the braking test's own guarantee in a moving
+world. Braking distance is exact per step, so at AIS scale it equals
+`v·dt + v²/2a` — in a static world with classic motion it *is* the old rule.
+
+**Result: correct physics, harmful as a filter.** v21.11 with only this key
+changed, against v21.11 as shipped:
+
+| suite | `static_arc` (v21.11) | `braking_rollout` |
+|---|---|---|
+| open water, 11 cases | **11/11** | **4/11** — 6 crossings + `overtaken_ego_fast` Guard A, `overtaken_ego` collision |
+| `ow_sequence215` / `ow_simultaneous215` | goal / goal | item 15 abort / Guard A |
+| `v3crowd?_v2111` | 2/3 (v3crowd6 grounds at 80.4 s) | 1/3 (v3crowd6, v3crowd7 Guard A) |
+| `ny_hist_366962130` (ais_v1.1) | **goal** — item 1 fixed it | collision at 1200 s |
+| `ny_synth_00` (ais_v1.1) | Guard A at 510 s | Guard A at 510 s |
+
+The four open-water passes are the cases where the filter never binds
+(`head_on` is bit-identical to the baseline). Every failure has one mechanism:
+once a target is inside the ego's braking envelope only braking is admissible,
+so the ego slows down *in the target's path*. `owenc215_cross_port_045`: speed
+0.50 → 0.36 → 0.24 → 0.12 → 0.00 over t = 82–91 s, run down at a centre distance
+of 0.71, where `static_arc` holds 0.50 and passes at 1.37. `overtaken_ego`
+brakes to 0 and is hit from astern (item 7, exactly); `ny_hist_366962130` slows
+4.8 → 0.8 m/s and is hit.
+
+What this settles:
+
+- **Items 5, 9, 10, 11 are fixed as an option, and the option is not a usable
+  default on its own.** Braking is not an escape from moving traffic; a
+  correct braking test makes that visible instead of hiding it.
+- **Guard A in v21.8–v21.11 was silent only because of item 11** (§2). With the
+  real speed it fires, early and often.
+- **It is the measured case for item 6.** Stage 1 must accept "keep going" and
+  "turn away" as escapes, not only "stop". Until item 6 exists, a version that
+  switches the default (the stated direction for future versions) also needs a
+  non-aborting fallback when Guard A fires.
+
+Speed: no slower than `static_arc` (1.18 s against 1.37 s per planning call
+with 369 static obstacles), because a reach pre-filter drops obstacles no
+braking manoeuvre can touch.
+
 ---
 
 ## 6. Order of work
@@ -954,7 +1002,9 @@ superseded: v21.11 is the config (`OSCILLATION.md` section 5), its open-water
 suite passes 13/13, and its v3crowd suites pass 2/3 on verified encounters. What
 is left is not oscillation; it is **side choice, land, and suite hygiene**.
 
-1. **Item 19 — build the do-nothing check into `encounter_suite.py`.** Closest
+1. ✅ *Done 2026-09-29 (`4c2dc75`): `adapters/do_nothing_check.py`; `encounter_suite.py`
+   checks the reference and every `--check-log`, `--strict` refuses a miss.*
+   **Item 19 — build the do-nothing check into `encounter_suite.py`.** Closest
    approach of each target's track to a given obstacle-free log; refuse or warn
    below a threshold. Cheap, and it protects every later result. First because
    this gap has now voided results three times, and because it was already on
