@@ -159,7 +159,19 @@ cruise above 0.385). No v21.x log contains a braking Guard A: the only two
 stuck escape commanding ω = −0.36 against `max_yaw_rate` 0.19, and fixed in
 `63033a1`. So in the current config Stage 1 still prunes candidates but its
 alarm cannot sound; the §7.1 caveat is satisfied with margin (10 s against the
-8.3 s it needs). `admissibility_mode: "braking_rollout"` makes it reachable again.
+8.3 s it needs).
+
+**This is item 11, not a property of the ship.** The sampled `v = 0` is a
+*setpoint*; step (3) reads it as the speed the ship has. Under `ramped_rollout`
+the ship is still doing up to `max_speed` one `dt` later, needs its full braking
+distance, and gets tested for none. So the inequality above only says when the
+setpoint artefact hides every real braking problem. Classic motion never had the
+gap: `motion` sets `v = u` at once, and a one-`dt` window offers only reachable
+setpoints, so setpoint and speed coincide. v20.7.9 opened it by widening the
+window beyond one-`dt` reach while Stage 1 kept treating setpoints as reached.
+Test the real speed — `admissibility_mode: "braking_rollout"` brakes from
+`v₀ ± a·dt` whatever the setpoint — and the window width stops mattering: Guard A
+is reachable in v21.11, and fired in 7 of the first 8 runs (see §5).
 
 ### The inference to *not* make
 
