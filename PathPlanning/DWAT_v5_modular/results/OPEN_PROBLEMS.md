@@ -128,9 +128,38 @@ reads as though there are only two.
 any window wide enough to contain `v = 0`, however obtained — not of v20.7.9. It
 is equally true of most `ais_v1.1` configs, where `max_accel · dt = 4.0` puts
 `v = 0` in the window across 73–80% of the speed range, and unconditionally for
-`ny_synth_01`. It is **not** true of v21.x, whose ramped floor is `v − 0.385`, so
-Guard A is reachable there. This bears directly on **item 3**: halving `dt`
-halves `max_accel · dt` and changes how much of the range admits `v = 0`.
+`ny_synth_01`. This bears directly on **item 3**: halving `dt` halves
+`max_accel · dt` and changes how much of the range admits `v = 0`.
+
+**Which v21.x configs can reach Guard A through the braking test is decided by
+one inequality, not by chance** (checked 2026-09-29). Under the default
+`admissibility_mode: "static_arc"`, Guard A cannot fire whenever
+
+```
+max_accel · v_window_ramp_time  ≥  max_speed − min_speed
+```
+
+because then (1) the window floor `max(min_speed, v − max_accel · ramp)` is
+`min_speed` = 0 at every reachable state, since the ramped step never overshoots
+a setpoint and so `v ≤ max_speed`; (2) `v = 0` is always sampled — `"window"`
+starts at the lower edge, `"lattice"` adds both edges; and (3) `v = 0` always
+passes, since `closest_obstacle_on_curve` returns `dist ≥ 0` and `0 > 2a · dist`
+is never true.
+
+| configs | `max_accel · ramp` | Guard A through the braking test |
+|---|---|---|
+| v21.0–v21.7 | 0.03849 × 10 = **0.385** < 0.5 | reachable, but only above 0.385 u/s |
+| **v21.8–v21.11** | 0.059917 × 10 = **0.599** ≥ 0.5 | **impossible** |
+
+The logs agree. Across all v21.x runs on disk the window floor was above zero on
+0 of ~254k steps for v21.8–v21.11, and on ~93% of steps for v21.4–v21.6 (every
+cruise above 0.385). No v21.x log contains a braking Guard A: the only two
+"No admissible" aborts (v21.0, `owenc_head_on` and `owenc_overtaken_ego`,
+2026-09-15) were **empty ω windows** — the "third meaning" above — caused by the
+stuck escape commanding ω = −0.36 against `max_yaw_rate` 0.19, and fixed in
+`63033a1`. So in the current config Stage 1 still prunes candidates but its
+alarm cannot sound; the §7.1 caveat is satisfied with margin (10 s against the
+8.3 s it needs). `admissibility_mode: "braking_rollout"` makes it reachable again.
 
 ### The inference to *not* make
 
@@ -205,6 +234,12 @@ This is the ledger. Anything not in it is passing.
 | `v3crowd5` *(original suite, v20.7.8-2)* | fails 137.4 s | — | `_choose_local_goal` path-following divergence | **not this problem** |
 | `v3crowd6_v2111` @ **v21.11** | grounding, t = 80.3 s | — | evading a head-on target toward the coast: no side rule + weak land term | items **20 + 14** |
 | v3crowd, undeclared heading @ v21.10 | abort, 3 of 3 | — | loses its own path: the start transient never settles | superseded by v21.11 (`OSCILLATION.md`) |
+
+*Scorer note, 2026-09-29.* Every clearance in this document before this date was
+scored one step late: `encounter_report.py` paired `trajectory[k]` with the
+targets at `(k+1)·dt`. Fixed in `ce30ae1`. On the v21.11 open-water suite the
+corrected values differ by −0.031 to +0.048 u, and no verdict changes.
+`--legacy-pairing` reproduces the old numbers.
 
 *Ledger updated 2026-09-24.* The current config is **v21.11**: open water 13/13
 on verified encounters, v3crowd 2/3 on verified encounters (the row above).
@@ -1035,6 +1070,9 @@ the two changes could be adopted separately.
 > invariant. Set the ramp to 2.0 and the floor at cruise becomes 0.1, `v = 0`
 > leaves the window, and Guard A becomes reachable at some speeds and not others —
 > the worst of both worlds. **Item 5 must not rest on this equality holding by hand.**
+>
+> *Since observed:* v21.0–v21.7 were exactly that middle case (floor `v − 0.385`),
+> and v21.8–v21.11 satisfy the inequality again with margin. See the §2 table.
 
 **`predT5` is designed to fail**, and does under both versions — that is intended.
 But the guard loss is **not `predT5`-only**: `v = 0` is always admissible under
