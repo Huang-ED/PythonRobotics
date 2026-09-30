@@ -244,7 +244,8 @@ This is the ledger. Anything not in it is passing.
 | `ny_hist_367782880` | grounding, iter 59 | — | `dt` too coarse: 125 m/step vs 25 m shore cells | item 3 |
 | `ny_hist_367791550` | grounding, iter 52 | — | same | item 3 |
 | `v3crowd5` *(original suite, v20.7.8-2)* | fails 137.4 s | — | `_choose_local_goal` path-following divergence | **not this problem** |
-| `v3crowd6_v2111` @ **v21.11** | grounding, t = 80.3 s | — | evading a head-on target toward the coast: no side rule + weak land term | items **20 + 14** |
+| `v3crowd6_v2111` @ v21.11 | grounding, t = 80.3 s | — | evading a head-on target toward the coast: no side rule + weak land term | ✅ **v21.12** reaches the goal (0.57): Stage 1 now brakes against land. Item 14 still open |
+| `ny_hist_366962130` @ `ais_v1.1` + `braking_rollout_static` | collision, t = 1190 s | — | a phantom (item 2) parked at its entry point reports its first-leg velocity, 0.94 m/s; Stage 2 predicts it sailing away. The frozen-obstacle test avoided it by accident | item **2** — blocks AIS configs from switching Stage 1 |
 | v3crowd, undeclared heading @ v21.10 | abort, 3 of 3 | — | loses its own path: the start transient never settles | superseded by v21.11 (`OSCILLATION.md`) |
 
 *Scorer note, 2026-09-29.* Every clearance in this document before this date was
@@ -253,8 +254,9 @@ targets at `(k+1)·dt`. Fixed in `ce30ae1`. On the v21.11 open-water suite the
 corrected values differ by −0.031 to +0.048 u, and no verdict changes.
 `--legacy-pairing` reproduces the old numbers.
 
-*Ledger updated 2026-09-24.* The current config is **v21.11**: open water 13/13
-on verified encounters, v3crowd 2/3 on verified encounters (the row above).
+*Ledger updated 2026-09-30.* The current config is **v21.12** (v21.11 + Stage 1
+`braking_rollout_static`, §5.6): open water 13/13 on verified encounters, v3crowd
+**3/3** on verified encounters. v21.11 was 13/13 and 2/3.
 Passing but worth watching: `ow_sequence215`, where v21.11 turns the way a
 starboard-crossing target is heading and circles back (item 14), and
 `v3crowd7_v2111`, closest pass 0.367 against `v20.7.8-2`'s 0.483.
@@ -376,10 +378,10 @@ section.
 | # | item | status | §1 row |
 |---|---|---|---|
 | **1** | Capsule in `closest_obstacle_on_curve` | ✅ implemented 2026-09-15 | 2 — ego hull |
-| **5** | Admissibility against *predicted* obstacle positions | option `braking_rollout` (2026-09-29), off by default | 1 — obstacle motion |
-| **9** | Bound Stage 1's look-ahead to the horizon | option `braking_rollout` (2026-09-29), off by default | 3 — look-ahead |
-| **11** | Stage 1 judges a path and speed the ego will not have | option `braking_rollout` (2026-09-29), off by default | 4 — ego's own path |
-| **10** | `closest_obstacle_on_curve` misreports an obstacle it already touches | option `braking_rollout` (2026-09-29), off by default | — |
+| **5** | Admissibility against *predicted* obstacle positions | **moved to item 6** (2026-09-30): wrong question inside a braking test, §5.6 | 1 — obstacle motion |
+| **9** | Bound Stage 1's look-ahead to the horizon | ✅ fixed in `braking_rollout_static`, default from **v21.12** | 3 — look-ahead |
+| **11** | Stage 1 judges a path and speed the ego will not have | ✅ fixed in `braking_rollout_static`, default from **v21.12** | 4 — ego's own path |
+| **10** | `closest_obstacle_on_curve` misreports an obstacle it already touches | ✅ fixed in `braking_rollout_static`, default from **v21.12** | — |
 | **6** | Replace braking feasibility with turn/CPA | open | all of the above |
 | **7** | Stern-sector cost term | open, scope narrowed 2026-09-19 | falls out of 6 |
 
@@ -434,6 +436,17 @@ first.**
 `ny_hist_366962130` its goal. It used to be filed as "independent / unrelated to
 feasibility", but it is **co-decisive with item 1** in that abort.
 
+*Worse than placement, found 2026-09-30:* before its track starts, a replayed
+vessel sits at its first sample but reports `velocities[0]`, its first-leg
+velocity (`map_manager._sync_trajectory_state` clamps the time, not the
+velocity). At t = 1190 s in `ny_hist_366962130`, 23 of the 25 not-yet-started
+vessels report nonzero velocity while stationary. Stage 2 extrapolates them
+sailing away; under `braking_rollout_static` the ego held 4.8 m/s and hit one
+(#9, 0.94 m/s reported, track starting at t = 1200 s). `static_arc` froze every
+vessel and so modelled the phantom correctly by accident. **AIS configs must not
+switch Stage 1 until this is fixed** — at minimum, report velocity 0 before
+`start_time`, behind a key defaulting to today's behaviour.
+
 **Item 3.** Config-only and orthogonal to Group A, **but it is the fix for both
 groundings**, i.e. half the AIS suite's failures. It stalled because it roughly
 doubles run cost and changes the reference case.
@@ -464,7 +477,7 @@ subject of §6 Track 1.
 | **17** | A scenario silently overrides the algorithm config | open — 2026-09-20 (inert here) |
 | **18** | `catch_turning_point_dist` is not tied to `dist_localgoal` | open — 2026-09-24 |
 | **19** | Generated encounters go stale when the config or scenario changes | ✅ guarded 2026-09-29 (`4c2dc75`) |
-| **20** | Evading a target can put the ego aground | open — 2026-09-24 |
+| **20** | Evading a target can put the ego aground | ✅ v3crowd6 fixed by v21.12's Stage 1 (2026-09-30); side rule (item 14) still missing |
 
 **Item 12 — superseded.** The short menu was the *consequence* of reacting late,
 not the cause. The rescale took `predict_time_to_goal` from 1.0 to 8.0, which
@@ -935,7 +948,7 @@ candidate with `v > 0`, so a correct reading here produces Guard A, the very
 ahead is clear. This interacts with items 5 and 9 and should be fixed as part of
 item 6 rather than patched alone.
 
-### 5.6 Items 5, 9, 10, 11 corrected together: `braking_rollout`, measured
+### 5.6 Items 5, 9, 10, 11 corrected: `braking_rollout` and `braking_rollout_static`, measured
 
 **Implemented 2026-09-29** as `admissibility_mode: "braking_rollout"` (default
 `"static_arc"`, bit-identical to before on 300/300 random states). Same
@@ -967,17 +980,49 @@ of 0.71, where `static_arc` holds 0.50 and passes at 1.37. `overtaken_ego`
 brakes to 0 and is hit from astern (item 7, exactly); `ny_hist_366962130` slows
 4.8 → 0.8 m/s and is hit.
 
-What this settles:
+**Where the harm comes from: item 5 alone.** At the first decision where the two
+`cross_port_045` runs diverge (t = 82.7 s, target 5.13 u off at 43°), of 495
+candidates:
 
-- **Items 5, 9, 10, 11 are fixed as an option, and the option is not a usable
-  default on its own.** Braking is not an escape from moving traffic; a
-  correct braking test makes that visible instead of hiding it.
-- **Guard A in v21.8–v21.11 was silent only because of item 11** (§2). With the
-  real speed it fires, early and often.
-- **It is the measured case for item 6.** Stage 1 must accept "keep going" and
-  "turn away" as escapes, not only "stop". Until item 6 exists, a version that
-  switches the default (the stated direction for future versions) also needs a
-  non-aborting fallback when Guard A fires.
+| Stage 1 | admits | rejects candidates whose own trajectory is safe |
+|---|---|---|
+| `static_arc` (v21.11) | 495 | 0 |
+| braking rollout, obstacles **frozen** (9, 10, 11 fixed) | 495 | 0 |
+| braking rollout, obstacles **moving** (5, 9, 10, 11) | 467 | **28**, the best escapes (clearance 0.90) |
+
+Items 9, 10, 11 are neutral here; item 5 does all of it. It is not a value fix:
+the braking test asks "if I brake right after this command, do I stop before
+contact?" — a valid proxy only in a static world, where braking only shrinks
+the swept path. With moving ships, braking can be the *worst* option: the 28
+rejected candidates were turning away, and their braking follow-up swings into
+the crossing target while still moving. Feeding moving obstacles into a
+static-world criterion changes the question from "can I stop before land?" to
+"is stopping safe among ships?" — and the answer to that is often no while
+carrying on is safe. The old test was two errors that cancelled: a static-world
+question with static-world inputs, then switched off entirely by item 11.
+
+**So the braking test gets the obstacles it is valid for.**
+`admissibility_mode: "braking_rollout_static"` (2026-09-30) is the same
+corrected test (9, 10, 11) against **static obstacles only**; moving traffic
+stays with Stage 2's trajectory check, and item 5 moves to item 6, which will
+test escapes other than stopping. `braking_rollout` is kept as this measured
+negative result. Guard A now means "I cannot stop before land" — a real
+grounding alarm.
+
+| suite | `static_arc` (v21.11) | `braking_rollout_static` (**v21.12**) |
+|---|---|---|
+| open water, 13 cases | 13/13 | 13/13 — **12 bit-identical**, `overtaken_ego` scores the same (0.80) |
+| `v3crowd?_v2111` | 2/3 (v3crowd6 grounds) | **3/3** — v3crowd6 goal at 0.57, v3crowd7 0.36 → **0.62** |
+| `ny_synth_00` (ais_v1.1) | Guard A at 510 s | same trajectory, **Guard B** at 510 s |
+| `ny_hist_366962130` (ais_v1.1) | goal | collision at 1190 s — item 2's phantoms, see item 2 |
+
+Promoted to **v21.12** on 2026-09-30 (a byte copy of
+`v21.11/braking_rollout_static.json`). `ny_synth_00` answers §4.2's open
+question: with no braking test on its ships at all, Stage 2 still finds nothing
+finite, so the braking test was not what aborted it.
+
+Still open: near a coast the test is conservative — it rejects a command the
+ship cannot stop from even when it could turn away. That is item 6's job too.
 
 Speed: no slower than `static_arc` (1.18 s against 1.37 s per planning call
 with 369 static obstacles), because a reach pre-filter drops obstacles no
@@ -1014,7 +1059,8 @@ is left is not oscillation; it is **side choice, land, and suite hygiene**.
    `v21.11/ctp9.json` exists. Re-run the three `v3crowd?_v2111` suites; open
    water cannot see it (single straight leg). If neutral or better, fold into
    the next version.
-3. **Items 20 + 14 — the actual remaining failure.** Two separate, config-
+3. *v3crowd6's grounding is gone in v21.12 (Stage 1 now brakes against land, 2026-09-30); the side rule is still the open half.*
+   **Items 20 + 14 — the actual remaining failure.** Two separate, config-
    restorable experiments on `v3crowd6_v2111`: a COLREGs side preference
    (Rule 14/15 -- starboard on head-on, give-way to starboard crossers), and a
    stronger land term (`obstacle_cost_gain` 0.05 is an order below what it
@@ -1038,7 +1084,8 @@ is left is not oscillation; it is **side choice, land, and suite hygiene**.
 
 ### Track 2 — AIS: Stage 1 is built on the wrong physics *(unchanged, not started)*
 
-7. **Re-measure `ny_hist_366962130`** after item 1 (capsule); §4.1 predicted it
+7. ✅ *Done 2026-09-29: with the capsule, `ais_v1.1` reaches the goal. Item 1 fixed that abort.*
+   **Re-measure `ny_hist_366962130`** after item 1 (capsule); §4.1 predicted it
    admits the blocking candidate, and the capsule's direction-dependence makes
    that look optimistic.
 8. **Item 2** — `on_start`, defaulting to today's behaviour.

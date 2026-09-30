@@ -120,10 +120,12 @@ class Config:
         # are scored at all (Guard A fires when it rejects every one).
         # "static_arc" (default) reproduces every existing run:
         # closest_obstacle_on_curve plus v^2 + 2 a v dt > 2 a dist.
-        # "braking_rollout" asks the same question by simulating the braking
-        # manoeuvre -- real ego dynamics, moving obstacles, bounded look-ahead,
-        # contact at t = 0 -- i.e. OPEN_PROBLEMS items 5, 9, 10, 11 corrected.
-        # See braking_rollout_admissible.
+        # "braking_rollout_static" asks the same question by simulating the
+        # braking manoeuvre -- real ego dynamics, bounded look-ahead, contact at
+        # t = 0 (OPEN_PROBLEMS items 9, 10, 11) -- against static obstacles
+        # only. "braking_rollout" also brakes against predicted dynamic
+        # obstacles (item 5) and is kept as a measured negative result.
+        # See stage1_setup.
         self.admissibility_mode = "static_arc"
         # What to do when every candidate that PASSED admissibility scores inf
         # -- i.e. Guard B, "No best trajectory found":
@@ -560,7 +562,7 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
     for v in _vs:
         for y in _ws:
 
-            if _adm_mode == "braking_rollout":
+            if _s1_ob is not None:
                 if not braking_rollout_admissible(x, v, y, *_s1_ob, config, _s1_step):
                     continue
             else:
@@ -1049,23 +1051,37 @@ def stage1_setup(x, static_ob, static_ob_radii, dynamic_ob_pos, dynamic_ob_radii
                  dynamic_ob_vel, config):
     """(mode, obstacles) for Stage 1, once per planning call.
 
-    ``admissibility_mode``: "static_arc" (default, the historical test) or
-    "braking_rollout". For "braking_rollout" the obstacles are
-    ``(pos, radii, vel)`` pre-filtered by reach; for "static_arc" they are None
-    and the caller keeps its historical code path untouched.
+    ``admissibility_mode``:
+
+    "static_arc" (default)
+        The historical test. Returns obstacles None and the caller keeps its
+        historical code path untouched.
+    "braking_rollout_static"
+        The braking test with items 9, 10, 11 corrected, against STATIC
+        obstacles only. The braking test is a static-world rule: stopping is
+        the last resort against land, so there it is sound. Moving traffic is
+        left to Stage 2's trajectory check (and to item 6).
+    "braking_rollout"
+        The same, also against dynamic obstacles at ``ob + vel * t`` (item 5).
+        Kept as a measured negative result: "can I stop safely?" is the wrong
+        question among moving ships, and on v21.11 it braked the ego into
+        crossing targets (OPEN_PROBLEMS.md section 5.6).
+
+    For the braking modes the obstacles are ``(pos, radii, vel)`` pre-filtered
+    by reach.
     """
     mode = str(getattr(config, "admissibility_mode", "static_arc"))
     if mode == "static_arc":
         return mode, None
-    if mode != "braking_rollout":
-        raise ValueError(f"unknown admissibility_mode {mode!r}; "
-                         "expected 'static_arc' or 'braking_rollout'")
+    if mode not in ("braking_rollout", "braking_rollout_static"):
+        raise ValueError(f"unknown admissibility_mode {mode!r}; expected "
+                         "'static_arc', 'braking_rollout_static' or 'braking_rollout'")
     pos, radii, vel = [np.empty((0, 2))], [], [np.empty((0, 2))]
     if static_ob is not None and len(static_ob) > 0:
         pos.append(np.asarray(static_ob, dtype=float).reshape(-1, 2))
         radii.extend(static_ob_radii)
         vel.append(np.zeros((len(static_ob), 2)))
-    if dynamic_ob_pos is not None and len(dynamic_ob_pos) > 0:
+    if mode == "braking_rollout" and dynamic_ob_pos is not None and len(dynamic_ob_pos) > 0:
         pos.append(np.asarray(dynamic_ob_pos, dtype=float).reshape(-1, 2))
         radii.extend(dynamic_ob_radii)
         vel.append(np.asarray(dynamic_ob_vel, dtype=float).reshape(-1, 2))

@@ -44,7 +44,7 @@ Known limitations of the prototype:
     change and has not been made here.
   * ``closest_obstacle_on_curve`` (admissibility + static cost) still assumes a
     constant-velocity arc, so it under-estimates travel during the ramp.
-    ``admissibility_mode: "braking_rollout"`` replaces it for admissibility
+    ``admissibility_mode: "braking_rollout_static"`` replaces it for admissibility
     (not for the static cost) with a simulated braking manoeuvre from the state
     ``_step`` really reaches; see base.braking_rollout_admissible.
 """
@@ -281,7 +281,7 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
     _grid = str(getattr(config, "sample_grid_anchor", "window"))
     _vs = _sample_axis(dw[0], dw[1], config.v_resolution, config.min_speed, _grid)
     _ws = _sample_axis(dw[2], dw[3], config.yaw_rate_resolution, 0.0, _grid)
-    # admissibility_mode "braking_rollout" brakes from the state _step really
+    # The braking admissibility modes brake from the state _step really
     # reaches -- ramped when ramped_rollout is on -- which is item 11's fix.
     _adm_mode, _s1_ob = base.stage1_setup(x, static_ob, static_ob_radii, dynamic_ob_pos,
                                           dynamic_ob_radii, dynamic_ob_vel, config)
@@ -289,7 +289,7 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
     for v in _vs:
         for y in _ws:
 
-            if _adm_mode == "braking_rollout":
+            if _s1_ob is not None:
                 if not base.braking_rollout_admissible(x, v, y, *_s1_ob, config, _s1_step):
                     continue
             else:
