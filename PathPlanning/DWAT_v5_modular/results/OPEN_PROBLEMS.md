@@ -241,8 +241,8 @@ This is the ledger. Anything not in it is passing.
 | `owenc_overtaken_ego` @ predT5 | abort, iter 875 | **A** | genuinely cornered — but the only escape needs *more* speed + turn, which Stage 1 forbids | item 6 |
 | `ny_hist_366962130` | abort, iter 208 | **B** | phantom vessel **+** disc hull in Stage 1 | items **2 + 1** |
 | `ny_synth_00` | abort, iter 51 | **B** | **unknown** — Stage 1 pruned 287 candidates nobody has scored | *measure first* |
-| `ny_hist_367782880` | grounding, iter 59 | — | `dt` too coarse: 125 m/step vs 25 m shore cells | item 3 |
-| `ny_hist_367791550` | grounding, iter 52 | — | same | item 3 |
+| `ny_hist_367782880` | grounding | — | ~~`dt` too coarse~~ (falsified 2026-10-01, item 3): the ego follows a global path that runs **inside** shore contact distance, comes to rest 2.6–4.3 m from a shore cell, and touches while at rest | item **21** |
+| `ny_hist_367791550` | grounding | — | same | item **21** |
 | `v3crowd5` *(original suite, v20.7.8-2)* | fails 137.4 s | — | `_choose_local_goal` path-following divergence | **not this problem** |
 | `v3crowd6_v2111` @ v21.11 | grounding, t = 80.3 s | — | evading a head-on target toward the coast: no side rule + weak land term | ✅ **v21.12** reaches the goal (0.57): Stage 1 now brakes against land. Item 14 still open |
 | `ny_hist_366962130` @ `ais_v1.1` + `braking_rollout_static` | collision, t = 1190 s | — | a phantom (item 2) parked at its entry point reports its first-leg velocity, 0.94 m/s; Stage 2 predicts it sailing away | ✅ item 2 fixed (`track_on_start`) |
@@ -431,7 +431,7 @@ first.**
 | # | item | status |
 |---|---|---|
 | **2** | `on_start` for replayed tracks | ✅ **closed 2026-10-01**: `track_on_start`, `"extrapolate"` recommended. Adoption: the next AIS config version (item 3). Leftover: remove the deprecated `hold_wrong_speed` once nothing depends on it |
-| **3** | `ais_v1.2` — per-ego `dt` | evidenced, not adopted |
+| **3** | `ais_v1.2` — per-ego `dt` | **tested 2026-10-01: does not fix the groundings; not adopted** |
 
 **Item 2.** 17 of 78 vessels in one AIS scene are phantoms; one of them costs
 `ny_hist_366962130` its goal. It used to be filed as "independent / unrelated to
@@ -477,9 +477,43 @@ groundings are item 3, unchanged. **AIS still cannot switch Stage 1:** with
 `braking_rollout_static` + `extrapolate`, `ny_hist_366962130` hits a real ship
 (see the §4 row) — a margin problem for item 6, not an input defect.
 
-**Item 3.** Config-only and orthogonal to Group A, **but it is the fix for both
-groundings**, i.e. half the AIS suite's failures. It stalled because it roughly
-doubles run cost and changes the reference case.
+**Item 3.** Config-only and orthogonal to Group A. It was filed as **the fix for
+both groundings**, i.e. half the AIS suite's failures.
+
+*Tested 2026-10-01 — the premise does not hold under current code.* Rule:
+`dt = min(10 s, obstacle_radius / max_speed)`, at most one obstacle radius of
+travel per step (1.6–1.9 s for the two fast craft, 4.5–7.4 s for the rest). In
+the classic module `dt` also sets the dynamic window (`v ± a·dt`), so two arms
+separate the effects. All with `track_on_start: "extrapolate"`; baseline is
+`ais_v1.1` + `extrapolate` at `dt` = 10 s:
+
+| scene | baseline (`dt` 10) | A: `dt` rule, classic (window shrinks: 861 → 32 candidates) | B: `dt` rule, `dwa_ramped`, 10 s window ramps (window unchanged) |
+|---|---|---|---|
+| `ny_hist_367782880` | grounding | **Guard A** at 12.4 m/s after 2.3 min — the narrow window cannot shed speed | grounding |
+| `ny_hist_367791550` | grounding | grounding | grounding |
+| other 6 scenes | 5 goal, `ny_synth_00` error | same outcomes | same outcomes |
+
+Neither arm fixes a grounding. The earlier single test (`dt` = 2 s reaching the
+goal on `ny_hist_367782880`) predates the capsule and the other changes since.
+**Not adopted; no `ais_v1.2` yet.** The groundings have a different cause —
+item 21. Configs: `ais_v1.1/*-dtrule-extrapolate.json` (A) and
+`*-dtrule-ramped-extrapolate.json` (B).
+
+**Item 21 — the AIS global path runs over the shore** *(new, 2026-10-01; lead,
+not yet proven)*. Theta\* checks line of sight between 50 m grid cells, not the
+25 m `obstacle_radius` plus the ego's beam. On `ny_hist_367782880` and
+`ny_hist_367791550`, **5–6% of the global path lies inside shore contact
+distance**, overlapping by up to 24 m (1.4% on `ny_hist_366962130`, 0.7% on
+`ny_synth_03`, which both reach the goal). In all five AIS groundings, across
+every `dt` and module tested, the ego came to **rest** with its centre 2.6–5.2 m
+from a shore cell's edge, 45–80 m (once 221 m) from such a stretch, and the
+contact was then made at rest — by small motions or the stuck escape's turn in
+place (up to 50°). So these are not step-over groundings: the ego is sent
+toward the bank, Stage 1 stops it just short, and it touches standing still.
+Candidate fix, config-restorable: plan the global path on an occupancy grid
+inflated by `obstacle_radius + robot_width/2` (+ margin). Two side issues it
+exposes: a ship at rest should not turn in place into a bank (the stuck
+escape), and contact while at rest is still contact.
 
 ### Group C — failure handling *(cheap, cosmetic, do it anyway)*
 
@@ -1127,7 +1161,8 @@ is left is not oscillation; it is **side choice, land, and suite hygiene**.
 11. **Item 4** — port `least_bad` to `dwa_average_weighted_side`, for legibility.
 12. **Item 6** — the replacement feasibility test, absorbing 5, 9 and 11; item 7
     probably falls out.
-13. **Item 3 / `ais_v1.2`** — per-ego `dt` (fixes both AIS groundings) **and**
+13. *Item 3 tested 2026-10-01: does not fix the groundings (item 21 does, if anything). The v21.x port below is still open.*
+    **Item 3 / `ais_v1.2`** — per-ego `dt` (fixes both AIS groundings) **and**
     carrying the v21.x configs back to the AIS data, requested 2026-09-22.
     Blocked on one open question: re-measure `ais_v1.1` first (its numbers
     predate the capsule fix), or go straight to v1.2? Derived v1.2 values then:
