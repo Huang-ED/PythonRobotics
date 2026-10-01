@@ -430,7 +430,7 @@ first.**
 
 | # | item | status |
 |---|---|---|
-| **2** | `on_start` for replayed tracks | ✅ fixed 2026-10-01: `track_on_start`, `"extrapolate"` recommended |
+| **2** | `on_start` for replayed tracks | ✅ **closed 2026-10-01**: `track_on_start`, `"extrapolate"` recommended. Adoption: the next AIS config version (item 3). Leftover: remove the deprecated `hold_wrong_speed` once nothing depends on it |
 | **3** | `ais_v1.2` — per-ego `dt` | evidenced, not adopted |
 
 **Item 2.** 17 of 78 vessels in one AIS scene are phantoms; one of them costs
