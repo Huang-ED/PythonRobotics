@@ -504,8 +504,16 @@ item 21. Configs: `ais_v1.1/*-dtrule-extrapolate.json` (A) and
 1. **The global path goes through land.** On `ny_hist_367782880` 6.3% of it
    (~900 m) lies on occupied cells, 6.5% on `ny_hist_367791550`; 1.5% on
    `ny_hist_366962130` and 0.3% on `ny_synth_03`, which reach the goal anyway.
-   The global planner is given every occupied cell, so its line-of-sight check
-   is letting segments cut across them — cause not yet located.
+   The global planner is given every occupied cell; two causes, both confirmed:
+   - **Theta\*'s `line_of_sight` is broken.** It samples one cell per column
+     and truncates with `int()`. On the actual paths it approved all 13
+     segments that cross land — by 34 m to 424 m each.
+   - **The safety buffer is below the grid scale.** Theta\* blocks a node if an
+     obstacle point lies within `rr = max(robot_width, robot_length)`. On the
+     AIS maps the planner grid *is* the 50 m occupancy grid and the points are
+     cell centres, so with `rr` 15 m and 24 m (the two grounding craft) not one
+     water node is blocked as buffer; only the 147 m ship (`rr` 147) gets one.
+     On the 1-unit open-water/v3 grids `rr` 1.2 is a real buffer.
 2. **The local planner and the contact monitor see only the coastline rim.**
    `load_map_from_occupancy` builds `boundary_obstacles` from the rim of each
    land region; Stage 1, Stage 2, the static cost and the collision check all
