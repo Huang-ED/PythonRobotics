@@ -127,6 +127,13 @@ class Config:
         # obstacles (item 5) and is kept as a measured negative result.
         # See stage1_setup.
         self.admissibility_mode = "static_arc"
+        # Replayed AIS tracks that start after the run does: where is the
+        # vessel before its first fix? "extrapolate" (back along its first-leg
+        # velocity, arriving on time), "hold" (parked, velocity 0), or
+        # "hold_wrong_speed" (default: parked but reporting its first-leg
+        # velocity -- the historical behaviour, DEPRECATED, kept only so old
+        # runs reproduce). OPEN_PROBLEMS item 2. See map_manager.DynamicObstacle.
+        self.track_on_start = "hold_wrong_speed"
         # What to do when every candidate that PASSED admissibility scores inf
         # -- i.e. Guard B, "No best trajectory found":
         # "raise" -> ValueError (classic), "least_bad" -> keep the safest one.

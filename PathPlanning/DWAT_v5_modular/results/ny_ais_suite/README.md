@@ -271,7 +271,10 @@ regression scenarios re-run bit-identical.
   (`on_finish: "hold"`); the first is not, and it fabricates stationary traffic
   — 17 of 78 vessels in `ny_hist_366962130`, one of which cost that run its
   goal. A fix has to stay config-restorable, so it belongs as an `on_start`
-  option defaulting to today's behaviour.
+  option defaulting to today's behaviour. *Fixed 2026-10-01:* algorithm key
+  `track_on_start` -- `"extrapolate"` (recommended), `"hold"` (parked, velocity
+  0), or the deprecated default `"hold_wrong_speed"`, which also reported the
+  first-leg velocity while parked. See `../OPEN_PROBLEMS.md` item 2.
 - 5.6% of AIS samples fall on land cells, but 82% of those are moored vessels at
   piers the polygon covers. Among *moving* samples it is ~1%, which is berth
   geometry rather than a projection error.

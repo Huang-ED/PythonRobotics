@@ -20,7 +20,8 @@ class DynamicObstacle:
                  velocities: np.ndarray = None,
                  start_time: float = 0.0,
                  on_finish: str = "hold",
-                 track_id: str = None):
+                 track_id: str = None,
+                 on_start: str = "hold_wrong_speed"):
         """
         Initialize a dynamic obstacle.
 
@@ -42,6 +43,16 @@ class DynamicObstacle:
             start_time:    (trajectory mode) simulation time offset at t=0 (s).
             on_finish:     (trajectory mode) "hold" (freeze at the last sample, velocity 0)
                            or "loop" (restart the recording).
+            on_start:      (trajectory mode) where the vessel is before its first
+                           sample, for a track that starts after the run does:
+                           "extrapolate" -- at p[0] + v[0] * (t - t_start), reporting
+                           v[0], so it arrives at its first fix on time;
+                           "hold" -- parked at p[0] with velocity 0;
+                           "hold_wrong_speed" (default) -- parked at p[0] but
+                           reporting v[0]. DEPRECATED: position and velocity
+                           disagree, so a planner extrapolates a stationary ship
+                           sailing away. Kept only so runs before 2026-10-01
+                           reproduce; to be removed.
             track_id:      Optional label carried through for logging/plotting.
         """
         self.motion_type = motion_type
@@ -51,7 +62,8 @@ class DynamicObstacle:
         self.track_id = track_id
 
         if self.motion_type == "trajectory":
-            self._init_trajectory(trajectory, times, velocities, start_time, on_finish)
+            self._init_trajectory(trajectory, times, velocities, start_time, on_finish,
+                                  on_start)
         elif self.motion_type == "circle":
             if center is None or circle_radius is None:
                 raise ValueError("'center' and 'circle_radius' are required for circle motion.")
@@ -81,7 +93,8 @@ class DynamicObstacle:
     # Trajectory-mode helpers
     # ------------------------------------------------------------------
 
-    def _init_trajectory(self, trajectory, times, velocities, start_time, on_finish) -> None:
+    def _init_trajectory(self, trajectory, times, velocities, start_time, on_finish,
+                         on_start="hold_wrong_speed") -> None:
         """Set up a replayed, time-parameterised recording."""
         if trajectory is None:
             raise ValueError("'trajectory' is required for trajectory motion.")
@@ -111,6 +124,9 @@ class DynamicObstacle:
         self.on_finish = on_finish
         if self.on_finish not in ("hold", "loop"):
             raise ValueError("'on_finish' must be 'hold' or 'loop'.")
+        self.on_start = on_start
+        if self.on_start not in ("extrapolate", "hold", "hold_wrong_speed"):
+            raise ValueError("'on_start' must be 'extrapolate', 'hold' or 'hold_wrong_speed'.")
 
         self.t = float(start_time)
         self.t_start = float(self.times[0])
@@ -162,6 +178,16 @@ class DynamicObstacle:
         # Past the end of a "hold" recording the obstacle is parked.
         if self.on_finish == "hold" and self.t >= self.t_end:
             self.velocity = np.array([0.0, 0.0])
+
+        # Before the first sample (a "loop" recording never is). The clamp in
+        # _query_time parks the vessel at p[0], and the segment lookup above
+        # hands it v[0] -- "hold_wrong_speed", the historical behaviour.
+        if self.on_finish != "loop" and self.t < self.t_start:
+            if self.on_start == "hold":
+                self.velocity = np.array([0.0, 0.0])
+            elif self.on_start == "extrapolate":
+                self.velocity = self.velocities[0].copy()
+                self.current_position = self.trajectory[0] + self.velocity * (self.t - self.t_start)
 
     def _update_trajectory_position(self, dt: float) -> None:
         self.t += dt
@@ -426,7 +452,8 @@ class MapManager:
                               velocities: np.ndarray = None,
                               start_time: float = 0.0,
                               on_finish: str = "hold",
-                              track_id: str = None) -> None:
+                              track_id: str = None,
+                              on_start: str = "hold_wrong_speed") -> None:
         """Add a dynamic obstacle (waypoint, circle or replayed trajectory)."""
         self.dynamic_obstacles.append(DynamicObstacle(
             waypoints=waypoints,
@@ -442,7 +469,8 @@ class MapManager:
             velocities=velocities,
             start_time=start_time,
             on_finish=on_finish,
-            track_id=track_id
+            track_id=track_id,
+            on_start=on_start,
         ))
         
     def update_dynamic_obstacles(self, dt: float) -> None:

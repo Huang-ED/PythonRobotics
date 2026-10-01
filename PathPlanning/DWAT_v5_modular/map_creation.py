@@ -196,6 +196,10 @@ def _add_dynamic_obstacles(
                 start_time=obs_data.get("start_time", 0.0),
                 on_finish=obs_data.get("on_finish", "hold"),
                 track_id=track_id,
+                # An algorithm-config key, not a scenario key: scenario files
+                # stay what existing runs used, and versions opt in.
+                on_start=str(getattr(map_manager.config, "track_on_start",
+                                     "hold_wrong_speed")),
             )
         elif motion_type == "circle":
             map_manager.add_dynamic_obstacle(

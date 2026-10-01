@@ -210,6 +210,14 @@ def summarise(run_dir, scenario_path):
     bundle = np.load(scene['dynamic_obstacles'][0]['track_file'])
     pos, lens, times, radii = (bundle['positions'], bundle['lengths'],
                                bundle['times'], bundle['radii'])
+    # Before its first fix a vessel is wherever the run put it: parked at p[0]
+    # ("hold", "hold_wrong_speed" -- the only behaviour before 2026-10-01, so
+    # logs without the key are parked), or back along its first-leg velocity
+    # ("extrapolate"). Score against the world the planner was in.
+    extrapolate = cfg.get('track_on_start', 'hold_wrong_speed') == 'extrapolate'
+    vel0 = (bundle['velocities'][:, 0] if 'velocities' in bundle.files
+            else (pos[:, 1] - pos[:, 0]) / np.maximum(
+                (times[:, 1] - times[:, 0])[:, None], 1e-12))
 
     # Shoreline: the rim cells the planner actually costs against.
     occ = np.load(scene['occupancy_path']).astype(np.uint8)
@@ -233,6 +241,9 @@ def summarise(run_dir, scenario_path):
         for o in range(pos.shape[0]):
             L = int(lens[o])
             tt = times[o, :L]
+            if extrapolate and t < tt[0]:
+                here[o] = pos[o, 0] + vel0[o] * (t - tt[0])
+                continue
             tc = min(max(t, tt[0]), tt[-1])
             here[o] = (np.interp(tc, tt, pos[o, :L, 0]),
                        np.interp(tc, tt, pos[o, :L, 1]))

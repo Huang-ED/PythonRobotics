@@ -89,8 +89,23 @@ class SimulationRenderer:
             # not the planner's. See RuntimeOptions and purge_scratch_frames.py.
             root = str(getattr(self.runtime, "frames_root", "") or "").strip()
             if root:
-                self.fig_dir = Path(root).expanduser() / base_dir.name
-                self.fig_dir.mkdir(parents=True, exist_ok=True)
+                # The run directory's own name is <scenario>__<timestamp>, so
+                # two configs started on one scenario in the same second share
+                # it -- and wrote into ONE frames folder, overwriting each other
+                # (2026-10-01, six AIS runs). Claim the folder atomically; if it
+                # is taken, add a suffix. RUN_DIR says whose frames these are.
+                parent = Path(root).expanduser()
+                parent.mkdir(parents=True, exist_ok=True)
+                n = 1
+                while True:
+                    name = base_dir.name if n == 1 else f"{base_dir.name}__{n}"
+                    try:
+                        (parent / name).mkdir()
+                        break
+                    except FileExistsError:
+                        n += 1
+                self.fig_dir = parent / name
+                (self.fig_dir / "RUN_DIR").write_text(str(base_dir) + "\n", encoding="utf-8")
             else:
                 self.fig_dir = base_dir / "frames"
                 self.fig_dir.mkdir(parents=True, exist_ok=False)

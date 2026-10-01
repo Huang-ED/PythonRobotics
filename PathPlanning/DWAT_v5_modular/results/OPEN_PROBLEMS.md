@@ -245,7 +245,8 @@ This is the ledger. Anything not in it is passing.
 | `ny_hist_367791550` | grounding, iter 52 | — | same | item 3 |
 | `v3crowd5` *(original suite, v20.7.8-2)* | fails 137.4 s | — | `_choose_local_goal` path-following divergence | **not this problem** |
 | `v3crowd6_v2111` @ v21.11 | grounding, t = 80.3 s | — | evading a head-on target toward the coast: no side rule + weak land term | ✅ **v21.12** reaches the goal (0.57): Stage 1 now brakes against land. Item 14 still open |
-| `ny_hist_366962130` @ `ais_v1.1` + `braking_rollout_static` | collision, t = 1190 s | — | a phantom (item 2) parked at its entry point reports its first-leg velocity, 0.94 m/s; Stage 2 predicts it sailing away. The frozen-obstacle test avoided it by accident | item **2** — blocks AIS configs from switching Stage 1 |
+| `ny_hist_366962130` @ `ais_v1.1` + `braking_rollout_static` | collision, t = 1190 s | — | a phantom (item 2) parked at its entry point reports its first-leg velocity, 0.94 m/s; Stage 2 predicts it sailing away | ✅ item 2 fixed (`track_on_start`) |
+| `ny_hist_366962130` @ `ais_v1.1` + `braking_rollout_static` + `extrapolate` | collision, t = 1510 s | — | a **real** 124 m-radius ship (#3, 4.65 m/s). Stage 2 planned to pass it at **0.4 m** for a full minute; at `dt` = 10 s with constant-velocity prediction, any error is contact. `static_arc`'s frozen-ship braking test kept the ego off ships by accident | no hard margin around ships (§7.2 point 3) — item 6's `d_safe`. **Blocks AIS from switching Stage 1** |
 | v3crowd, undeclared heading @ v21.10 | abort, 3 of 3 | — | loses its own path: the start transient never settles | superseded by v21.11 (`OSCILLATION.md`) |
 
 *Scorer note, 2026-09-29.* Every clearance in this document before this date was
@@ -429,7 +430,7 @@ first.**
 
 | # | item | status |
 |---|---|---|
-| **2** | `on_start` for replayed tracks | not started |
+| **2** | `on_start` for replayed tracks | ✅ fixed 2026-10-01: `track_on_start`, `"extrapolate"` recommended |
 | **3** | `ais_v1.2` — per-ego `dt` | evidenced, not adopted |
 
 **Item 2.** 17 of 78 vessels in one AIS scene are phantoms; one of them costs
@@ -443,9 +444,38 @@ velocity). At t = 1190 s in `ny_hist_366962130`, 23 of the 25 not-yet-started
 vessels report nonzero velocity while stationary. Stage 2 extrapolates them
 sailing away; under `braking_rollout_static` the ego held 4.8 m/s and hit one
 (#9, 0.94 m/s reported, track starting at t = 1200 s). `static_arc` froze every
-vessel and so modelled the phantom correctly by accident. **AIS configs must not
-switch Stage 1 until this is fixed** — at minimum, report velocity 0 before
-`start_time`, behind a key defaulting to today's behaviour.
+vessel and so modelled the phantom correctly by accident.
+
+**Fixed 2026-10-01: algorithm-config key `track_on_start`** (an algorithm key,
+not a scenario key, so the scenario files existing runs used do not change):
+
+| value | before its first fix the vessel is… | status |
+|---|---|---|
+| `"extrapolate"` | at `p₀ + v₀·(t − t_start)`, reporting `v₀` — arrives at its first fix on time | **recommended** |
+| `"hold"` | parked at `p₀`, velocity 0 | consistent, still invents a parked ship |
+| `"hold_wrong_speed"` | parked at `p₀`, reporting `v₀` | **code default, DEPRECATED** — the historical behaviour, kept only so old runs reproduce; **remove it** once nothing depends on it |
+
+`"absent"` (no vessel until its first fix) was rejected: a ship popping into
+existence beside the ego is an encounter nobody could avoid. Cost of
+`"extrapolate"`: in every AIS scene ~30% of late-starting vessels (9–14 of
+32–46) glide over land on their extrapolated leg, for up to ~50 min — harmless to
+the ego, which is always in water, but they "emerge" from the shore near their
+first fix.
+
+AIS results, `ais_v1.1` (worst ship clearance re-measured at 1 s by
+`new_york_cases.summarise`, which now scores against the same pre-start model):
+
+| scene | default (`hold_wrong_speed`) | `extrapolate` |
+|---|---|---|
+| `ny_hist_366962130` | goal, ship **−3.8 m** (an undetected contact with a phantom) | goal, ship **+1.4 m** |
+| `ny_hist_367791550` | grounding, ship 20.9 m | grounding, ship **188.5 m** |
+| `ny_synth_03` | goal, ship 56.0 m | goal, ship **91.4 m** |
+| other 5 scenes | — | identical outcome and clearance |
+
+The default rerun of `ny_hist_366962130` is bit-identical to 2026-09-29. The two
+groundings are item 3, unchanged. **AIS still cannot switch Stage 1:** with
+`braking_rollout_static` + `extrapolate`, `ny_hist_366962130` hits a real ship
+(see the §4 row) — a margin problem for item 6, not an input defect.
 
 **Item 3.** Config-only and orthogonal to Group A, **but it is the fix for both
 groundings**, i.e. half the AIS suite's failures. It stalled because it roughly
@@ -1088,7 +1118,7 @@ is left is not oscillation; it is **side choice, land, and suite hygiene**.
    **Re-measure `ny_hist_366962130`** after item 1 (capsule); §4.1 predicted it
    admits the blocking candidate, and the capsule's direction-dependence makes
    that look optimistic.
-8. **Item 2** — `on_start`, defaulting to today's behaviour.
+8. ✅ *Done 2026-10-01: `track_on_start` (item 2).* **Item 2** — `on_start`, defaulting to today's behaviour.
 9. **Re-baseline the AIS suite** on the corrected scene and hull.
 10. **Measure what Stage 1 prunes — before designing anything.** Score the 287
     candidates Stage 1 rejects at the `ny_synth_00` abort. One instrumented call;
