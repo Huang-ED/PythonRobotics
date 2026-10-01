@@ -241,7 +241,7 @@ This is the ledger. Anything not in it is passing.
 | `owenc_overtaken_ego` @ predT5 | abort, iter 875 | **A** | genuinely cornered — but the only escape needs *more* speed + turn, which Stage 1 forbids | item 6 |
 | `ny_hist_366962130` | abort, iter 208 | **B** | phantom vessel **+** disc hull in Stage 1 | items **2 + 1** |
 | `ny_synth_00` | abort, iter 51 | **B** | **unknown** — Stage 1 pruned 287 candidates nobody has scored | *measure first* |
-| `ny_hist_367782880` | grounding | — | ~~`dt` too coarse~~ (falsified 2026-10-01, item 3): the ego follows a global path that runs **inside** shore contact distance, comes to rest 2.6–4.3 m from a shore cell, and touches while at rest | item **21** |
+| `ny_hist_367782880` | grounding | — | ~~`dt` too coarse~~ (falsified 2026-10-01, item 3): the global path crosses land; the ego slips between two rim points, sails 110 s **inside** the land unseen, and touches the rim from inland | item **21** |
 | `ny_hist_367791550` | grounding | — | same | item **21** |
 | `v3crowd5` *(original suite, v20.7.8-2)* | fails 137.4 s | — | `_choose_local_goal` path-following divergence | **not this problem** |
 | `v3crowd6_v2111` @ v21.11 | grounding, t = 80.3 s | — | evading a head-on target toward the coast: no side rule + weak land term | ✅ **v21.12** reaches the goal (0.57): Stage 1 now brakes against land. Item 14 still open |
@@ -493,27 +493,39 @@ separate the effects. All with `track_on_start: "extrapolate"`; baseline is
 | `ny_hist_367791550` | grounding | grounding | grounding |
 | other 6 scenes | 5 goal, `ny_synth_00` error | same outcomes | same outcomes |
 
-Neither arm fixes a grounding. The earlier single test (`dt` = 2 s reaching the
+Neither arm fixes a grounding — in every arm the ego entered the land between rim points (item 21). The earlier single test (`dt` = 2 s reaching the
 goal on `ny_hist_367782880`) predates the capsule and the other changes since.
 **Not adopted; no `ais_v1.2` yet.** The groundings have a different cause —
 item 21. Configs: `ais_v1.1/*-dtrule-extrapolate.json` (A) and
 `*-dtrule-ramped-extrapolate.json` (B).
 
-**Item 21 — the AIS global path runs over the shore** *(new, 2026-10-01; lead,
-not yet proven)*. Theta\* checks line of sight between 50 m grid cells, not the
-25 m `obstacle_radius` plus the ego's beam. On `ny_hist_367782880` and
-`ny_hist_367791550`, **5–6% of the global path lies inside shore contact
-distance**, overlapping by up to 24 m (1.4% on `ny_hist_366962130`, 0.7% on
-`ny_synth_03`, which both reach the goal). In all five AIS groundings, across
-every `dt` and module tested, the ego came to **rest** with its centre 2.6–5.2 m
-from a shore cell's edge, 45–80 m (once 221 m) from such a stretch, and the
-contact was then made at rest — by small motions or the stuck escape's turn in
-place (up to 50°). So these are not step-over groundings: the ego is sent
-toward the bank, Stage 1 stops it just short, and it touches standing still.
-Candidate fix, config-restorable: plan the global path on an occupancy grid
-inflated by `obstacle_radius + robot_width/2` (+ margin). Two side issues it
-exposes: a ship at rest should not turn in place into a bank (the stuck
-escape), and contact while at rest is still contact.
+**Item 21 — on the AIS maps, land is only a dotted rim, and the global path crosses it** *(new 2026-10-01; corrected the same day — the first version of this entry said the ego "came to rest beside the bank", which was measured from inside the land)*. Two defects, both confirmed:
+
+1. **The global path goes through land.** On `ny_hist_367782880` 6.3% of it
+   (~900 m) lies on occupied cells, 6.5% on `ny_hist_367791550`; 1.5% on
+   `ny_hist_366962130` and 0.3% on `ny_synth_03`, which reach the goal anyway.
+   The global planner is given every occupied cell, so its line-of-sight check
+   is letting segments cut across them — cause not yet located.
+2. **The local planner and the contact monitor see only the coastline rim.**
+   `load_map_from_occupancy` builds `boundary_obstacles` from the rim of each
+   land region; Stage 1, Stage 2, the static cost and the collision check all
+   use those. Interior land is invisible, and the rim is not continuous: points
+   50 m apart (70.7 m diagonally) with a contact radius of `obstacle_radius` +
+   half-beam ≈ 26.5–27.4 m leave a gap between diagonal neighbours.
+
+What happened in both groundings, at every `dt` and module tested: following the
+path, the ego **passed between two rim points** (closest 30.7 m and 30.2 m
+against thresholds of 26.5 and 27.4 m, on steps of only 12 m and 8 m), **sailed
+inside the land for 11 steps (110 s)** with nothing registered, and the
+"grounding" was declared when it touched a rim point **from the inland side**.
+So this has nothing to do with `dt`. The AIS summariser's shore clearance is
+measured against the same rim, so it is blind to this as well.
+
+Fix directions, config-restorable: (a) contact and Stage 1/2 against land by
+an occupancy lookup or all occupied cells, not the rim alone — or at least a rim
+radius that closes the diagonal gap (≥ `res·√2/2` = 35.4 m); (b) a global-path
+line-of-sight check that rejects any segment touching an occupied cell,
+inflated by the ego's half-beam.
 
 ### Group C — failure handling *(cheap, cosmetic, do it anyway)*
 
@@ -1161,7 +1173,7 @@ is left is not oscillation; it is **side choice, land, and suite hygiene**.
 11. **Item 4** — port `least_bad` to `dwa_average_weighted_side`, for legibility.
 12. **Item 6** — the replacement feasibility test, absorbing 5, 9 and 11; item 7
     probably falls out.
-13. *Item 3 tested 2026-10-01: does not fix the groundings (item 21 does, if anything). The v21.x port below is still open.*
+13. *Item 3 tested 2026-10-01: does not fix the groundings; their cause is item 21. The v21.x port below is still open.*
     **Item 3 / `ais_v1.2`** — per-ego `dt` (fixes both AIS groundings) **and**
     carrying the v21.x configs back to the AIS data, requested 2026-09-22.
     Blocked on one open question: re-measure `ais_v1.1` first (its numbers
