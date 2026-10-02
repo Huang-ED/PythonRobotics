@@ -24,7 +24,7 @@ python -m PathPlanning.DWAT_v5_modular.main \
     --scenario ny_narrows_338862000 --algorithm-config ais_v1 \
     --no-animation --no-save-frames
 
-# the eight-case suite (ais_v1.1)
+# the eight-case suite (ais_v1.1; add --version ais_v1.2 for the current configs)
 python -m PathPlanning.DWAT_v5_modular.adapters.new_york_cases \
     --historical 4 --synthetic 4          # writes scenarios + per-ego configs
 # ...run the commands it prints, however you like...
@@ -115,6 +115,19 @@ contact between samples. An earlier round produced a run reporting
 a vessel at −0.92 m. The summariser therefore re-measures at 1 s using the same
 hull model the planner used, and flags any such case in an `undetected` column.
 **That column is False for all eight cases above.**
+
+## `ais_v1.2` (2026-10-02): 7 of 8
+
+Both groundings below turned out to be the ego **sailing inside the land**: the
+global path cut across land cells (a broken line-of-sight check, and a buffer
+smaller than one 50 m cell), and the local planner sees land only as a rim of
+circles too small to close the diagonal gaps. With those fixed and `dt` set
+per ego, both reach the goal (17.5 and 21.4 min, against the humans' 26.0 and
+28.0), every case spends 0 s on land, and `ny_hist_366962130`'s undetected
+−3.8 m contact with a phantom becomes +1.0 m. `ny_synth_00` still aborts.
+Details: `../OPEN_PROBLEMS.md` items 2, 3 and 21. The `dt`-only explanation
+below was tested on its own and does **not** fix the groundings; it matters
+only once the land defects are gone.
 
 ## What the four failures found
 

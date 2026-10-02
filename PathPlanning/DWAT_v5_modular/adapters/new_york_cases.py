@@ -45,6 +45,7 @@ else.
 
 import argparse
 import json
+import math
 import os
 import sys
 
@@ -151,11 +152,33 @@ def sample_vessels(pts, count, rng):
 
 # ------------------------------------------------------------- plumbing ----
 
+def derive_ais_v12(cfg, resolution):
+    """The per-ego values ais_v1.2 derives from the map cell size.
+
+    Land is a set of cell-centre points, each a circle standing for a square
+    cell, so its radius is the cell's circumscribed circle, res/sqrt(2) --
+    with res/2 (ais_v1.1) the circles leave gaps between diagonal neighbours and
+    the ego sailed into the land through them (OPEN_PROBLEMS item 21).
+
+    dt: at most half a cell of travel per step, capped at 10 s (item 3).
+    global_planner_rr: Theta*'s buffer, so the whole global path -- segments,
+    not just nodes -- stays outside the local contact distance: obstacle radius
+    + half-beam + half a cell's diagonal (item 21).
+    """
+    cfg['obstacle_radius'] = round(resolution / math.sqrt(2), 2)
+    cfg['dt'] = min(10.0, math.floor(0.5 * resolution / cfg['max_speed'] * 10) / 10)
+    cfg['global_planner_rr'] = round(cfg['obstacle_radius'] + 0.5 * cfg['robot_width']
+                                     + resolution / math.sqrt(2), 2)
+    return cfg
+
+
 def write_algorithm_config(case, kinematics, base_path=BASE_ALGORITHM,
-                           out_dir=ALGORITHM_DIR):
+                           out_dir=ALGORITHM_DIR, resolution=None, derive=None):
     with open(base_path) as f:
         cfg = json.load(f)
     cfg.update(kinematics)
+    if derive is not None:
+        cfg = derive(cfg, resolution)
     # obstacle_radius is tied to the map, not the vessel, so it is inherited.
     os.makedirs(out_dir, exist_ok=True)
     path = os.path.join(out_dir, f'{case}.json')
@@ -324,6 +347,10 @@ def main():
     p.add_argument('--historical', type=int, default=4)
     p.add_argument('--synthetic', type=int, default=4)
     p.add_argument('--resolution', type=float, default=50.0)
+    p.add_argument('--version', choices=('ais_v1.1', 'ais_v1.2'), default='ais_v1.1',
+                   help="algorithm config version to write per-ego configs for; "
+                        "ais_v1.2 derives obstacle_radius, dt and global_planner_rr "
+                        "from --resolution and each ego (derive_ais_v12)")
     p.add_argument('--seed', type=int, default=0)
     p.add_argument('--min-transit', type=float, default=2000.0)
     p.add_argument('--mission-min', type=float, default=3000.0)
@@ -387,7 +414,12 @@ def main():
             continue
         built.append(dict(case=c['name'], kind=c['kind'],
                           scenario=res['config_path'],
-                          algorithm=write_algorithm_config(c['name'], res['kinematics']),
+                          algorithm=write_algorithm_config(
+                              c['name'], res['kinematics'],
+                              base_path=os.path.join(os.path.dirname(BASE_ALGORITHM), f'{a.version}.json'),
+                              out_dir=os.path.join(os.path.dirname(ALGORITHM_DIR), a.version),
+                              resolution=a.resolution,
+                              derive=derive_ais_v12 if a.version == 'ais_v1.2' else None),
                           **{f'ego_{k}': v for k, v in res['ego'].items()}))
 
     os.makedirs(os.path.dirname(os.path.abspath(a.manifest)), exist_ok=True)

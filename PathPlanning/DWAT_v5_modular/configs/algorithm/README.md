@@ -45,6 +45,7 @@ the configs belong at the top level under their own names.
 | `v20.7.8-2/` | `predict_time_obstacle` ∈ {5, 10, 12, 15, 18, 20, 30} |
 | `v20.7.9/` | `predT5-ramped` — the 5 s point of the same sweep, under v20.7.9 |
 | `ais_v1.1/` | the ego vessel — hull and service speed, per AIS case |
+| `ais_v1.2/` | the same egos; `obstacle_radius`, `dt` and `global_planner_rr` derived from the map cell and each ego by `new_york_cases.derive_ais_v12` |
 
 **Bare names still resolve** (`--algorithm-config v20.7.5` works from anywhere)
 because the filename is unique across the tree; a directory-qualified name
@@ -158,8 +159,22 @@ They cannot be *run* through `--algorithm-config`, and re-creating configs for
 them would misrepresent history. `v20.7.4` is the one genuinely unrecorded
 step: no commit, no config, notes only.
 
-`ais_v1.json` and `ais_v1.1.json` belong to the New York / AIS import work, not this
-lineage.
+`ais_v1.json`, `ais_v1.1.json` and `ais_v1.2.json` belong to the New York / AIS
+import work, not this lineage.
+
+**`ais_v1.2` (2026-10-02) is the AIS config to run: 7/8 cases reach the goal,
+against 5/8 for `ais_v1.1`, and no run touches land.** It is `ais_v1.1` plus:
+`track_on_start: "extrapolate"` (item 2), `global_los_check: "supercover"` and a
+metric `global_planner_rr` (item 21: the global path no longer crosses land or
+the contact zone), `obstacle_radius` = res/√2 = 35.36 m (item 21: land circles
+now cover their cells, so the rim has no gaps to sail through), and per-ego
+`dt` ≤ half a cell of travel per step (item 3). Stage 1 is still `static_arc`
+in the classic module -- with `dwa_ramped` it would test setpoints (item 11),
+and `braking_rollout_static` for AIS waits on a ship margin (item 6). The
+per-case files are byte copies of `ais_v1.1/*-landfix-dtrule.json`, whose runs
+are under `runs/ais_v1.1/<case>-landfix-dtrule/`; regenerate with
+`new_york_cases --version ais_v1.2`. Remaining failure: `ny_synth_00` (147 m
+ship, Guard A at 9 min).
 
 ## v20.8.1 — recorded insights
 

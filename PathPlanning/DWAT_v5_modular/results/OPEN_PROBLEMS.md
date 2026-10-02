@@ -241,8 +241,8 @@ This is the ledger. Anything not in it is passing.
 | `owenc_overtaken_ego` @ predT5 | abort, iter 875 | **A** | genuinely cornered — but the only escape needs *more* speed + turn, which Stage 1 forbids | item 6 |
 | `ny_hist_366962130` | abort, iter 208 | **B** | phantom vessel **+** disc hull in Stage 1 | items **2 + 1** |
 | `ny_synth_00` | abort, iter 51 | **B** | **unknown** — Stage 1 pruned 287 candidates nobody has scored | *measure first* |
-| `ny_hist_367782880` | grounding | — | ~~`dt` too coarse~~ (falsified 2026-10-01, item 3): the global path crosses land; the ego slips between two rim points, sails 110 s **inside** the land unseen, and touches the rim from inland | item **21** |
-| `ny_hist_367791550` | grounding | — | same | item **21** |
+| `ny_hist_367782880` | grounding | — | the global path crosses land; the ego slips between two rim points, sails 110 s **inside** the land unseen, and touches the rim from inland | ✅ **`ais_v1.2`** reaches the goal (21.4 min; human 28.0) — items 21 + 3 |
+| `ny_hist_367791550` | grounding | — | same; with the land fixed, a 146 m/step overshoot at a turn | ✅ **`ais_v1.2`** reaches the goal (17.5 min; human 26.0) — items 21 + 3 |
 | `v3crowd5` *(original suite, v20.7.8-2)* | fails 137.4 s | — | `_choose_local_goal` path-following divergence | **not this problem** |
 | `v3crowd6_v2111` @ v21.11 | grounding, t = 80.3 s | — | evading a head-on target toward the coast: no side rule + weak land term | ✅ **v21.12** reaches the goal (0.57): Stage 1 now brakes against land. Item 14 still open |
 | `ny_hist_366962130` @ `ais_v1.1` + `braking_rollout_static` | collision, t = 1190 s | — | a phantom (item 2) parked at its entry point reports its first-leg velocity, 0.94 m/s; Stage 2 predicts it sailing away | ✅ item 2 fixed (`track_on_start`) |
@@ -430,8 +430,8 @@ first.**
 
 | # | item | status |
 |---|---|---|
-| **2** | `on_start` for replayed tracks | ✅ **closed 2026-10-01**: `track_on_start`, `"extrapolate"` recommended. Adoption: the next AIS config version (item 3). Leftover: remove the deprecated `hold_wrong_speed` once nothing depends on it |
-| **3** | `ais_v1.2` — per-ego `dt` | **tested 2026-10-01: does not fix the groundings; not adopted** |
+| **2** | `on_start` for replayed tracks | ✅ **closed 2026-10-01**: `track_on_start`, `"extrapolate"` recommended. Adopted in `ais_v1.2`. Leftover: remove the deprecated `hold_wrong_speed` once nothing depends on it |
+| **3** | `ais_v1.2` — per-ego `dt` | ✅ **adopted in `ais_v1.2` (2026-10-02)** — needed, but only after item 21 |
 
 **Item 2.** 17 of 78 vessels in one AIS scene are phantoms; one of them costs
 `ny_hist_366962130` its goal. It used to be filed as "independent / unrelated to
@@ -495,8 +495,12 @@ separate the effects. All with `track_on_start: "extrapolate"`; baseline is
 
 Neither arm fixes a grounding — in every arm the ego entered the land between rim points (item 21). The earlier single test (`dt` = 2 s reaching the
 goal on `ny_hist_367782880`) predates the capsule and the other changes since.
-**Not adopted; no `ais_v1.2` yet.** The groundings have a different cause —
-item 21. Configs: `ais_v1.1/*-dtrule-extrapolate.json` (A) and
+The groundings have a different cause — item 21. **Once item 21 was fixed,
+the `dt` rule did matter** (2026-10-02): `ny_hist_367791550` then grounded by
+overshooting a turn at 146 m per step, and with the rule both grounding cases
+reach the goal. The classic module (arm A) is the one adopted; arm B grounded
+`ny_hist_367782880` at 3.5 min, because `dwa_ramped` + `static_arc` tests
+setpoints (item 11) and the braking test no longer slows it near land. Configs: `ais_v1.1/*-dtrule-extrapolate.json` (A) and
 `*-dtrule-ramped-extrapolate.json` (B).
 
 **Item 21 — on the AIS maps, land is only a dotted rim, and the global path crosses it** *(new 2026-10-01; corrected the same day — the first version of this entry said the ego "came to rest beside the bank", which was measured from inside the land)*. Two defects, both confirmed:
@@ -534,6 +538,27 @@ an occupancy lookup or all occupied cells, not the rim alone — or at least a r
 radius that closes the diagonal gap (≥ `res·√2/2` = 35.4 m); (b) a global-path
 line-of-sight check that rejects any segment touching an occupied cell,
 inflated by the ego's half-beam.
+
+*Fixed 2026-10-02 in **`ais_v1.2`**.* (b1) `global_los_check: "supercover"` takes
+the paths from ~900 m over land to 0 m, for +40 m of length. (a)
+`obstacle_radius` = res/√2 = 35.36 m makes each land circle cover its cell, so
+the rim has no gaps; land intrusion is 0 s in all 8 cases. (b2) the first
+buffer tried, the contact distance (37–47 m), is below the 50 m node spacing and
+blocks nothing; `global_planner_rr` = contact distance + half a cell's diagonal
+(72–82 m) keeps the whole path out of the contact zone, with water start/goal
+nodes exempted (one goal sits 86 m from a bank). Results:
+
+| case | `ais_v1.1` | b1 + a | b1 + a + b2 | **+ `dt` rule = `ais_v1.2`** |
+|---|---|---|---|---|
+| `ny_hist_367782880` | grounding, 127 s on land | goal | goal | **goal** |
+| `ny_hist_367791550` | grounding, 127 s on land | grounding, 0 s on land | grounding (overshoot) | **goal** |
+| other 6 | 5 goal, `ny_synth_00` Guard A | same | same | same |
+
+Side effects to watch: ship clearances move both ways (`ny_hist_366962130`
+−3.8 → +1.0 m; `ny_synth_00` 33 → 4 m; `ny_synth_03` 56 → 38 m) — the missing
+ship margin (item 6). The v3 route's Theta\* path also changes under
+`supercover` (7 → 11 nodes): the legacy check cut blocked cells there too —
+worth a look for item 20's coastal cell.
 
 ### Group C — failure handling *(cheap, cosmetic, do it anyway)*
 
