@@ -500,7 +500,10 @@ the `dt` rule did matter** (2026-10-02): `ny_hist_367791550` then grounded by
 overshooting a turn at 146 m per step, and with the rule both grounding cases
 reach the goal. The classic module (arm A) is the one adopted; arm B grounded
 `ny_hist_367782880` at 3.5 min, because `dwa_ramped` + `static_arc` tests
-setpoints (item 11) and the braking test no longer slows it near land. Configs: `ais_v1.1/*-dtrule-extrapolate.json` (A) and
+setpoints (item 11) and the braking test no longer slows it near land: within
+150 m of the bank arm A slows to 0.04 m/s, arm B holds 12.56 m/s. *Confirmed
+2026-10-02:* arm B with `braking_rollout_static` (real speed) reaches the goal
+in 20.8 min. Configs: `ais_v1.1/*-dtrule-extrapolate.json` (A) and
 `*-dtrule-ramped-extrapolate.json` (B).
 
 **Item 21 — on the AIS maps, land is only a dotted rim, and the global path crosses it** *(new 2026-10-01; corrected the same day — the first version of this entry said the ego "came to rest beside the bank", which was measured from inside the land)*. Two defects, both confirmed:
@@ -556,9 +559,19 @@ nodes exempted (one goal sits 86 m from a bank). Results:
 
 Side effects to watch: ship clearances move both ways (`ny_hist_366962130`
 −3.8 → +1.0 m; `ny_synth_00` 33 → 4 m; `ny_synth_03` 56 → 38 m) — the missing
-ship margin (item 6). The v3 route's Theta\* path also changes under
-`supercover` (7 → 11 nodes): the legacy check cut blocked cells there too —
-worth a look for item 20's coastal cell.
+ship margin (item 6).
+
+*The v3 route, checked 2026-10-02.* Its Theta\* path also changes under
+`supercover` (7 → 11 nodes), but on the 1-unit grid the legacy defect is
+negligible: the path dipped 0.04 u into the planner's own 1.2 u buffer over
+0.6% of its length and never came within local contact distance of land; past
+item 20's coastal cell it moves from 2.10 to 2.57 u. v21.12 + `supercover`
+(`v21.12/supercover.json`): v3crowd5/6/7 all reach the goal, clearances 0.87 /
+0.69 / 0.54 against v21.12's 0.85 / 0.57 / 0.62; baseline 205.1 s against
+204.7 s. Neutral — the grounding item 20 recorded was not caused by the path.
+(One v3crowd6 attempt died at t = 197.8 s with a native floating-point
+exception and an empty run folder; the rerun went through, so it did not
+reproduce.)
 
 ### Group C — failure handling *(cheap, cosmetic, do it anyway)*
 
