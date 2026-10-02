@@ -253,10 +253,21 @@ def _plan_global_path(
         else np.array([[-999.0, -999.0]])
     )
 
+    # The search buffer. Historically max(W, L) -- a ship length, in world
+    # units. On a 1-unit grid that is more than a cell; on the 50 m AIS grid it
+    # is less than one, so no water node was ever blocked as buffer (item 21).
+    # global_planner_rr sets it in world units instead; None keeps max(W, L).
+    _rr_key = getattr(config, "global_planner_rr", None)
+    rr_global = max(config.robot_width, config.robot_length) if _rr_key is None else float(_rr_key)
+
     planner = theta_star.ThetaStarPlanner(
         ob=astar_ob,
         resolution=planner_resolution,
-        rr=max(config.robot_width, config.robot_length),
+        rr=rr_global,
+        los_mode=str(getattr(config, "global_los_check", "column_sample")),
+        # Only with a metric buffer: a start or goal in water beside the bank
+        # must not be swallowed by it. Legacy (rr None) is untouched.
+        exempt_water_endpoints=_rr_key is not None,
         min_x=min(ob_min_x, start[0] - 2, goal[0] - 2),
         min_y=min(ob_min_y, start[1] - 2, goal[1] - 2),
         max_x=max(ob_max_x, start[0] + 2, goal[0] + 2),
@@ -284,7 +295,7 @@ def _plan_global_path(
         # normally free. Guard it anyway: if the declared endpoint is within the
         # planner's own inflation radius of an obstacle, keep the snapped node
         # rather than route the ego into something.
-        rr = max(config.robot_width, config.robot_length)
+        rr = rr_global
         for idx, declared in ((0, np.asarray(start, dtype=float)),
                               (-1, np.asarray(goal, dtype=float))):
             if map_manager.astar_obstacles.shape[0] > 0:

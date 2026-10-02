@@ -24,7 +24,9 @@ class ThetaStarPlanner:
         self, ob, resolution, rr, 
         min_x=None, min_y=None, max_x=None, max_y=None,
         save_animation_to_figs=False,
-        fig_dir=None
+        fig_dir=None,
+        los_mode="column_sample",
+        exempt_water_endpoints=False,
     ):
         """
         Initialize grid map for a star planning
@@ -33,7 +35,20 @@ class ThetaStarPlanner:
         oy: y position list of Obstacles [m]
         resolution: grid resolution [m]
         rr: robot radius[m]
+        los_mode: "column_sample" (default, historical) samples one cell per
+            column with int() truncation, which lets a segment cut across
+            blocked cells -- measured on the AIS maps, 13 path segments crossing
+            34-424 m of land each. "supercover" checks every cell the segment
+            touches. OPEN_PROBLEMS item 21.
         """
+        if los_mode not in ("column_sample", "supercover"):
+            raise ValueError(f"unknown los_mode {los_mode!r}")
+        self.los_mode = los_mode
+        # A buffer wider than a cell can swallow a start or goal that sits in
+        # water close to the bank (a berth), and the search then fails. When
+        # set, an endpoint node is unblocked if no obstacle point lies within
+        # half a cell of it -- i.e. it is blocked only by buffer, not by land.
+        self.exempt_water_endpoints = exempt_water_endpoints
 
         self.ob = np.array(ob, dtype=float)
         assert self.ob.ndim == 2 and self.ob.shape[1] == 2, "obstacles should be a 2D array with shape (N, 2)"
@@ -81,6 +96,14 @@ class ThetaStarPlanner:
                                self.calc_xy_index(sy, self.min_y), 0.0, -1)
         goal_node = self.Node(self.calc_xy_index(gx, self.min_x),
                               self.calc_xy_index(gy, self.min_y), 0.0, -1)
+
+        if self.exempt_water_endpoints:
+            tree = cKDTree(self.ob)
+            for n in (start_node, goal_node):
+                if 0 <= n.x < self.x_width and 0 <= n.y < self.y_width and self.obstacle_map[n.x][n.y]:
+                    centre = (self.calc_grid_position(n.x, self.min_x), self.calc_grid_position(n.y, self.min_y))
+                    if tree.query(centre)[0] > 0.5 * self.resolution:
+                        self.obstacle_map[n.x][n.y] = False
 
         open_set, closed_set = dict(), dict()
         open_set[self.calc_grid_index(start_node)] = start_node
@@ -173,6 +196,8 @@ class ThetaStarPlanner:
         """
         Line of sight check
         """
+        if self.los_mode == "supercover":
+            return self._line_of_sight_supercover(n1, n2)
         x1, y1 = n1.x, n1.y
         x2, y2 = n2.x, n2.y
         dx = abs(x2 - x1)
@@ -196,6 +221,33 @@ class ThetaStarPlanner:
                 if self.obstacle_map[x][y]:
                     return False
 
+        return True
+
+    def _line_of_sight_supercover(self, n1, n2):
+        """True iff no blocked cell is touched by the segment n1 -> n2.
+
+        Nodes are cell centres at integer indices; cell (i, j) is the unit
+        square centred on it. Walk the major axis one cell at a time; within
+        each slab [i - 0.5, i + 0.5] the segment spans an interval on the minor
+        axis, and every cell overlapping that interval is checked. Touching a
+        cell's edge or corner counts, so the test is conservative.
+        """
+        x1, y1, x2, y2 = n1.x, n1.y, n2.x, n2.y
+        steep = abs(y2 - y1) > abs(x2 - x1)
+        if steep:
+            x1, y1, x2, y2 = y1, x1, y2, x2
+        if x1 > x2:
+            x1, y1, x2, y2 = x2, y2, x1, y1
+        slope = (y2 - y1) / (x2 - x1) if x2 != x1 else 0.0
+        omap = self.obstacle_map
+        for x in range(x1, x2 + 1):
+            xa, xb = max(x - 0.5, x1), min(x + 0.5, x2)
+            ya, yb = y1 + slope * (xa - x1), y1 + slope * (xb - x1)
+            lo, hi = (ya, yb) if ya <= yb else (yb, ya)
+            for y in range(math.ceil(lo - 0.5), math.floor(hi + 0.5) + 1):
+                cx, cy = (y, x) if steep else (x, y)
+                if 0 <= cx < self.x_width and 0 <= cy < self.y_width and omap[cx][cy]:
+                    return False
         return True
 
     def calc_final_path(self, goal_node, closed_set):

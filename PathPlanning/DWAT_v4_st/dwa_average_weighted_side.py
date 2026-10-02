@@ -134,6 +134,13 @@ class Config:
         # velocity -- the historical behaviour, DEPRECATED, kept only so old
         # runs reproduce). OPEN_PROBLEMS item 2. See map_manager.DynamicObstacle.
         self.track_on_start = "hold_wrong_speed"
+        # Global planner (Theta*), OPEN_PROBLEMS item 21. "column_sample"
+        # (default) is the historical line-of-sight test, which lets segments
+        # cut across blocked cells; "supercover" checks every cell touched.
+        self.global_los_check = "column_sample"
+        # Theta*'s obstacle buffer in world units. None (default) keeps the
+        # historical max(robot_width, robot_length).
+        self.global_planner_rr = None
         # What to do when every candidate that PASSED admissibility scores inf
         # -- i.e. Guard B, "No best trajectory found":
         # "raise" -> ValueError (classic), "least_bad" -> keep the safest one.
