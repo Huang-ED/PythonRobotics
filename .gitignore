@@ -74,6 +74,7 @@ matplotrecorder/*
 
 ## Added by Huang-ED
 *.draft
+.paper
 *demo*
 **TrashBin**
 
