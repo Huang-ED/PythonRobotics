@@ -593,13 +593,13 @@ subject of §6 Track 1.
 |---|---|---|
 | **12** | ~~The candidate set cannot express a wide pass~~ → `predict_time_to_goal` is 4× too long | ✅ cause found 2026-09-20 |
 | **13** | Nothing penalises indefinite speed-matching | ✅ same cause as 12, 2026-09-20 |
-| **14** | A perfectly symmetric encounter has no side preference | open — 2026-09-20 |
+| **14** | A perfectly symmetric encounter has no side preference | ✅ v21.13 basic COLREGs, 2026-10-12 |
 | **15** | The ego has no restoring term toward the global path | **reopened 2026-09-22** — the fix is wrong |
 | **16** | The path follower's look-ahead was never rescaled | ✅ resolved and generalised 2026-09-22 |
 | **17** | A scenario silently overrides the algorithm config | open — 2026-09-20 (inert here) |
 | **18** | `catch_turning_point_dist` is not tied to `dist_localgoal` | open — 2026-09-24 |
 | **19** | Generated encounters go stale when the config or scenario changes | ✅ guarded 2026-09-29 (`4c2dc75`) |
-| **20** | Evading a target can put the ego aground | ✅ v3crowd6 fixed by v21.12's Stage 1 (2026-09-30); side rule (item 14) still missing |
+| **20** | Evading a target can put the ego aground | ✅ v3crowd6 fixed by v21.12's Stage 1 (2026-09-30); side rule added in v21.13 (item 14) |
 
 **Item 12 — superseded.** The short menu was the *consequence* of reacting late,
 not the cause. The rescale took `predict_time_to_goal` from 1.0 to 8.0, which
@@ -613,6 +613,14 @@ is 263.5 s against a 153.3 s baseline, **72% longer**, and it never passes. The
 note "unmoved by barrier gain or shape" was right: the barrier was never the
 lever. At `predict_time_to_goal = 2.0` the ego **overtakes**, in 176.6 s. Not a
 separate defect.
+
+**Item 14 — closed by v21.13 (2026-10-12).** `DWAT_v4_st/colregs.py`: a per-target
+role (R13/14/15/17), locked until the target is opening beyond 6.0; for head-on and
+give-way crossing, a penalty on passing with the target to starboard and on any
+alteration to port of the locked heading. On the 13 open-water + 3 v3crowd scenes,
+R14/R15 encounters on the correct side went from **7/20 (v21.12) to 18/18**, all 16
+reach the goal, min clearance 0.524 → 0.539. The record of the three variants is in
+`../configs/algorithm/README.md` (v21.13 row). The original finding:
 
 **Item 14 — no side preference.** On an exactly collinear head-on the planner
 chatters ±1 yaw cell: **149 sign flips in 199 steps, net turn exactly zero**,

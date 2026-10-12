@@ -141,6 +141,21 @@ class Config:
         # Theta*'s obstacle buffer in world units. None (default) keeps the
         # historical max(robot_width, robot_length).
         self.global_planner_rr = None
+        # Basic COLREGs (Rules 13-15, 17), read by dwa_ramped only; see colregs.py.
+        # "off" (default) reproduces every existing run. "side_preference"
+        # classifies each risky target and, for head-on and give-way crossing,
+        # penalises candidates that pass it with the target on the starboard side.
+        self.colregs_mode = "off"
+        self.colregs_side_cost_gain = 0.5
+        self.colregs_side_dist = 4.0          # [m] distance scale of the penalty's fade
+        self.colregs_side_softness = 0.2      # [m] lateral scale of the side sigmoid
+        self.colregs_dcpa_gate = 3.0          # [m] risk of collision: DCPA at most this
+        self.colregs_tcpa_gate = None         # [s] ...and TCPA at most this; None -> predict_time_obstacle
+        self.colregs_head_on_deg = 15.0       # [deg] head-on sector, each side of the bow
+        self.colregs_min_target_speed = 0.05  # [m/s] slower targets get no role
+        self.colregs_release_dist = None      # [m] unlock once opening beyond this; None -> dcpa gate
+        self.colregs_port_turn_gain = 0.0     # [1/rad] cost of altering to port of the locked heading; 0 -> off
+        self.colregs_turn_eval_time = 10.0    # [s] how far into a candidate that heading is read
         # What to do when every candidate that PASSED admissibility scores inf
         # -- i.e. Guard B, "No best trajectory found":
         # "raise" -> ValueError (classic), "least_bad" -> keep the safest one.

@@ -10,6 +10,8 @@ import numpy as np
 _dwa_module = importlib.import_module("PathPlanning.DWAT_v4_st.dwa_average_weighted_side")
 line_circle_intersection = _dwa_module.line_circle_intersection
 
+from PathPlanning.DWAT_v4_st import colregs as _colregs
+
 from .models import CollisionEvent, MapContext, RuntimeOptions, SimulationResult
 
 
@@ -311,6 +313,8 @@ def run_simulation(
                         **({"candidates": _cands} if _cands else {}),
                     }
                 )
+                if _colregs.enabled(config):
+                    log_data[-1]["colregs"] = _colregs.log_entry(config)
                 iteration += 1
 
                 x = dwa_mod.motion(x, u, config.dt)

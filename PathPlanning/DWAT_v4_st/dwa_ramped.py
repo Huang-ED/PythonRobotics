@@ -53,6 +53,7 @@ import math
 
 import numpy as np
 
+from PathPlanning.DWAT_v4_st import colregs
 from PathPlanning.DWAT_v4_st import dwa_average_weighted_side as base
 
 Config = base.Config
@@ -220,11 +221,23 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
                                      dynamic_ob_vel,
                                      return_candidates=False,
                                      candidate_stride=1,
-                                     candidate_max_count=None): # <--- New Argument
+                                     candidate_max_count=None, # <--- New Argument
+                                     colregs_side_mask=None, colregs_ref_yaw=None):
     """
     Calculation final input with dynamic window, splitting cost functions
     for static and dynamic obstacles.
+
+    ``colregs_side_mask`` marks which of the dynamic obstacles carry a COLREGs
+    side rule (colregs.py), and ``colregs_ref_yaw`` the heading each one locked
+    at; None or all-False adds nothing to any cost.
     """
+    if colregs_side_mask is not None and np.any(colregs_side_mask):
+        _col_pos = dynamic_ob_pos[colregs_side_mask]
+        _col_vel = dynamic_ob_vel[colregs_side_mask]
+        _col_ref = colregs_ref_yaw[colregs_side_mask]
+    else:
+        _col_pos = None
+    colregs_costs = []
 
     min_cost = float("inf")
     best_u = [0.0, 0.0]
@@ -384,8 +397,14 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
 
                     dynamic_ob_cost = config.side_cost_gain * dynamic_ob_cost
 
-            final_cost = to_goal_cost + speed_cost + static_ob_cost + dynamic_ob_cost
+            colregs_cost = 0.0
+            if _col_pos is not None and dynamic_ob_cost != float("inf"):
+                colregs_cost = (colregs.side_cost(trajectory_for_obstacle, _col_pos, _col_vel, config)
+                                + colregs.port_turn_cost(trajectory_for_obstacle, _col_ref, config))
 
+            final_cost = to_goal_cost + speed_cost + static_ob_cost + dynamic_ob_cost + colregs_cost
+
+            colregs_costs.append(colregs_cost)
             to_goal_costs.append(to_goal_cost)
             speed_costs.append(speed_cost)
             static_ob_costs.append(static_ob_cost)
@@ -427,6 +446,9 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
         
         best_side_component = side_cost_components[best_index]
         best_direct_component = direct_cost_components[best_index]
+
+        if colregs_side_mask is not None:
+            colregs.record_best_cost(config, colregs_costs[best_index])
 
         to_goal_after = to_goal_before
         speed_after = speed_before
@@ -484,9 +506,22 @@ def dwa_control_merged(x, config, goal,
     dw = calc_dynamic_window(x, config)
     
     # Filter positions, radii, AND velocities
-    dyn_ob_pos_filt, dyn_ob_radii_filt, dyn_ob_vel_filt = filter_obstacles_by_direction(
-        x, dynamic_ob_pos, dynamic_ob_radii, dynamic_ob_vel, max_angle=config.obstacle_max_angle
-    )
+    colregs_side_mask = colregs_ref = None
+    if colregs.enabled(config):
+        # Classified on the UNFILTERED list: its order is map_manager's, which
+        # is what keeps a locked role attached to the same vessel.
+        roles = colregs.classify(x, dynamic_ob_pos, dynamic_ob_vel, config)
+        (dyn_ob_pos_filt, dyn_ob_radii_filt, dyn_ob_vel_filt,
+         kept) = filter_obstacles_by_direction(
+            x, dynamic_ob_pos, dynamic_ob_radii, dynamic_ob_vel,
+            max_angle=config.obstacle_max_angle, return_indices=True,
+        )
+        colregs_side_mask = np.array([roles[i] in colregs.SIDE_RULE_ROLES for i in kept], dtype=bool)
+        colregs_ref = colregs.ref_yaw(config)[kept] if kept else np.empty(0)
+    else:
+        dyn_ob_pos_filt, dyn_ob_radii_filt, dyn_ob_vel_filt = filter_obstacles_by_direction(
+            x, dynamic_ob_pos, dynamic_ob_radii, dynamic_ob_vel, max_angle=config.obstacle_max_angle
+        )
 
     result = calc_control_and_trajectory_merged(
         x, dw, config, goal,
@@ -496,6 +531,8 @@ def dwa_control_merged(x, config, goal,
         return_candidates=return_candidates,
         candidate_stride=candidate_stride,
         candidate_max_count=candidate_max_count,
+        colregs_side_mask=colregs_side_mask,
+        colregs_ref_yaw=colregs_ref,
     )
 
     if return_candidates:
@@ -524,14 +561,18 @@ def dwa_control_merged(x, config, goal,
             final_cost)
 
 
-def filter_obstacles_by_direction(current_state, obstacles, obstacle_radii, obstacle_vel, max_angle=np.pi/2):
+def filter_obstacles_by_direction(current_state, obstacles, obstacle_radii, obstacle_vel, max_angle=np.pi/2,
+                                  return_indices=False):
     """
     Filter obstacles to remove only those that are safely behind and moving away.
+
+    ``return_indices`` appends the input positions of the kept obstacles.
     """
     x, y, yaw = current_state[0], current_state[1], current_state[2]
     filtered_obstacles = []
     filtered_radii = []
     filtered_vel = [] 
+    kept = []
     
     # Robot velocity vector (approximate direction)
     # Note: We don't strictly need robot speed here, just heading for the angle check,
@@ -555,6 +596,7 @@ def filter_obstacles_by_direction(current_state, obstacles, obstacle_radii, obst
             filtered_obstacles.append([obs_x, obs_y])
             filtered_radii.append(obstacle_radii[i])
             filtered_vel.append(obstacle_vel[i])
+            kept.append(i)
         else:
             # 3. If BEHIND, check if it's a threat (Overtaking)
             # We project the relative velocity onto the line connecting them
@@ -581,9 +623,11 @@ def filter_obstacles_by_direction(current_state, obstacles, obstacle_radii, obst
                 filtered_obstacles.append([obs_x, obs_y])
                 filtered_radii.append(obstacle_radii[i])
                 filtered_vel.append(obstacle_vel[i])
+                kept.append(i)
 
     # Return empty arrays if no obstacles found
     if not filtered_obstacles:
-        return np.empty((0, 2)), [], np.empty((0, 2))
-
-    return np.array(filtered_obstacles), filtered_radii, np.array(filtered_vel)
+        out = (np.empty((0, 2)), [], np.empty((0, 2)))
+    else:
+        out = (np.array(filtered_obstacles), filtered_radii, np.array(filtered_vel))
+    return out + (kept,) if return_indices else out
