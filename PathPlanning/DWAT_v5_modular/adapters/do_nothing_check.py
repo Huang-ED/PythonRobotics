@@ -57,20 +57,32 @@ def load_obstacle_free_log(path: Path):
 
 
 def target_track(obstacle: dict, times: np.ndarray) -> np.ndarray:
-    """Position of a one-leg `waypoint` target at each time in `times`."""
+    """Position of a `waypoint` target at each time in `times`.
+
+    One leg, or a polyline (encounter_suite's course-altering targets) -- as
+    long as the run never reaches the last waypoint, after which the simulator
+    wraps back to the first.
+    """
     if obstacle.get("motion_type", "waypoint") != "waypoint":
-        raise ValueError(f"only waypoint targets are open-loop straight legs; "
+        raise ValueError(f"only waypoint targets are open-loop tracks; "
                          f"got {obstacle.get('motion_type')!r}")
     w = np.asarray(obstacle["waypoints"], dtype=float)
-    leg = w[1] - w[0]
-    length = float(np.hypot(*leg))
     run = obstacle["speed"] * times
-    if run.max() > length:
-        # encounter_suite makes the leg 1.5x the run, so this never fires for
-        # generated targets; a hand-made multi-leg target is out of scope.
-        raise ValueError("target reaches its second waypoint inside the run; "
-                         "multi-leg targets are not supported")
-    return w[0][None, :] + (leg / length)[None, :] * run[:, None]
+    legs = np.diff(w, axis=0)
+    lengths = np.hypot(legs[:, 0], legs[:, 1])
+    if run.max() > lengths.sum():
+        # encounter_suite makes the last leg 1.5x the run, so this never fires
+        # for generated targets.
+        raise ValueError("target reaches its last waypoint inside the run and "
+                         "would wrap back to its first")
+    if len(w) == 2:
+        # The one-leg arithmetic exactly as before, so existing manifests
+        # reproduce to the last digit.
+        return w[0][None, :] + (legs[0] / lengths[0])[None, :] * run[:, None]
+    start = np.concatenate([[0.0], np.cumsum(lengths)[:-1]])
+    i = np.clip(np.searchsorted(start, run, side="right") - 1, 0, len(legs) - 1)
+    along = (run - start[i])[:, None]
+    return w[i] + (legs[i] / lengths[i][:, None]) * along
 
 
 def surface_clearance(traj: np.ndarray, target_xy: np.ndarray, target_r: float,
@@ -113,7 +125,13 @@ def check_targets(obstacles, traj, dt, cfg):
 
 
 def expected_threat(diag) -> bool:
-    """A target meant to collide: planned_cpa 0 (the null case sets it > 0)."""
+    """A target meant to collide: planned_cpa 0 (the null case sets it > 0).
+
+    A course-altering target says so outright with ``expect_threat``: a
+    ``turn_away`` target is aimed at the ego and then turns clear.
+    """
+    if diag is not None and "expect_threat" in diag:
+        return bool(diag["expect_threat"])
     return diag is None or float(diag.get("planned_cpa", 0.0)) <= 0.0
 
 

@@ -37,6 +37,15 @@ velocity in a straight line, which is exactly what the planner's linear
 extrapolation assumes. Circular motion would instead measure prediction error,
 since DWA re-linearises a curving target every step.
 
+The `openwater_turning` suite measures prediction error on purpose, with one
+abrupt course alteration `turn_s` seconds before the meeting (see
+`build_target`): `turn_away` is a collision course that alters clear -- a
+threat the constant-velocity forecast reports and that never arrives --
+and `turn_in` passes clear until it alters onto a collision course. They
+test the two halves of the case for discounting the far horizon: that it
+does not over-commit to forecasts that turn out wrong, and that it does not
+react too late to the ones that turn out right.
+
 Usage
 -----
     python PathPlanning/DWAT_v5_modular/adapters/encounter_suite.py \
@@ -151,11 +160,8 @@ def check_navigable(obstacle, static_obs, t_meet, radius, obstacle_radius=0.5,
     """
     if static_obs is None or len(static_obs) == 0:
         return 0, None
-    w = np.asarray(obstacle["waypoints"], dtype=float)
-    heading = w[1] - w[0]
-    heading = heading / np.linalg.norm(heading)
     times = np.arange(0.0, t_meet + horizon_pad, step)
-    pts = w[0][None, :] + heading[None, :] * (obstacle["speed"] * times[:, None])
+    pts = dnc.target_track(obstacle, times)
     d = np.hypot(pts[:, None, 0] - static_obs[None, :, 0],
                  pts[:, None, 1] - static_obs[None, :, 1]).min(axis=1)
     blocked = d < (obstacle_radius + radius)
@@ -176,12 +182,7 @@ def check_target_separation(obstacles, radii, sim_duration, step=0.5):
     """
     out = []
     times = np.arange(0.0, sim_duration + step, step)
-    tracks = []
-    for ob in obstacles:
-        w = np.asarray(ob["waypoints"], dtype=float)
-        d = w[1] - w[0]
-        d = d / np.linalg.norm(d)
-        tracks.append(w[0][None, :] + d[None, :] * (ob["speed"] * times[:, None]))
+    tracks = [dnc.target_track(ob, times) for ob in obstacles]
     for i in range(len(tracks)):
         for j in range(i + 1, len(tracks)):
             gap = np.hypot(tracks[i][:, 0] - tracks[j][:, 0],
@@ -275,7 +276,8 @@ def solve_course_for_bearing(h, v_e, bearing_rel_deg, speed):
 
 def build_target(traj, dt, t_meet, speed, radius, course_rel_deg=None,
                  bearing_rel_deg=None, cpa=0.0,
-                 sim_duration=None, detection_range=25.0):
+                 sim_duration=None, detection_range=25.0,
+                 turn=None, turn_s=None, turn_deg=None):
     """Construct one constant-velocity target that meets the ego at t_meet.
 
     The encounter geometry is given either as `course_rel_deg` (the angle
@@ -285,6 +287,17 @@ def build_target(traj, dt, t_meet, speed, radius, course_rel_deg=None,
 
     Either way the angle is measured against the ego's heading at the meeting
     point, so a case reads the same regardless of which way the route runs.
+
+    ``turn`` makes the target alter course once, by ``turn_deg`` (positive =
+    to its starboard, i.e. clockwise), at ``t_meet - turn_s``. The geometry
+    above always describes the COLLISION leg:
+
+      "away"  sails the collision leg, then alters at the turn point and
+              passes clear. Up to the turn a constant-velocity forecast says
+              "collision at t_meet"; afterwards it is wrong.
+      "in"    arrives at the turn point on a course ``turn_deg`` to port of
+              the collision leg, then alters onto it. Up to the turn the
+              forecast says "passes clear"; afterwards it is a collision.
     """
     if (course_rel_deg is None) == (bearing_rel_deg is None):
         raise ValueError("supply exactly one of course_rel_deg or bearing_rel_deg")
@@ -311,6 +324,24 @@ def build_target(traj, dt, t_meet, speed, radius, course_rel_deg=None,
     perp = np.array([-rel_hat[1], rel_hat[0]])
     spawn = M - speed * chi_hat * t_meet + cpa * perp
 
+    if turn not in (None, "away", "in"):
+        raise ValueError(f"turn must be 'away' or 'in', got {turn!r}")
+    if turn is not None:
+        if cpa != 0.0:
+            raise ValueError("a turning target's collision leg must have cpa 0")
+        if not (0.0 < turn_s < t_meet):
+            raise ValueError(f"turn_s={turn_s} must lie in (0, t_meet={t_meet})")
+        t_turn = t_meet - turn_s
+        P_turn = M - speed * chi_hat * turn_s
+        # Ship convention: + is to starboard, i.e. clockwise in math angles.
+        chi_other = chi - math.radians(turn_deg) if turn == "away" else chi + math.radians(turn_deg)
+        other_hat = np.array([math.cos(chi_other), math.sin(chi_other)])
+        if turn == "away":
+            first_hat, last_hat = chi_hat, other_hat
+        else:
+            first_hat, last_hat = other_hat, chi_hat
+        spawn = P_turn - speed * first_hat * t_turn
+
     rel_bearing = math.degrees(h - math.atan2(rel_hat[1], rel_hat[0])) % 360.0
 
     if sim_duration is None:
@@ -322,13 +353,13 @@ def build_target(traj, dt, t_meet, speed, radius, course_rel_deg=None,
     # Range closes linearly at rel_norm, so detection time follows directly.
     t_detect = max(0.0, t_meet - detection_range / rel_norm)
 
+    if turn is None:
+        waypoints = [spawn, spawn + chi_hat * leg]
+    else:
+        waypoints = [spawn, P_turn, P_turn + last_hat * leg]
     obstacle = {
         "motion_type": "waypoint",
-        "waypoints": [
-            [round(float(spawn[0]), 4), round(float(spawn[1]), 4)],
-            [round(float(spawn[0] + chi_hat[0] * leg), 4),
-             round(float(spawn[1] + chi_hat[1] * leg), 4)],
-        ],
+        "waypoints": [[round(float(p[0]), 4), round(float(p[1]), 4)] for p in waypoints],
         "speed": speed,
         "radius": radius,
     }
@@ -347,6 +378,12 @@ def build_target(traj, dt, t_meet, speed, radius, course_rel_deg=None,
         "planned_cpa": cpa,
         "t_detect_s": round(t_detect, 1),
     }
+    if turn is not None:
+        diagnostics.update(
+            turn=turn, turn_s=turn_s, t_turn_s=round(t_turn, 1), turn_deg=turn_deg,
+            turn_point=[round(float(P_turn[0]), 2), round(float(P_turn[1]), 2)],
+            expect_threat=(turn == "in"),
+        )
     return obstacle, diagnostics
 
 
@@ -419,7 +456,29 @@ VIDEO3_CASES = [
     dict(name="v3B_overtake_ego",    course_rel_deg=0.0,    speed=0.20, t_meet=133.0),
 ]
 
-SUITES = {"openwater": OPENWATER_CASES, "video3": VIDEO3_CASES}
+# Course-altering targets on the open-water basin. Same collision legs as
+# head_on / cross_stbd_090 / cross_port_090 above, so each pairs with an
+# existing straight case. The alteration is 45 deg, 20 s before the meeting:
+# deep enough into the 33 s horizon that a planner reacting to the forecast has
+# already begun to manoeuvre.
+#
+# The direction is the one that puts the CLEAR leg (after the turn for "away",
+# before it for "in") well off a do-nothing ego: 3.7-4.9 u surface clearance.
+# The other direction leaves a crossing target only 1.1 u off -- a near miss,
+# not a false alarm. So a crossing target does not always alter the way
+# COLREGs would ask of it; this suite tests prediction, not the target's
+# seamanship. turn_deg > 0 is to the target's starboard.
+OPENWATER_TURNING_CASES = [
+    dict(name=f"{base}_{mode}", course_rel_deg=c, speed=0.40, t_meet=90.0,
+         turn=mode, turn_s=20.0, turn_deg=deg)
+    for base, c, away_deg in (("head_on", 180.0, 45.0),
+                              ("cross_stbd_090", 90.0, -45.0),
+                              ("cross_port_090", -90.0, 45.0))
+    for mode, deg in (("away", away_deg), ("in", away_deg if base == "head_on" else -away_deg))
+]
+
+SUITES = {"openwater": OPENWATER_CASES, "video3": VIDEO3_CASES,
+          "openwater_turning": OPENWATER_TURNING_CASES}
 
 
 # Combined scenes: several targets in ONE scenario, the way video3 ships three
@@ -591,6 +650,9 @@ def _emit_combined(args, base, base_path, traj, dt, sim_duration, static_obs,
             cpa=case.get("cpa", 0.0),
             sim_duration=sim_duration,
             detection_range=args.detection_range,
+            turn=case.get("turn"),
+            turn_s=case.get("turn_s"),
+            turn_deg=case.get("turn_deg"),
         )
         n_blocked, first_blocked = check_navigable(
             obstacle, static_obs, case["t_meet"], args.radius)
@@ -769,6 +831,9 @@ def main() -> int:
             cpa=case.get("cpa", 0.0),
             sim_duration=sim_duration,
             detection_range=args.detection_range,
+            turn=case.get("turn"),
+            turn_s=case.get("turn_s"),
+            turn_deg=case.get("turn_deg"),
         )
 
         scenario = dict(base)

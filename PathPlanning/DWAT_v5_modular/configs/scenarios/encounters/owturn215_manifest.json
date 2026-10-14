@@ -1,0 +1,302 @@
+[
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      50.0,
+      7.22
+    ],
+    "target_course_deg": 90.0,
+    "course_rel_deg": 180.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.9,
+    "rel_bearing_deg": 0.0,
+    "sector": "head-on (R14)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 62.2,
+    "turn": "away",
+    "turn_s": 20.0,
+    "t_turn_s": 70.0,
+    "turn_deg": 45.0,
+    "turn_point": [
+      50.0,
+      35.22
+    ],
+    "expect_threat": false,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "head_on_away",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owturn215_head_on_away.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": 5.281,
+        "t_cpa_s": 89.9,
+        "threat": false
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": 4.886,
+        "t_cpa_s": 88.6,
+        "threat": false
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      69.8,
+      15.42
+    ],
+    "target_course_deg": 90.0,
+    "course_rel_deg": 180.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.9,
+    "rel_bearing_deg": 0.0,
+    "sector": "head-on (R14)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 62.2,
+    "turn": "in",
+    "turn_s": 20.0,
+    "t_turn_s": 70.0,
+    "turn_deg": 45.0,
+    "turn_point": [
+      50.0,
+      35.22
+    ],
+    "expect_threat": true,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "head_on_in",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owturn215_head_on_in.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 89.6,
+        "threat": true
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 88.3,
+        "threat": true
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      14.0,
+      43.22
+    ],
+    "target_course_deg": 0.0,
+    "course_rel_deg": 90.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.64,
+    "rel_bearing_deg": 38.7,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 51.0,
+    "turn": "away",
+    "turn_s": 20.0,
+    "t_turn_s": 70.0,
+    "turn_deg": -45.0,
+    "turn_point": [
+      42.0,
+      43.22
+    ],
+    "expect_threat": false,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "cross_stbd_090_away",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owturn215_cross_stbd_090_away.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": 3.29,
+        "t_cpa_s": 85.0,
+        "threat": false
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": 3.685,
+        "t_cpa_s": 83.7,
+        "threat": false
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      22.2,
+      23.42
+    ],
+    "target_course_deg": 0.0,
+    "course_rel_deg": 90.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.64,
+    "rel_bearing_deg": 38.7,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 51.0,
+    "turn": "in",
+    "turn_s": 20.0,
+    "t_turn_s": 70.0,
+    "turn_deg": 45.0,
+    "turn_point": [
+      42.0,
+      43.22
+    ],
+    "expect_threat": true,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "cross_stbd_090_in",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owturn215_cross_stbd_090_in.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 90.0,
+        "threat": true
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": -0.224,
+        "t_cpa_s": 89.1,
+        "threat": true
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      86.0,
+      43.22
+    ],
+    "target_course_deg": -180.0,
+    "course_rel_deg": -90.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.64,
+    "rel_bearing_deg": 321.3,
+    "sector": "crossing from port (R17, ego stand-on)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 51.0,
+    "turn": "away",
+    "turn_s": 20.0,
+    "t_turn_s": 70.0,
+    "turn_deg": 45.0,
+    "turn_point": [
+      58.0,
+      43.22
+    ],
+    "expect_threat": false,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "cross_port_090_away",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owturn215_cross_port_090_away.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": 3.29,
+        "t_cpa_s": 85.0,
+        "threat": false
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": 3.685,
+        "t_cpa_s": 83.7,
+        "threat": false
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      77.8,
+      23.42
+    ],
+    "target_course_deg": -180.0,
+    "course_rel_deg": -90.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.64,
+    "rel_bearing_deg": 321.3,
+    "sector": "crossing from port (R17, ego stand-on)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 51.0,
+    "turn": "in",
+    "turn_s": 20.0,
+    "t_turn_s": 70.0,
+    "turn_deg": -45.0,
+    "turn_point": [
+      58.0,
+      43.22
+    ],
+    "expect_threat": true,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "cross_port_090_in",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owturn215_cross_port_090_in.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 90.0,
+        "threat": true
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": -0.224,
+        "t_cpa_s": 89.1,
+        "threat": true
+      }
+    ]
+  }
+]

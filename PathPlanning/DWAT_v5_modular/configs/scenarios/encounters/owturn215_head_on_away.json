@@ -1,0 +1,41 @@
+{
+  "group": "encounters",
+  "occupancy_path": "EnvData/maps/openwater_100.npy",
+  "occupancy_resolution": 1.0,
+  "occupancy_origin": [
+    0.0,
+    0.0
+  ],
+  "occupancy_cell_anchor": "center",
+  "enable_map_boundary_obstacles": true,
+  "start_position": [
+    50.0,
+    85.0
+  ],
+  "goal_position": [
+    50.0,
+    8.0
+  ],
+  "start_yaw": -1.5707963267948966,
+  "dynamic_obstacles": [
+    {
+      "motion_type": "waypoint",
+      "waypoints": [
+        [
+          50.0,
+          7.2226
+        ],
+        [
+          50.0,
+          35.2226
+        ],
+        [
+          122.1107,
+          107.3334
+        ]
+      ],
+      "speed": 0.4,
+      "radius": 0.5
+    }
+  ]
+}

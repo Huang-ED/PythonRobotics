@@ -304,6 +304,35 @@ window, not of overtaking. It will bite any encounter where a target is inbound
 on the ego's present position while the ego is slow. Both variants are kept as
 the regression test for it.
 
+### Course-altering targets: when the forecast is wrong
+
+Every target above holds constant velocity, so the planner's constant-velocity
+forecast is exact, and nothing can show what it costs to trust a forecast that
+turns out wrong. `--suite openwater_turning` (scenarios `owturn215_*`) adds one
+abrupt 45-degree alteration 20 s before the meeting, on the collision legs of
+`head_on`, `cross_stbd_090` and `cross_port_090`:
+
+| mode | before the turn the forecast says | what happens | tests |
+|---|---|---|---|
+| `_away` | collision at t = 90 s | alters clear, 3.7-4.9 u off a do-nothing ego | over-committing to a far forecast that never arrives |
+| `_in` | passes 3.7-4.9 u clear | alters onto the collision course | reacting too late to one that does |
+
+Each pairs with its straight `owenc215_*` case. The turn direction is whichever
+puts the clear leg well off the ego -- the other leaves a crossing target only
+1.1 u off, a near miss rather than a false alarm -- so a crossing target does
+not always alter the way COLREGs would ask of it. The do-nothing check honours
+the manifest's `expect_threat`: `_in` must hit a do-nothing ego, `_away` must
+not.
+
+```bash
+python PathPlanning/DWAT_v5_modular/adapters/encounter_suite.py \
+  --reference-log runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json \
+  --base-scenario PathPlanning/DWAT_v5_modular/configs/scenarios/baseline/openwater_baseline.json \
+  --suite openwater_turning --prefix owturn215 \
+  --out-dir PathPlanning/DWAT_v5_modular/configs/scenarios/encounters \
+  --check-log runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json --strict
+```
+
 ### Combined scenes: several targets in one scenario
 
 `--combine` emits a **single** scenario holding every target of a set, the way
