@@ -1,7 +1,9 @@
 """Basic COLREGs for the DWA cost: who gives way, and on which side.
 
-Two parts, both off unless ``colregs_mode`` is set (default ``"off"``
-reproduces every existing run):
+Three parts, all off unless ``colregs_mode`` is set (default ``"off"``
+reproduces every existing run): one classification per control cycle, then two
+costs per candidate. ``port_turn_cost`` is further gated by its own gain,
+``colregs_port_turn_gain`` (default 0).
 
 1. ``classify`` -- once per control cycle, before any candidate is scored.
    Each target that poses a risk of collision (closest point of approach
@@ -67,9 +69,9 @@ SIDE_RULE_ROLES = frozenset({HEAD_ON, CROSSING_GIVE_WAY})
 _STERN_SECTOR = math.radians(112.5)
 
 # Per-run state, keyed by the run's Config: {obstacle index: (locked role,
-# ego heading when it locked)}, plus
-# what the last cycle decided, for the log. Obstacle indices are positions in
-# map_manager.dynamic_obstacles, which is fixed for the length of a run.
+# ego heading when it locked)}, plus what the last cycle decided, for the log.
+# Obstacle indices are positions in map_manager.dynamic_obstacles, which is
+# fixed for the length of a run.
 _STATE = weakref.WeakKeyDictionary()
 
 
@@ -80,7 +82,7 @@ def enabled(config):
 def _state(config):
     s = _STATE.get(config)
     if s is None:
-        s = {"locked": {}, "roles": [], "ref_yaw": [], "best_cost": 0.0}
+        s = {"locked": {}, "roles": [], "ref_yaw": [], "best_side": 0.0, "best_port_turn": 0.0}
         _STATE[config] = s
     return s
 
@@ -199,10 +201,22 @@ def port_turn_cost(trajectory, ref, config):
     return float(gain * np.sum(np.maximum(dyaw, 0.0)))
 
 
-def record_best_cost(config, cost):
-    _state(config)["best_cost"] = float(cost)
+def record_best_cost(config, side, port_turn):
+    """The chosen candidate's two COLREGs cost terms, for the log."""
+    st = _state(config)
+    st["best_side"] = float(side)
+    st["best_port_turn"] = float(port_turn)
 
 
 def log_entry(config):
+    """One iteration's COLREGs record.
+
+    Logs written before 2026-10-14 carry a single ``side_cost`` key instead,
+    which despite its name is the TOTAL (side + port turn) of the chosen
+    candidate.
+    """
     st = _state(config)
-    return {"roles": list(st["roles"]), "side_cost": st["best_cost"]}
+    return {"roles": list(st["roles"]),
+            "cost_side": st["best_side"],
+            "cost_port_turn": st["best_port_turn"],
+            "cost_total": st["best_side"] + st["best_port_turn"]}

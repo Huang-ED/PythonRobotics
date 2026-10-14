@@ -237,7 +237,7 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
         _col_ref = colregs_ref_yaw[colregs_side_mask]
     else:
         _col_pos = None
-    colregs_costs = []
+    colregs_side_costs, colregs_port_costs = [], []
 
     min_cost = float("inf")
     best_u = [0.0, 0.0]
@@ -397,14 +397,18 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
 
                     dynamic_ob_cost = config.side_cost_gain * dynamic_ob_cost
 
-            colregs_cost = 0.0
+            colregs_side = colregs_port = 0.0
             if _col_pos is not None and dynamic_ob_cost != float("inf"):
-                colregs_cost = (colregs.side_cost(trajectory_for_obstacle, _col_pos, _col_vel, config)
-                                + colregs.port_turn_cost(trajectory_for_obstacle, _col_ref, config))
+                colregs_side = colregs.side_cost(trajectory_for_obstacle, _col_pos, _col_vel, config)
+                colregs_port = colregs.port_turn_cost(trajectory_for_obstacle, _col_ref, config)
 
-            final_cost = to_goal_cost + speed_cost + static_ob_cost + dynamic_ob_cost + colregs_cost
+            # Parenthesised as one term: the sum order fixes the last bit, and
+            # with it which candidate wins a near-tie (v21.13 runs reproduce).
+            final_cost = (to_goal_cost + speed_cost + static_ob_cost + dynamic_ob_cost
+                          + (colregs_side + colregs_port))
 
-            colregs_costs.append(colregs_cost)
+            colregs_side_costs.append(colregs_side)
+            colregs_port_costs.append(colregs_port)
             to_goal_costs.append(to_goal_cost)
             speed_costs.append(speed_cost)
             static_ob_costs.append(static_ob_cost)
@@ -448,7 +452,8 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
         best_direct_component = direct_cost_components[best_index]
 
         if colregs_side_mask is not None:
-            colregs.record_best_cost(config, colregs_costs[best_index])
+            colregs.record_best_cost(config, colregs_side_costs[best_index],
+                                     colregs_port_costs[best_index])
 
         to_goal_after = to_goal_before
         speed_after = speed_before
