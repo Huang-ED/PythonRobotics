@@ -45,7 +45,7 @@ the configs belong at the top level under their own names.
 | `v20.7.8-2/` | `predict_time_obstacle` ∈ {5, 10, 12, 15, 18, 20, 30} |
 | `v20.7.9/` | `predT5-ramped` — the 5 s point of the same sweep, under v20.7.9 |
 | `ais_v1.1/` | the ego vessel — hull and service speed, per AIS case |
-| `v21.13/` | the COLREGs layer on v21.12: `side_only` (side term alone), `port_turn` (+ no alteration to port), `port_turn_release6` (+ release hysteresis) -- each adds one term to the one before |
+| `v21.13/` | the COLREGs layer on v21.12: `side_only` (side term alone), `port_turn` (+ no alteration to port), `port_turn_release6` (+ release hysteresis) -- each adds one term to the one before. `ablation_uniform`, `ablation_uniform_gain1p58`, `ablation_uniform_gain3p15`, `ablation_discount_strong`: the horizon-weighting ablation (`results/ablation_horizon_weighting/`) -- discounting is equivalent to a gain change |
 | `ais_v1.2/` | the same egos; `obstacle_radius`, `dt` and `global_planner_rr` derived from the map cell and each ego by `new_york_cases.derive_ais_v12` |
 
 **Bare names still resolve** (`--algorithm-config v20.7.5` works from anywhere)
