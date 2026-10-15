@@ -211,7 +211,9 @@ def slalom():
 
     The test of ranking between threats. Per delta, both mirrors pooled:
     the worse of the two clearances, its cost, and the discounted arms
-    against the uniform curve at equal cost.
+    against the uniform curve at equal cost. The mirrors come out identical
+    (no COLREGs cost under Rule 13, so the planner is mirror-symmetric):
+    "n=2" is one independent scene per delta.
     """
     base = load(BASE["ow"])
     tab = {}

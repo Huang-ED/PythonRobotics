@@ -18,7 +18,10 @@ smoother" nor "avoids over-commitment" shows here.
 trade one against the other, "balancing multiple simultaneous threats" (line
 132). With one target, every candidate's danger falls at about the same time,
 so any time weight acts on all candidates alike -- exactly as a gain does.
-The conflicting-threats suite (§10) is built for that test.
+The staggered-slalom suite (§10) was built for that test, and the shape did
+not separate from the gain there either: how the ego divides its room
+between an imminent and a later vessel is set by the geometry, not by the
+weighting.
 
 **Contents:** [1 Arms](#1-arms) · [2 Suites](#2-suites) ·
 [3 Result: discount alone](#3-result-the-discount-alone) ·
@@ -26,6 +29,7 @@ The conflicting-threats suite (§10) is built for that test.
 [5 Result: against a gain-matched uniform](#5-result-against-a-gain-matched-uniform) ·
 [6 Result: when the forecast is wrong](#6-result-when-the-forecast-is-wrong) ·
 [7 What this means for the paper](#7-what-this-means-for-the-paper) ·
+[10 Two threats at different times](#10-two-threats-at-different-times-the-staggered-slalom) ·
 [8 Caveats](#8-caveats) · [9 Reproducing](#9-reproducing)
 
 ---
@@ -158,7 +162,7 @@ manoeuvres (deviation ≤ 0.07 in every arm).
   (line 132) are not supported as written.
 - **The claim that can still separate shape from gain** is ranking between
   threats at different times: "an imminent hazard outweighs a distant one".
-  §10 tests it.
+  §10 tests it -- and finds no separation either.
 - **Integrated vs extremum** (line 132's other comparison, `"max"`
   aggregation) remains untested and needs the same gain matching: the max of
   S is roughly an order of magnitude larger than its mean.
@@ -198,3 +202,58 @@ python -m PathPlanning.DWAT_v5_modular.results.ablation_horizon_weighting.compar
 python -m PathPlanning.DWAT_v5_modular.results.ablation_horizon_weighting.compare --turning   # §6
 python -m PathPlanning.DWAT_v5_modular.results.ablation_horizon_weighting.compare --frontier  # §5, equal cost
 ```
+
+## 10 Two threats at different times: the staggered slalom
+
+`fig1_same_danger_different_time.png` shows the idea at the level of the cost,
+computed with the planner's own barrier and aggregation at v21.13's
+parameters: the same 0.3 u pass scored 2 s ahead and 10 s ahead.
+
+| | uniform | v21.13 (λ·T = 1) | strong (λ·T = 3) |
+|---|---|---|---|
+| cost of the pass 2 s ahead ÷ the same pass 10 s ahead | 1.00× | 1.27× | 2.05× |
+
+That ranking can only change behaviour when the candidates differ in *when*
+they are in danger. `ow_slalom_{stbd,port}_d{05,10,20,30}` builds that choice:
+two slow vessels ahead on the ego's course (0.2 against 0.5, overtaking, so
+Rule 13 and no COLREGs cost), A met at 70 s offset 0.5 u to one side, B met Δ s
+later offset 0.5 u to the other. A do-nothing ego touches both, so every
+sidestep that clears one closes on the other. If the discount ranks the
+imminent vessel higher, it should give A more of the room than uniform
+averaging does -- and no single gain could reproduce that.
+
+40 runs (5 arms × 8 scenes), all reaching the goal. Each mirrored pair
+(`stbd`/`port`) came out identical to the last digit -- with no COLREGs cost the
+planner is exactly mirror-symmetric -- so there are **four independent
+scenes, one per Δ**.
+
+**Clearance to A minus clearance to B** (positive = A got more of the room):
+
+| Δ | uniform | ×1.58 | v21.13 | ×3.15 | strong |
+|---|---|---|---|---|---|
+| 5 s | +0.07 | +0.03 | +0.05 | −0.01 | +0.01 |
+| 10 s | −0.13 | −0.17 | −0.14 | −0.20 | −0.14 |
+| 20 s | +0.24 | +0.25 | +0.24 | +0.14 | +0.18 |
+| 30 s | +0.09 | +0.10 | +0.10 | +0.10 | +0.09 |
+
+The split between A and B changes with Δ -- with the geometry -- and hardly at
+all with the weighting: each discounted arm is within 0.04 u of its
+gain-matched uniform arm. The discount does not hand the imminent vessel more
+room.
+
+**The worse of the two clearances, at equal turning** (`compare.py --slalom`):
+discounted minus uniform is −0.012 / −0.040 u at Δ = 5 s, +0.067 / +0.019 at
+10 s, +0.033 / −0.051 at 20 s and −0.011 / −0.016 at 30 s (v21.13 / strong).
+Signs flip from one Δ to the next, with one scene per Δ: no trend. (The
+equal-delay comparison is not usable here: delay is 0.8–1.4 s in every run,
+quantised at 0.1 s.)
+
+**Reading.** The intuition holds for the cost -- figure 1 -- but not for the
+closed-loop behaviour of this planner. A candidate is one (v, ω) setpoint held
+for 33 s, so no candidate is "dodge A, then return for B": the sequencing is
+done by re-planning every 0.1 s, under any weighting. A plausible
+consequence is that the candidates never offer the near-vs-far trade-off the
+weighting would arbitrate. That is a hypothesis; it can be checked
+open-loop, by re-scoring the candidates at logged states under each
+weighting and seeing whether the chosen candidate differs at all.
+
