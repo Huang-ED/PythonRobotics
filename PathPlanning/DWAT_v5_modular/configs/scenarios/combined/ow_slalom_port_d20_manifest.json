@@ -1,0 +1,82 @@
+[
+  {
+    "meeting_point": [
+      50.0,
+      53.22
+    ],
+    "t_meet_s": 70.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      50.5,
+      67.22
+    ],
+    "target_course_deg": -90.0,
+    "course_rel_deg": 0.0,
+    "target_speed": 0.2,
+    "closing_speed": 0.3,
+    "rel_bearing_deg": 0.0,
+    "sector": "overtaking, ego overtakes (R13, give-way)",
+    "planned_cpa": 0.5,
+    "t_detect_s": 0.0,
+    "name": "A",
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": -0.2,
+        "t_cpa_s": 68.7,
+        "threat": true
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": -0.2,
+        "t_cpa_s": 64.8,
+        "threat": true
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      49.5,
+      61.22
+    ],
+    "target_course_deg": -90.0,
+    "course_rel_deg": 0.0,
+    "target_speed": 0.2,
+    "closing_speed": 0.3,
+    "rel_bearing_deg": 0.0,
+    "sector": "overtaking, ego overtakes (R13, give-way)",
+    "planned_cpa": -0.5,
+    "t_detect_s": 6.7,
+    "name": "B",
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": -0.2,
+        "t_cpa_s": 88.7,
+        "threat": true
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": -0.2,
+        "t_cpa_s": 84.8,
+        "threat": true
+      }
+    ]
+  }
+]

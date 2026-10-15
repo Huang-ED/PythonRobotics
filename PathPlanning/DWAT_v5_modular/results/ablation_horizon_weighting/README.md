@@ -6,11 +6,19 @@ prediction horizon as an **exponentially discounted** expectation rather than a
 avoids "over-commitment to distant, low-confidence predictions" (`main.tex`,
 lines 39, 119, 132). This folder tests both claims on v21.13.
 
-**Answer, 2026-10-14: neither holds on these suites.** Once uniform averaging
-is given a matched gain, discounting buys nothing at equal cost. What the
-discount does is weight the near horizon more heavily, and since every
-encounter ends in the near horizon, that acts as a larger gain on the dynamic
-obstacle cost.
+**Answer, 2026-10-15, on single-threat encounters:** the discount's benefit
+comes from its near-term emphasis -- the "urgency" it was designed to encode
+(line 119) -- and on these scenes a gain matches it at equal cost. The
+far-term down-weighting has no measurable effect, good or bad: the far
+horizon barely moves the planner under any weighting. Neither "earlier and
+smoother" nor "avoids over-commitment" shows here.
+
+**What these scenes cannot test** is the shape's distinguishing claim: that
+"an imminent hazard outweighs a distant one" (line 119) when the planner must
+trade one against the other, "balancing multiple simultaneous threats" (line
+132). With one target, every candidate's danger falls at about the same time,
+so any time weight acts on all candidates alike -- exactly as a gain does.
+The conflicting-threats suite (§10) is built for that test.
 
 **Contents:** [1 Arms](#1-arms) · [2 Suites](#2-suites) ·
 [3 Result: discount alone](#3-result-the-discount-alone) ·
@@ -99,7 +107,12 @@ same factors.
 | mean extra heading change | 120° | 132° | 125° | 145° | 138° |
 
 Each gain-matched uniform arm buys more clearance than the discount it is
-matched to, at more turning. To compare at **equal cost**, the three uniform
+matched to, at more turning -- which is not "better": past some point a
+stronger avoidance term only costs more. The meaningful comparison is at
+**equal cost**. The discount is "strong near, weak far"; uniform ×k is
+"strong near, strong far". If the weak far weight bought anything, uniform ×k
+would pay for its strong far weight with earlier or larger manoeuvres per
+unit of clearance. To compare at equal cost, the three uniform
 gains trace a clearance-vs-cost curve per scene, and each discounted arm is
 compared with that curve at its own cost (`compare.py --frontier`; both
 suites, scenes without a manoeuvre excluded):
@@ -111,7 +124,10 @@ suites, scenes without a manoeuvre excluded):
 
 At equal turning or equal delay, discounting and uniform averaging are
 indistinguishable: mean differences of 0.002–0.025 u against clearances
-around 1 u, and the scenes split both ways.
+around 1 u, and the scenes split both ways. Lead time is flat too
+(20.5–21.9 s in all five arms): the strong far weight of uniform ×3.15 does
+not make the ego act earlier, so there is no over-commitment for the
+discount to avoid.
 
 ## 6 Result: when the forecast is wrong
 
@@ -132,18 +148,20 @@ manoeuvres (deviation ≤ 0.07 in every arm).
 
 ## 7 What this means for the paper
 
-- **"Discounted beats uniform" cannot be claimed.** On 22 scenes, five arms
-  and 110 runs, the discount is equivalent to a gain change. The "earlier and
-  smoother" wording (line 39) and the "over-commitment" argument (line 132)
-  are not supported.
-- **The time weight is still a legitimate design parameter**, just not a
-  contribution: λ reshapes the cost towards the near term, which a reader can
-  equally obtain with the gain.
-- **What remains testable of contribution 3 is integrated vs extremum** --
-  the draft's other comparison (line 132): an expectation over the horizon
-  against `"max"` aggregation, i.e. the worst instant. That needs the same
-  gain-matched design, because the max of S is roughly an order of magnitude
-  larger than its mean when the threat fills a small part of the horizon.
+- **On single threats, the discount works through its near-term emphasis**
+  -- the urgency it was designed for -- and a tuned gain reaches the same
+  trade-off. A reviewer asking "why not just tune the gain?" is not answered
+  by these scenes.
+- **The far-term down-weighting ("predictive confidence") shows no effect**,
+  because the far horizon barely influences decisions in this planner under
+  any weighting. "Earlier and smoother" (line 39) and "avoids over-commitment"
+  (line 132) are not supported as written.
+- **The claim that can still separate shape from gain** is ranking between
+  threats at different times: "an imminent hazard outweighs a distant one".
+  §10 tests it.
+- **Integrated vs extremum** (line 132's other comparison, `"max"`
+  aggregation) remains untested and needs the same gain matching: the max of
+  S is roughly an order of magnitude larger than its mean.
 
 ## 8 Caveats
 

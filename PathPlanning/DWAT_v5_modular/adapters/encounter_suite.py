@@ -562,6 +562,30 @@ COMBINED_SUITES = {
     ],
 }
 
+# Staggered slalom: two threats at different times, where clearing one means
+# closing on the other. Two slow vessels ahead on the ego's own course (0.2
+# against its 0.5, so it overtakes both: Rule 13, which carries no COLREGs
+# cost -- the dynamic cost alone decides). A is met at 70 s, offset `cpa` to
+# one side of the path; B is met `delta` s later, offset the same amount to
+# the OTHER side. Alone, each forces a sidestep; together, every sidestep that
+# clears A heads for B.
+#
+# This is the one situation where a time weight can rank candidates
+# differently from a gain. With a single target every candidate's danger falls
+# at about the same time, so any time weight acts on all of them alike. Here a
+# candidate trades a closer pass of A (soon) against a closer pass of B (delta
+# s later): a discount resolves A first and B later, uniform averaging hedges
+# between them. delta sets how much time there is to do them one at a time.
+#
+# cpa 0.5: centre-line distance 0.5 against a contact distance of 0.7
+# (0.5 target radius + 0.2 half-beam), so a do-nothing ego touches both.
+for _d in (5, 10, 20, 30):
+    for _first, _sgn in (("stbd", -1.0), ("port", 1.0)):
+        COMBINED_SUITES[f"ow_slalom_{_first}_d{_d:02d}"] = [
+            dict(name="A", course_rel_deg=0.0, speed=0.20, t_meet=70.0, cpa=0.5 * _sgn),
+            dict(name="B", course_rel_deg=0.0, speed=0.20, t_meet=70.0 + _d, cpa=-0.5 * _sgn),
+        ]
+
 
 def _apply_t_meet(args, cases, suite_name):
     """Return `cases` with any --t-meet overrides applied.
