@@ -4,6 +4,7 @@ Run from the repo root:
     python -m PathPlanning.DWAT_v5_modular.results.ablation_horizon_weighting.compare
     python -m PathPlanning.DWAT_v5_modular.results.ablation_horizon_weighting.compare --turning
     python -m PathPlanning.DWAT_v5_modular.results.ablation_horizon_weighting.compare --frontier
+    python -m PathPlanning.DWAT_v5_modular.results.ablation_horizon_weighting.compare --slalom
 
 
 Per run: goal, min clearance (capsule, as encounter_report), delay vs the
@@ -101,7 +102,7 @@ def main():
               f"reversals={sum(m['rev'] for m in ms):>4} side OK/VIOL={sum(m['ok'] for m in ms)}/{sum(m['bad'] for m in ms)}")
 
 
-if __name__ == "__main__" and not {"--turning", "--frontier"} & set(sys.argv):
+if __name__ == "__main__" and not {"--turning", "--frontier", "--slalom"} & set(sys.argv):
     main()
 
 
@@ -194,3 +195,62 @@ def frontier():
 
 if __name__ == "__main__" and "--frontier" in sys.argv:
     frontier()
+
+
+ARMS_SLALOM = {
+    "uniform (lT=0)": "runs/v21.13/ablation_uniform",
+    "uni x1.58": "runs/v21.13/ablation_uniform_gain1p58",
+    "v21.13 (lT=1)": "runs/v21.13",
+    "uni x3.15": "runs/v21.13/ablation_uniform_gain3p15",
+    "strong (lT=3)": "runs/v21.13/ablation_discount_strong",
+}
+
+
+def slalom():
+    """ow_slalom_*: clearance to A (met first) and to B (delta s later).
+
+    The test of ranking between threats. Per delta, both mirrors pooled:
+    the worse of the two clearances, its cost, and the discounted arms
+    against the uniform curve at equal cost.
+    """
+    base = load(BASE["ow"])
+    tab = {}
+    for arm, root in ARMS_SLALOM.items():
+        for p in glob.glob(f"{root}/combined/ow_slalom_*/log_details.json"):
+            sc = Path(p).parent.name.split("__")[0]
+            goal, rows = cr.score(p)
+            m = metrics(p, base)
+            ca, cb = rows[0]["clear"], rows[1]["clear"]
+            tab.setdefault(sc, {})[arm] = dict(goal=goal, a=ca, b=cb, worst=min(ca, cb),
+                                              delay=m["delay"], turn=m["turn"])
+    print(f"{'scene':<22}{'arm':<16}{'goal':>6}{'clear A':>9}{'clear B':>9}{'worse':>7}{'delay':>7}{'turn':>8}")
+    for sc in sorted(tab):
+        for arm in ARMS_SLALOM:
+            m = tab[sc].get(arm)
+            if m is None:
+                print(f"{sc:<22}{arm:<16}   (missing)")
+                continue
+            print(f"{sc:<22}{arm:<16}{str(m['goal']):>6}{m['a']:>9.2f}{m['b']:>9.2f}{m['worst']:>7.2f}"
+                  f"{m['delay']:>7.1f}{m['turn']:>8.1f}")
+        print()
+    print("discounted minus uniform 'worse' clearance at the discounted arm's own cost, by delta")
+    for d in sorted({sc[-3:] for sc in tab}):
+        for cost in ("turn", "delay"):
+            for darm in DISCOUNTED:
+                v = []
+                for sc in (s for s in tab if s.endswith(d)):
+                    m = tab[sc]
+                    if len(m) < len(ARMS_SLALOM):
+                        continue
+                    xs = np.array([m[u][cost] for u in UNIFORM])
+                    ys = np.array([m[u]["worst"] for u in UNIFORM])
+                    x = m[darm][cost]
+                    if xs.min() <= x <= xs.max():
+                        o = np.argsort(xs)
+                        v.append(m[darm]["worst"] - float(np.interp(x, xs[o], ys[o])))
+                txt = f"{np.mean(v):+.3f} (n={len(v)})" if v else "outside uniform range"
+                print(f"  {d}  equal {cost:<6} {darm:<14} {txt}")
+
+
+if __name__ == "__main__" and "--slalom" in sys.argv:
+    slalom()
