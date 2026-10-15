@@ -30,6 +30,7 @@ weighting.
 [6 Result: when the forecast is wrong](#6-result-when-the-forecast-is-wrong) ·
 [7 What this means for the paper](#7-what-this-means-for-the-paper) ·
 [10 Two threats at different times](#10-two-threats-at-different-times-the-staggered-slalom) ·
+[11 Why: what the weighting can and cannot reach](#11-why-what-the-weighting-can-and-cannot-reach) ·
 [8 Caveats](#8-caveats) · [9 Reproducing](#9-reproducing)
 
 ---
@@ -256,4 +257,80 @@ consequence is that the candidates never offer the near-vs-far trade-off the
 weighting would arbitrate. That is a hypothesis; it can be checked
 open-loop, by re-scoring the candidates at logged states under each
 weighting and seeing whether the chosen candidate differs at all.
+
+## 11 Why: what the weighting can and cannot reach
+
+The question behind §10: two targets, one predicted to collide with the ego
+in 1 s and one in 10 s. Under uniform weighting they cost the same -- which
+is intuitively wrong. Why does no experiment show it? Three mechanisms, each
+measured. Tool: `rescore.py`, which rebuilds the planner's exact inputs at
+logged states and re-scores every candidate under each weighting (it
+reproduces the logged control at 536/538 slalom states; 67-87% in scenes
+with Rule 14/15 targets, whose COLREGs locks carry history one state cannot
+rebuild).
+
+**(1) A predicted collision is vetoed whenever it happens.** A rollout that
+predicts contact anywhere in the 33 s horizon scores `inf` before any
+weighting applies (`dwa_ramped.py`, `is_collision`). So the 1 s and 10 s
+collisions of the thought experiment do cost the same in this planner -- not
+because the weighting is uniform, but because the veto is: it is the one
+part of the cost that ignores time entirely. The weighting only ever ranks
+*near misses*. The veto binds often, and mostly on far predictions:
+
+| v21.13 run | states with any vetoed candidate | most vetoed at one state | predicted contact < 5 s / 5–15 s / ≥ 15 s ahead |
+|---|---|---|---|
+| `owenc215_head_on` | 47% | 31% | 0% / 39% / 61% |
+| `owenc215_cross_stbd_090` | 35% | 5% | 0% / 41% / 59% |
+| `v3crowd5_v2111` | 56% | 33% | 0% / 44% / 56% |
+| `v3crowd6_v2111` | 64% | 49% | 0% / 56% / 44% |
+| `v3crowd7_v2111` | 67% | 33% | 0% / 28% / 72% |
+
+Most vetoes are for contacts 15–30 s out -- the least certain predictions,
+and the ones a re-planning ego can still avoid -- treated exactly like one
+5 s out. This is where "a collision in 1 s and in 10 s should not cost the
+same" applies literally, and the weighting never sees it.
+
+**(2) A danger close in time is the same for every candidate.** The ship
+cannot change what happens in the next few seconds: from cruise, all 495
+candidates of one decision are within 0.033 u of each other 1 s ahead,
+0.30 u at 3 s, 0.89 u at 5 s, 4.1 u at 10 s and 19 u at 30 s (ramped
+rollout, v21.13 limits). DWA keeps only the cheapest candidate, so a term
+that is the same for all of them cannot change the choice, whatever its
+weight. Measured as the spread across candidates of each window's share of
+the dynamic cost:
+
+| window of the horizon | uniform | v21.13 | strong |
+|---|---|---|---|
+| 0–3 s | 0% | 0% | 0% |
+| 3–8 s | 3% | 4% | 7% |
+| 8–15 s | 15% | 18% | 22% |
+| 15 s+ | **81%** | **77%** | **71%** |
+
+(slalom, 386–395 states; the crowded and single-target runs give 79 / 75 /
+68% for 15 s+.) The 1 s danger of the thought experiment adds the same amount
+to every candidate: it has no say in the decision under any weighting. The
+decision about it was made several seconds earlier, when it was the far
+danger. What the weighting really trades is 8 s against 25 s, not 1 s against
+10 s -- and even the strong discount leaves ~70% of the decision to the part
+of the horizon beyond 15 s, where the candidates have spread furthest apart.
+
+**(3) The weighting does change choices, but re-planning absorbs it.**
+Re-scored open-loop, the discounted arms pick a different candidate from
+their gain-matched uniform arms at 12–18% (v21.13) and 27–34% (strong) of
+slalom states, and 12% / 26% of crowded and single-target states. The
+differences are small: a median of 1 yaw-rate cell (0.0087 rad/s) for v21.13
+and 5 for strong in the slalom, speed almost never. Each choice is executed
+for 0.1 s and then re-planned, and in 0.1 s a ramped setpoint moves the yaw
+rate by at most 0.0028 rad/s; the next decision corrects it. So the
+executed paths converge, which is §10's outcome.
+
+**Reading.** The intuition is right about *risk*: a close pass 2 s ahead is
+worse than one 10 s ahead (fig1). It does not reach the *choice* in this
+planner, for three measured reasons: real collisions are vetoed regardless
+of time; dangers too close to change are equal for every candidate; and the
+ranking differences that remain are small and re-planned away within 0.1 s.
+The first is a design decision, not a law: a predicted contact at 25 s could
+be a large finite, time-weighted cost instead of a veto. That is the change
+under which uniform vs discounted weighting would differ in exactly the
+thought experiment's terms.
 

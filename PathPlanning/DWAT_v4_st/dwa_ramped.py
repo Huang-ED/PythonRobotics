@@ -56,6 +56,12 @@ import numpy as np
 from PathPlanning.DWAT_v4_st import colregs
 from PathPlanning.DWAT_v4_st import dwa_average_weighted_side as base
 
+# Diagnostics only: set to a dict and calc_control_and_trajectory_merged fills
+# it with every scored candidate's control and cost terms (results/
+# ablation_horizon_weighting/rescore.py). None, the default, records nothing
+# and changes nothing.
+CAPTURE = None
+
 Config = base.Config
 RobotType = base.RobotType
 line_circle_intersection = base.line_circle_intersection
@@ -426,6 +432,14 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
                 best_u = controls[i]
                 best_trajectory = trajectories[i]
     
+    if CAPTURE is not None:
+        CAPTURE.clear()
+        CAPTURE.update(controls=np.array(controls), trajectories=trajectories,
+                       to_goal=np.array(to_goal_costs), speed=np.array(speed_costs),
+                       static=np.array(static_ob_costs), dynamic=np.array(dynamic_ob_costs),
+                       colregs_side=np.array(colregs_side_costs), colregs_port=np.array(colregs_port_costs),
+                       worst_clearance=np.array(worst_clearances))
+
     if len(to_goal_costs) == 0:
         # Fallback if no admissible trajectory found
         # (Usually better to handle gracefully, but keeping original behavior)
