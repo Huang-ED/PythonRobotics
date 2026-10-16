@@ -376,12 +376,26 @@ Wasted manoeuvre (max deviation from the obstacle-free path), uniform arm:
 | head-on | 1.36 u | 0.42 | 0.13 | 0.07 |
 | starboard crossing | 1.10 u | 0.50 | 0.22 | 0.07 |
 
-Under every weighting the ego starts to manoeuvre about 21 s before the
-closest approach (§3). The phantoms' forecasts are wrong at 25 s, before the
-planner acts on that target; by the time it would, the updated forecast of a
-turning target already shows it passing clear. **The planner already does not
-act on forecasts beyond about 20 s, under any weighting**, so there is little
-over-commitment for a discount to prevent.
+*Corrected 2026-10-17.* An earlier version said the planner does not act on
+forecasts beyond ~20 s. That misread §3's "lead time", which is when the
+deviation first exceeds 0.25 u. The first non-zero yaw command comes **31–39 s
+before the closest approach**, within a few seconds of the target entering
+range, under every weighting (strong slightly later than uniform, by
+0.4–2.6 s):
+
+| scene | target in range | first yaw command: uniform / ×1.58 / v21.13 / ×3.15 / strong | deviation > 0.25 u |
+|---|---|---|---|
+| head-on | 38.7 s | 35.9 / 36.1 / 35.7 / 36.3 / 35.1 | 23.1 |
+| starboard crossing 090 | 36.8 s | 32.7 / 32.8 / 32.3 / 32.9 / 31.1 | ~21.5 |
+| port crossing 090 | 41.8 s | 37.7 / 38.2 / 37.6 / 39.0 / 36.6 | ~10.5 |
+| overtaking | 44.9 s | 37.2 / 37.2 / 36.4 / 37.1 / 34.6 | ~4.3 |
+
+So the planner does act on a phantom's far forecast -- but a far threat needs
+only a small heading change (clearing 1.2 u at 30 s ahead takes ~4.6° at
+0.5 u/s; at 10 s ahead, ~14°), and that small change is revised every 0.1 s
+as the turning target's forecast updates. Acting on a wrong far forecast is
+cheap here, under any weighting, so there is little over-commitment for a
+discount to prevent.
 
 **Hidden threats cost clearance as the turn sharpens** (head-on, uniform:
 0.41 straight → 0.39 / 0.35 / 0.25 u; starboard crossing turning to
@@ -409,8 +423,8 @@ goal, no contact.
 
 **No arm falls for the dilemma.** Every one, uniform included, holds clear of
 A and moves for B 8–21 s *after* passing A; the move tracks B's timing, not
-the weighting. B is beyond the ~20 s range the planner acts on while A is
-alongside. At equal turning, the worse of the two clearances differs from
+the weighting. While A is alongside, B is still far, and a far threat needs only a small
+heading change -- which every arm defers until A is clear. At equal turning, the worse of the two clearances differs from
 the uniform curve by −0.006 u (v21.13) and +0.018 u (strong).
 
 ### 12.3 Reading
@@ -420,8 +434,11 @@ different times, drifting forecasts, a near-vs-far dilemma; 205 mechanism and
 ablation runs, no contact -- the horizon weighting moves this planner along
 the same clearance-vs-cost curve as the dynamic-obstacle gain. The reason is
 structural and measured: a threat closer than ~4 s is the same for every
-candidate (§11), and a threat further than ~20 s does not yet move the
-planner, under any weighting (§12.1, §12.2). What remains in between is the
-band a weighting can reshape, and there a uniform average with a matched gain
-does the same job.
+candidate (§11); a far threat moves the planner early (31–39 s ahead) but only
+by small heading changes, revised every 0.1 s (§12.1); and where the weighting
+does reorder candidates -- mid-encounter, where the discount factor varies by
+15–57% across candidates -- the reordered choices differ by 1–5 yaw-rate cells
+and are re-planned away (§11). The collision veto is the same for every arm;
+removing it changes the choice at 0/216 states under uniform and 3/216 under
+the strong discount (all head-on), so it does not drive the comparison.
 
