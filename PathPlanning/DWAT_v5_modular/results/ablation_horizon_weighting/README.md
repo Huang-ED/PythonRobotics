@@ -287,8 +287,24 @@ part of the cost that ignores time entirely. The weighting only ever ranks
 
 Most vetoes are for contacts 15–30 s out -- the least certain predictions,
 and the ones a re-planning ego can still avoid -- treated exactly like one
-5 s out. This is where "a collision in 1 s and in 10 s should not cost the
-same" applies literally, and the weighting never sees it.
+5 s out.
+
+**But on these suites the veto almost never decides the choice.** Removing it
+(`no_veto.py`: each vetoed candidate gets the finite cost the formula would
+give, either the raw symmetric barrier or overlap clamped at maximum
+severity) changes the cheapest candidate to a colliding one at **1 of 244**
+states with a partial veto (head-on 1/28, starboard crossing 0/25, slalom
+Δ = 20 s 0/85, v3crowd6 0/106), and that one contact is at 33.4 s, the last
+step of the horizon. A candidate heading into a target also pays the
+near-miss severity on the way in, and a clean alternative exists at every
+state measured (no state had every candidate vetoed). So the veto removes
+candidates that would lose anyway: it is not what hides the weighting here.
+
+Removing it outright would still be unsafe where no clean alternative
+exists: the barrier is symmetric in clearance, so a deep overlap scores
+*lower* than a graze (−0.5 u and +0.5 u both give S = 1.375), and severity is
+capped at 2.0 and averaged over 335 steps, so a 1.5 s contact adds at most
+0.088 -- the size of an ordinary near miss.
 
 **(2) A danger close in time is the same for every candidate.** The ship
 cannot change what happens in the next few seconds: from cruise, all 495
@@ -327,10 +343,10 @@ executed paths converge, which is §10's outcome.
 **Reading.** The intuition is right about *risk*: a close pass 2 s ahead is
 worse than one 10 s ahead (fig1). It does not reach the *choice* in this
 planner, for three measured reasons: real collisions are vetoed regardless
-of time; dangers too close to change are equal for every candidate; and the
-ranking differences that remain are small and re-planned away within 0.1 s.
-The first is a design decision, not a law: a predicted contact at 25 s could
-be a large finite, time-weighted cost instead of a veto. That is the change
-under which uniform vs discounted weighting would differ in exactly the
-thought experiment's terms.
+of time (though, measured, that rarely decides the choice); dangers too
+close to change are equal for every candidate; and the ranking differences
+that remain are small and re-planned away within 0.1 s.
+The veto is a design decision, not a law -- a predicted contact at 25 s could
+be a large finite, time-weighted cost -- but on these suites it is not the
+binding constraint (above). Mechanisms (2) and (3) are.
 
