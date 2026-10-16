@@ -387,6 +387,108 @@ def build_target(traj, dt, t_meet, speed, radius, course_rel_deg=None,
     return obstacle, diagnostics
 
 
+def build_arc_target(traj, dt, t_meet, speed, radius, course_rel_deg, arc, turn_rate_deg,
+                     tau=25.0, window=(45.0, 15.0), sim_duration=None, sample_dt=0.5):
+    """A target that turns steadily, so a constant-velocity forecast drifts.
+
+    At look-ahead tau, a forecast from a vessel turning at omega misses its true
+    position by about 0.5 * v * omega * tau^2 -- small up close, large far out,
+    which is the claim being tested ("long-range predictions are less
+    accurate"). The geometry is fixed at t_ref = t_meet - tau, on the collision
+    leg of ``course_rel_deg``:
+
+      "phantom"  at t_ref the target is ON the collision leg, heading along it:
+                 its forecast says collision at t_meet. It keeps turning, and
+                 passes clear.
+      "hidden"   the target is at the meeting point M at t_meet, heading along
+                 the collision leg there: a true collision. Its forecast at
+                 t_ref points elsewhere and says it passes clear.
+
+    It turns at ``turn_rate_deg`` (> 0 counter-clockwise, i.e. to port) only
+    during [t_meet - window[0], t_meet + window[1]] and runs straight, along its
+    tangent, before and after -- so it cannot circle back into the scene. A
+    ``turn_rate_deg`` of 0 is the straight-target control. Emitted as an
+    inline ``trajectory`` sampled every ``sample_dt`` s; the simulator's
+    velocity is that of each segment, as with replayed AIS.
+    """
+    M, h, v_e = ego_state_at(traj, dt, t_meet)
+    chi = h + math.radians(course_rel_deg)
+    w = math.radians(turn_rate_deg)
+    if sim_duration is None:
+        sim_duration = (traj.shape[0] - 1) * dt
+    t_end = sim_duration * 1.5
+    ta, tb = t_meet - window[0], t_meet + window[1]
+
+    if arc == "phantom":
+        t0, psi0 = t_meet - tau, chi
+        p0 = M - speed * np.array([math.cos(chi), math.sin(chi)]) * tau
+    elif arc == "hidden":
+        t0, psi0, p0 = t_meet, chi, M.copy()
+    else:
+        raise ValueError(f"arc must be 'phantom' or 'hidden', got {arc!r}")
+
+    def heading(t):
+        return psi0 + w * (min(max(t, ta), tb) - t0)
+
+    def turned(t1, t2):
+        """Displacement over [t1, t2] while turning (both inside the window)."""
+        if abs(w) < 1e-12:
+            return speed * (t2 - t1) * np.array([math.cos(psi0), math.sin(psi0)])
+        a, b = heading(t1), heading(t2)
+        return (speed / w) * np.array([math.sin(b) - math.sin(a), -math.cos(b) + math.cos(a)])
+
+    def pos(t):
+        tc = min(max(t, ta), tb)
+        p = p0 + turned(t0, tc)
+        if t != tc:                        # straight beyond the window, along the tangent
+            ps = heading(tc)
+            p = p + speed * (t - tc) * np.array([math.cos(ps), math.sin(ps)])
+        return p
+
+    times = np.arange(0.0, t_end + sample_dt / 2, sample_dt)
+    pts = np.array([pos(t) for t in times])
+    obstacle = {
+        "motion_type": "trajectory",
+        "trajectory": [[round(float(x), 4), round(float(y), 4)] for x, y in pts],
+        "times": [round(float(t), 3) for t in times],
+        "radius": radius,
+        "on_finish": "hold",
+    }
+
+    # What a constant-velocity forecast made at t_ref says about the meeting,
+    # against what happens.
+    tr = t_meet - tau
+    p_ref = pos(tr)
+    v_ref = (pos(tr + sample_dt) - p_ref) / sample_dt
+    forecast = p_ref + v_ref * tau
+    rel_bearing = math.degrees(h - math.atan2(*(p_ref - M)[::-1])) % 360.0
+    # Of the collision leg at t_ref, as build_target reports it.
+    closing = float(np.hypot(*(v_e * np.array([math.cos(h), math.sin(h)])
+                               - speed * np.array([math.cos(chi), math.sin(chi)]))))
+    diagnostics = {
+        "meeting_point": [round(float(M[0]), 2), round(float(M[1]), 2)],
+        "t_meet_s": t_meet,
+        "ego_heading_deg": round(math.degrees(h), 1),
+        "ego_speed": round(v_e, 3),
+        "spawn": [round(float(pts[0][0]), 2), round(float(pts[0][1]), 2)],
+        "target_speed": speed,
+        "course_rel_deg": course_rel_deg,
+        "arc": arc,
+        "turn_rate_deg": turn_rate_deg,
+        "tau_s": tau,
+        "turn_window_s": [ta, tb],
+        "forecast_at_t_ref_misses_M_by": round(float(np.hypot(*(forecast - M))), 3),
+        "actual_at_t_meet_misses_M_by": round(float(np.hypot(*(pos(t_meet) - M))), 3),
+        "sector": classify(rel_bearing, course_rel_deg),
+        "closing_speed": round(closing, 3),
+        "rel_bearing_deg": round(rel_bearing, 1),
+        "t_detect_s": round(max(0.0, t_meet - 25.0 / closing), 1),
+        "planned_cpa": 0.0,
+        "expect_threat": arc == "hidden" or abs(w) < 1e-12,
+    }
+    return obstacle, diagnostics
+
+
 # Course is relative to the ego's heading at the meeting point:
 #   +90 means the target runs 90 deg to port of the ego's heading, which puts it
 #   *coming from* the ego's starboard side.
@@ -477,8 +579,31 @@ OPENWATER_TURNING_CASES = [
     for mode, deg in (("away", away_deg), ("in", away_deg if base == "head_on" else -away_deg))
 ]
 
+# Steadily turning targets: the constant-velocity forecast is wrong by an
+# amount that grows with look-ahead (build_arc_target). A mechanism test of
+# the horizon weighting, meant to be run with COLREGs off. Head-on is mirror
+# symmetric without COLREGs, so it turns one way only; the starboard crossing
+# turns both ways when hidden; its phantom turns to port only, because a
+# phantom turning to starboard stays in the ego's path (a do-nothing ego still
+# hits it at 0.5 and 1 deg/s, and passes only 0.54 u off at 2 deg/s). Rate 0
+# is the straight control on each base.
+OPENWATER_ARC_CASES = []
+for _base, _c, _signs in (("head_on", 180.0, (1,)), ("cross_stbd_090", 90.0, (1, -1))):
+    OPENWATER_ARC_CASES.append(dict(name=f"{_base}_straight", course_rel_deg=_c, speed=0.40,
+                                    t_meet=90.0, arc="hidden", turn_rate_deg=0.0))
+    for _sgn in _signs:
+        for _arc in ("phantom", "hidden"):
+            if _arc == "phantom" and _base == "cross_stbd_090" and _sgn < 0:
+                continue
+            for _r in (0.5, 1.0, 2.0):
+                _side = "" if len(_signs) == 1 else ("_port" if _sgn > 0 else "_stbd")
+                OPENWATER_ARC_CASES.append(dict(
+                    name=f"{_base}_{_arc}{_side}_r{int(_r * 10):02d}", course_rel_deg=_c, speed=0.40,
+                    t_meet=90.0, arc=_arc, turn_rate_deg=_sgn * _r))
+
 SUITES = {"openwater": OPENWATER_CASES, "video3": VIDEO3_CASES,
-          "openwater_turning": OPENWATER_TURNING_CASES}
+          "openwater_turning": OPENWATER_TURNING_CASES,
+          "openwater_arcs": OPENWATER_ARC_CASES}
 
 
 # Combined scenes: several targets in ONE scenario, the way video3 ships three
@@ -845,20 +970,26 @@ def main() -> int:
 
     for case in _cases:
         name = case["name"]
-        obstacle, diag = build_target(
-            traj, dt,
-            t_meet=case["t_meet"],
-            course_rel_deg=case.get("course_rel_deg"),
-            bearing_rel_deg=case.get("bearing_rel_deg"),
-            speed=case["speed"],
-            radius=args.radius,
-            cpa=case.get("cpa", 0.0),
-            sim_duration=sim_duration,
-            detection_range=args.detection_range,
-            turn=case.get("turn"),
-            turn_s=case.get("turn_s"),
-            turn_deg=case.get("turn_deg"),
-        )
+        if "arc" in case:
+            obstacle, diag = build_arc_target(
+                traj, dt, t_meet=case["t_meet"], speed=case["speed"], radius=args.radius,
+                course_rel_deg=case["course_rel_deg"], arc=case["arc"],
+                turn_rate_deg=case["turn_rate_deg"], sim_duration=sim_duration)
+        else:
+            obstacle, diag = build_target(
+                traj, dt,
+                t_meet=case["t_meet"],
+                course_rel_deg=case.get("course_rel_deg"),
+                bearing_rel_deg=case.get("bearing_rel_deg"),
+                speed=case["speed"],
+                radius=args.radius,
+                cpa=case.get("cpa", 0.0),
+                sim_duration=sim_duration,
+                detection_range=args.detection_range,
+                turn=case.get("turn"),
+                turn_s=case.get("turn_s"),
+                turn_deg=case.get("turn_deg"),
+            )
 
         scenario = dict(base)
         scenario["dynamic_obstacles"] = [obstacle]

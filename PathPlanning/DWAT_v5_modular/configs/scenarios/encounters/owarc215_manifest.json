@@ -1,0 +1,852 @@
+[
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      50.0,
+      7.22
+    ],
+    "target_speed": 0.4,
+    "course_rel_deg": 180.0,
+    "arc": "hidden",
+    "turn_rate_deg": 0.0,
+    "tau_s": 25.0,
+    "turn_window_s": [
+      45.0,
+      105.0
+    ],
+    "forecast_at_t_ref_misses_M_by": 0.0,
+    "actual_at_t_meet_misses_M_by": 0.0,
+    "sector": "head-on (R14)",
+    "closing_speed": 0.9,
+    "rel_bearing_deg": 0.0,
+    "t_detect_s": 62.2,
+    "planned_cpa": 0.0,
+    "expect_threat": true,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "head_on_straight",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owarc215_head_on_straight.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 89.6,
+        "threat": true
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 88.3,
+        "threat": true
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      46.18,
+      7.54
+    ],
+    "target_speed": 0.4,
+    "course_rel_deg": 180.0,
+    "arc": "phantom",
+    "turn_rate_deg": 0.5,
+    "tau_s": 25.0,
+    "turn_window_s": [
+      45.0,
+      105.0
+    ],
+    "forecast_at_t_ref_misses_M_by": 0.022,
+    "actual_at_t_meet_misses_M_by": 1.089,
+    "sector": "head-on (R14)",
+    "closing_speed": 0.9,
+    "rel_bearing_deg": 0.0,
+    "t_detect_s": 62.2,
+    "planned_cpa": 0.0,
+    "expect_threat": false,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "head_on_phantom_r05",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owarc215_head_on_phantom_r05.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": 0.351,
+        "t_cpa_s": 89.5,
+        "threat": false
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": 0.244,
+        "t_cpa_s": 88.2,
+        "threat": false
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      42.46,
+      8.47
+    ],
+    "target_speed": 0.4,
+    "course_rel_deg": 180.0,
+    "arc": "phantom",
+    "turn_rate_deg": 1.0,
+    "tau_s": 25.0,
+    "turn_window_s": [
+      45.0,
+      105.0
+    ],
+    "forecast_at_t_ref_misses_M_by": 0.044,
+    "actual_at_t_meet_misses_M_by": 2.17,
+    "sector": "head-on (R14)",
+    "closing_speed": 0.9,
+    "rel_bearing_deg": 0.0,
+    "t_detect_s": 62.2,
+    "planned_cpa": 0.0,
+    "expect_threat": false,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "head_on_phantom_r10",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owarc215_head_on_phantom_r10.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": 1.392,
+        "t_cpa_s": 89.4,
+        "threat": false
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": 1.179,
+        "t_cpa_s": 88.2,
+        "threat": false
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      35.75,
+      12.07
+    ],
+    "target_speed": 0.4,
+    "course_rel_deg": 180.0,
+    "arc": "phantom",
+    "turn_rate_deg": 2.0,
+    "tau_s": 25.0,
+    "turn_window_s": [
+      45.0,
+      105.0
+    ],
+    "forecast_at_t_ref_misses_M_by": 0.087,
+    "actual_at_t_meet_misses_M_by": 4.272,
+    "sector": "head-on (R14)",
+    "closing_speed": 0.9,
+    "rel_bearing_deg": 0.0,
+    "t_detect_s": 62.2,
+    "planned_cpa": 0.0,
+    "expect_threat": false,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "head_on_phantom_r20",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owarc215_head_on_phantom_r20.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": 3.408,
+        "t_cpa_s": 89.1,
+        "threat": false
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": 2.997,
+        "t_cpa_s": 87.9,
+        "threat": false
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      39.62,
+      9.05
+    ],
+    "target_speed": 0.4,
+    "course_rel_deg": 180.0,
+    "arc": "hidden",
+    "turn_rate_deg": 0.5,
+    "tau_s": 25.0,
+    "turn_window_s": [
+      45.0,
+      105.0
+    ],
+    "forecast_at_t_ref_misses_M_by": 1.068,
+    "actual_at_t_meet_misses_M_by": 0.0,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "closing_speed": 0.9,
+    "rel_bearing_deg": 6.3,
+    "t_detect_s": 62.2,
+    "planned_cpa": 0.0,
+    "expect_threat": true,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "head_on_hidden_r05",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owarc215_head_on_hidden_r05.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 90.0,
+        "threat": true
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": -0.698,
+        "t_cpa_s": 89.1,
+        "threat": true
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      30.56,
+      14.29
+    ],
+    "target_speed": 0.4,
+    "course_rel_deg": 180.0,
+    "arc": "hidden",
+    "turn_rate_deg": 1.0,
+    "tau_s": 25.0,
+    "turn_window_s": [
+      45.0,
+      105.0
+    ],
+    "forecast_at_t_ref_misses_M_by": 2.127,
+    "actual_at_t_meet_misses_M_by": 0.0,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "closing_speed": 0.9,
+    "rel_bearing_deg": 12.5,
+    "t_detect_s": 62.2,
+    "planned_cpa": 0.0,
+    "expect_threat": true,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "head_on_hidden_r10",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owarc215_head_on_hidden_r10.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 90.0,
+        "threat": true
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": -0.697,
+        "t_cpa_s": 89.1,
+        "threat": true
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      20.54,
+      31.76
+    ],
+    "target_speed": 0.4,
+    "course_rel_deg": 180.0,
+    "arc": "hidden",
+    "turn_rate_deg": 2.0,
+    "tau_s": 25.0,
+    "turn_window_s": [
+      45.0,
+      105.0
+    ],
+    "forecast_at_t_ref_misses_M_by": 4.188,
+    "actual_at_t_meet_misses_M_by": 0.0,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "closing_speed": 0.9,
+    "rel_bearing_deg": 25.0,
+    "t_detect_s": 62.2,
+    "planned_cpa": 0.0,
+    "expect_threat": true,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "head_on_hidden_r20",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owarc215_head_on_hidden_r20.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 90.0,
+        "threat": true
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": -0.694,
+        "t_cpa_s": 89.1,
+        "threat": true
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      14.0,
+      43.22
+    ],
+    "target_speed": 0.4,
+    "course_rel_deg": 90.0,
+    "arc": "hidden",
+    "turn_rate_deg": 0.0,
+    "tau_s": 25.0,
+    "turn_window_s": [
+      45.0,
+      105.0
+    ],
+    "forecast_at_t_ref_misses_M_by": 0.0,
+    "actual_at_t_meet_misses_M_by": 0.0,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "closing_speed": 0.64,
+    "rel_bearing_deg": 90.0,
+    "t_detect_s": 51.0,
+    "planned_cpa": 0.0,
+    "expect_threat": true,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "cross_stbd_090_straight",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owarc215_cross_stbd_090_straight.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 90.0,
+        "threat": true
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": -0.224,
+        "t_cpa_s": 89.1,
+        "threat": true
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      14.31,
+      47.04
+    ],
+    "target_speed": 0.4,
+    "course_rel_deg": 90.0,
+    "arc": "phantom",
+    "turn_rate_deg": 0.5,
+    "tau_s": 25.0,
+    "turn_window_s": [
+      45.0,
+      105.0
+    ],
+    "forecast_at_t_ref_misses_M_by": 0.022,
+    "actual_at_t_meet_misses_M_by": 1.089,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "closing_speed": 0.64,
+    "rel_bearing_deg": 90.0,
+    "t_detect_s": 51.0,
+    "planned_cpa": 0.0,
+    "expect_threat": false,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "cross_stbd_090_phantom_port_r05",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owarc215_cross_stbd_090_phantom_port_r05.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": -0.252,
+        "t_cpa_s": 89.3,
+        "threat": true
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": 0.396,
+        "t_cpa_s": 87.9,
+        "threat": false
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      15.25,
+      50.76
+    ],
+    "target_speed": 0.4,
+    "course_rel_deg": 90.0,
+    "arc": "phantom",
+    "turn_rate_deg": 1.0,
+    "tau_s": 25.0,
+    "turn_window_s": [
+      45.0,
+      105.0
+    ],
+    "forecast_at_t_ref_misses_M_by": 0.044,
+    "actual_at_t_meet_misses_M_by": 2.17,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "closing_speed": 0.64,
+    "rel_bearing_deg": 90.0,
+    "t_detect_s": 51.0,
+    "planned_cpa": 0.0,
+    "expect_threat": false,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "cross_stbd_090_phantom_port_r10",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owarc215_cross_stbd_090_phantom_port_r10.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": 0.418,
+        "t_cpa_s": 88.2,
+        "threat": false
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": 0.99,
+        "t_cpa_s": 86.9,
+        "threat": false
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      18.85,
+      57.47
+    ],
+    "target_speed": 0.4,
+    "course_rel_deg": 90.0,
+    "arc": "phantom",
+    "turn_rate_deg": 2.0,
+    "tau_s": 25.0,
+    "turn_window_s": [
+      45.0,
+      105.0
+    ],
+    "forecast_at_t_ref_misses_M_by": 0.087,
+    "actual_at_t_meet_misses_M_by": 4.272,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "closing_speed": 0.64,
+    "rel_bearing_deg": 90.0,
+    "t_detect_s": 51.0,
+    "planned_cpa": 0.0,
+    "expect_threat": false,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "cross_stbd_090_phantom_port_r20",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owarc215_cross_stbd_090_phantom_port_r20.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": 1.673,
+        "t_cpa_s": 86.4,
+        "threat": false
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": 2.096,
+        "t_cpa_s": 85.1,
+        "threat": false
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      15.83,
+      53.6
+    ],
+    "target_speed": 0.4,
+    "course_rel_deg": 90.0,
+    "arc": "hidden",
+    "turn_rate_deg": 0.5,
+    "tau_s": 25.0,
+    "turn_window_s": [
+      45.0,
+      105.0
+    ],
+    "forecast_at_t_ref_misses_M_by": 1.068,
+    "actual_at_t_meet_misses_M_by": 0.0,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "closing_speed": 0.64,
+    "rel_bearing_deg": 96.2,
+    "t_detect_s": 51.0,
+    "planned_cpa": 0.0,
+    "expect_threat": true,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "cross_stbd_090_hidden_port_r05",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owarc215_cross_stbd_090_hidden_port_r05.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 90.0,
+        "threat": true
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": -0.223,
+        "t_cpa_s": 89.1,
+        "threat": true
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      21.07,
+      62.66
+    ],
+    "target_speed": 0.4,
+    "course_rel_deg": 90.0,
+    "arc": "hidden",
+    "turn_rate_deg": 1.0,
+    "tau_s": 25.0,
+    "turn_window_s": [
+      45.0,
+      105.0
+    ],
+    "forecast_at_t_ref_misses_M_by": 2.127,
+    "actual_at_t_meet_misses_M_by": 0.0,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "closing_speed": 0.64,
+    "rel_bearing_deg": 102.5,
+    "t_detect_s": 51.0,
+    "planned_cpa": 0.0,
+    "expect_threat": true,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "cross_stbd_090_hidden_port_r10",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owarc215_cross_stbd_090_hidden_port_r10.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 90.0,
+        "threat": true
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": -0.222,
+        "t_cpa_s": 89.1,
+        "threat": true
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      38.54,
+      72.68
+    ],
+    "target_speed": 0.4,
+    "course_rel_deg": 90.0,
+    "arc": "hidden",
+    "turn_rate_deg": 2.0,
+    "tau_s": 25.0,
+    "turn_window_s": [
+      45.0,
+      105.0
+    ],
+    "forecast_at_t_ref_misses_M_by": 4.188,
+    "actual_at_t_meet_misses_M_by": 0.0,
+    "sector": "overtaking sector (R13)",
+    "closing_speed": 0.64,
+    "rel_bearing_deg": 115.0,
+    "t_detect_s": 51.0,
+    "planned_cpa": 0.0,
+    "expect_threat": true,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "cross_stbd_090_hidden_port_r20",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owarc215_cross_stbd_090_hidden_port_r20.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 90.0,
+        "threat": true
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": -0.22,
+        "t_cpa_s": 89.1,
+        "threat": true
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      15.83,
+      32.85
+    ],
+    "target_speed": 0.4,
+    "course_rel_deg": 90.0,
+    "arc": "hidden",
+    "turn_rate_deg": -0.5,
+    "tau_s": 25.0,
+    "turn_window_s": [
+      45.0,
+      105.0
+    ],
+    "forecast_at_t_ref_misses_M_by": 1.068,
+    "actual_at_t_meet_misses_M_by": 0.0,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "closing_speed": 0.64,
+    "rel_bearing_deg": 83.8,
+    "t_detect_s": 51.0,
+    "planned_cpa": 0.0,
+    "expect_threat": true,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "cross_stbd_090_hidden_stbd_r05",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owarc215_cross_stbd_090_hidden_stbd_r05.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 90.0,
+        "threat": true
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": -0.225,
+        "t_cpa_s": 89.1,
+        "threat": true
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      21.07,
+      23.78
+    ],
+    "target_speed": 0.4,
+    "course_rel_deg": 90.0,
+    "arc": "hidden",
+    "turn_rate_deg": -1.0,
+    "tau_s": 25.0,
+    "turn_window_s": [
+      45.0,
+      105.0
+    ],
+    "forecast_at_t_ref_misses_M_by": 2.127,
+    "actual_at_t_meet_misses_M_by": 0.0,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "closing_speed": 0.64,
+    "rel_bearing_deg": 77.5,
+    "t_detect_s": 51.0,
+    "planned_cpa": 0.0,
+    "expect_threat": true,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "cross_stbd_090_hidden_stbd_r10",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owarc215_cross_stbd_090_hidden_stbd_r10.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 90.0,
+        "threat": true
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": -0.226,
+        "t_cpa_s": 89.1,
+        "threat": true
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      50.0,
+      43.22
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      38.54,
+      13.76
+    ],
+    "target_speed": 0.4,
+    "course_rel_deg": 90.0,
+    "arc": "hidden",
+    "turn_rate_deg": -2.0,
+    "tau_s": 25.0,
+    "turn_window_s": [
+      45.0,
+      105.0
+    ],
+    "forecast_at_t_ref_misses_M_by": 4.188,
+    "actual_at_t_meet_misses_M_by": 0.0,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "closing_speed": 0.64,
+    "rel_bearing_deg": 65.0,
+    "t_detect_s": 51.0,
+    "planned_cpa": 0.0,
+    "expect_threat": true,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "cross_stbd_090_hidden_stbd_r20",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owarc215_cross_stbd_090_hidden_stbd_r20.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.5/baseline/openwater_baseline__20260919_002729/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 90.0,
+        "threat": true
+      },
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": -0.228,
+        "t_cpa_s": 89.1,
+        "threat": true
+      }
+    ]
+  }
+]

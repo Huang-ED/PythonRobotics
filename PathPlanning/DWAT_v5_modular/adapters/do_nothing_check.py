@@ -63,8 +63,16 @@ def target_track(obstacle: dict, times: np.ndarray) -> np.ndarray:
     long as the run never reaches the last waypoint, after which the simulator
     wraps back to the first.
     """
+    if obstacle.get("motion_type", "waypoint") == "trajectory" and "trajectory" in obstacle:
+        # An inline sampled track (encounter_suite's turning targets): linear
+        # between samples and parked after the last, as DynamicObstacle with
+        # on_finish "hold".
+        p = np.asarray(obstacle["trajectory"], dtype=float)
+        ts = np.asarray(obstacle["times"], dtype=float)
+        tq = np.clip(times, ts[0], ts[-1])
+        return np.stack([np.interp(tq, ts, p[:, 0]), np.interp(tq, ts, p[:, 1])], axis=1)
     if obstacle.get("motion_type", "waypoint") != "waypoint":
-        raise ValueError(f"only waypoint targets are open-loop tracks; "
+        raise ValueError(f"only waypoint and inline trajectory targets are open-loop tracks; "
                          f"got {obstacle.get('motion_type')!r}")
     w = np.asarray(obstacle["waypoints"], dtype=float)
     run = obstacle["speed"] * times
