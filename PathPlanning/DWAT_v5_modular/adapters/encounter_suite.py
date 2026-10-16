@@ -711,6 +711,21 @@ for _d in (5, 10, 20, 30):
             dict(name="B", course_rel_deg=0.0, speed=0.20, t_meet=70.0 + _d, cpa=-0.5 * _sgn),
         ]
 
+# Near-vs-far dilemma: acting early on a far threat worsens a near one. A is a
+# slow vessel the ego overtakes, 1.2 u to starboard of the path (a do-nothing
+# ego passes it 0.5 u clear), met at 70 s. B is head-on, met delta s later,
+# 0.5 u to PORT of the path, so a do-nothing ego hits it and starboard is the
+# cheap side to pass -- by geometry, with no COLREGs rule. Moving to
+# starboard early for B closes on A while A is still abeam; waiting for A to
+# pass means a later, sharper move for B. Meant for the mech_* configs
+# (COLREGs off). cpa < 0 is starboard for both geometries.
+for _d in (10, 15, 20, 25):
+    COMBINED_SUITES[f"ow_dilemma_d{_d:02d}"] = [
+        dict(name="A_near", course_rel_deg=0.0, speed=0.20, t_meet=70.0, cpa=-1.2,
+             expect_threat=False),
+        dict(name="B_far", course_rel_deg=180.0, speed=0.40, t_meet=70.0 + _d, cpa=0.5),
+    ]
+
 
 def _apply_t_meet(args, cases, suite_name):
     """Return `cases` with any --t-meet overrides applied.
@@ -807,6 +822,8 @@ def _emit_combined(args, base, base_path, traj, dt, sim_duration, static_obs,
             obstacle, static_obs, case["t_meet"], args.radius)
         diag.update(name=case["name"], land_samples=n_blocked,
                     first_land_t=first_blocked, navigable=n_blocked == 0)
+        if "expect_threat" in case:
+            diag["expect_threat"] = bool(case["expect_threat"])
         sx, sy = diag["spawn"]
         diag["spawn_in_map"] = bool(0 <= sx <= 100 and 0 <= sy <= 100)
         obstacles.append(obstacle)
