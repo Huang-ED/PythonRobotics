@@ -31,6 +31,7 @@ weighting.
 [7 What this means for the paper](#7-what-this-means-for-the-paper) ·
 [10 Two threats at different times](#10-two-threats-at-different-times-the-staggered-slalom) ·
 [11 Why: what the weighting can and cannot reach](#11-why-what-the-weighting-can-and-cannot-reach) ·
+[12 Mechanism tests: forecasts that drift, and a near-vs-far dilemma](#12-mechanism-tests-forecasts-that-drift-and-a-near-vs-far-dilemma) ·
 [8 Caveats](#8-caveats) · [9 Reproducing](#9-reproducing)
 
 ---
@@ -349,4 +350,78 @@ that remain are small and re-planned away within 0.1 s.
 The veto is a design decision, not a law -- a predicted contact at 25 s could
 be a large finite, time-weighted cost -- but on these suites it is not the
 binding constraint (above). Mechanisms (2) and (3) are.
+
+## 12 Mechanism tests: forecasts that drift, and a near-vs-far dilemma
+
+Both suites run the five arms with COLREGs off (`configs/algorithm/v21.13/mech_*.json`,
+otherwise identical to the §1 arms), because the COLREGs terms are not
+time-weighted and would fix the side. Analysis: `compare.py --arcs`,
+`compare.py --dilemma`.
+
+### 12.1 Forecasts that drift: steadily turning targets (`owarc215_*`)
+
+A target turning at ω drifts from its constant-velocity forecast by about
+½·v·ω·τ² at look-ahead τ -- 1.1 / 2.2 / 4.3 u at 25 s for 0.5 / 1 / 2 °/s.
+That is the paper's "long-range predictions are less accurate", made a
+controllable variable. *Phantom*: 25 s before the meeting the forecast says
+collision, but the target turns clear. *Hidden*: a real collision that the
+forecast 25 s earlier puts 1.1–4.2 u off. Straight control on each base.
+85 runs, all reach the goal, **no contact**.
+
+**The phantoms barely fool the planner -- less, the more the target turns.**
+Wasted manoeuvre (max deviation from the obstacle-free path), uniform arm:
+
+| base | straight (real threat) | phantom 0.5 °/s | 1 °/s | 2 °/s |
+|---|---|---|---|---|
+| head-on | 1.36 u | 0.42 | 0.13 | 0.07 |
+| starboard crossing | 1.10 u | 0.50 | 0.22 | 0.07 |
+
+Under every weighting the ego starts to manoeuvre about 21 s before the
+closest approach (§3). The phantoms' forecasts are wrong at 25 s, before the
+planner acts on that target; by the time it would, the updated forecast of a
+turning target already shows it passing clear. **The planner already does not
+act on forecasts beyond about 20 s, under any weighting**, so there is little
+over-commitment for a discount to prevent.
+
+**Hidden threats cost clearance as the turn sharpens** (head-on, uniform:
+0.41 straight → 0.39 / 0.35 / 0.25 u; starboard crossing turning to
+starboard: 0.54 → 0.46 / 0.39 / 0.26 u) -- in every arm, ordered by
+effective gain.
+
+At equal cost the discounted arms sit on the uniform curve: wasted deviation
+at equal clearance −0.001 u (v21.13) and −0.004 u (strong) on the phantoms;
+clearance at equal turning −0.007 / −0.009 u on the hidden threats.
+
+### 12.2 A near-vs-far dilemma (`ow_dilemma_d10..d25`)
+
+A, a slow vessel the ego overtakes, 1.2 u to starboard (a do-nothing ego
+passes it 0.50 u clear); B head-on Δ s later, 0.5 u to port (a do-nothing ego
+hits it), so starboard is the cheap side for B by geometry. Moving to
+starboard while A is abeam would put the ego into A. 20 runs, all reach the
+goal, no contact.
+
+| Δ | arm | clearance A | clearance B | starboard move, s after A's CPA |
+|---|---|---|---|---|
+| 10 s | uniform / ×1.58 / v21.13 / ×3.15 / strong | 1.32 / 1.41 / 1.37 / 1.52 / 1.39 | 0.45 / 0.67 / 0.56 / 0.89 / 0.75 | +7.9 / +12.7 / +12.8 / +13.5 / +12.5 |
+| 15 s | 〃 | 1.20 / 1.33 / 1.27 / 1.48 / 1.31 | 0.46 / 0.67 / 0.58 / 0.90 / 0.72 | +12.2 / +11.9 / +12.0 / +11.6 / +11.9 |
+| 20 s | 〃 | 1.17 / 1.27 / 1.21 / 1.45 / 1.28 | 0.46 / 0.67 / 0.60 / 0.92 / 0.73 | +16.6 / +16.3 / +16.6 / +16.1 / +16.5 |
+| 25 s | 〃 | 1.14 / 1.27 / 1.21 / 1.44 / 1.28 | 0.44 / 0.67 / 0.60 / 0.93 / 0.74 | +21.1 / +20.9 / +21.0 / +20.5 / +21.1 |
+
+**No arm falls for the dilemma.** Every one, uniform included, holds clear of
+A and moves for B 8–21 s *after* passing A; the move tracks B's timing, not
+the weighting. B is beyond the ~20 s range the planner acts on while A is
+alongside. At equal turning, the worse of the two clearances differs from
+the uniform curve by −0.006 u (v21.13) and +0.018 u (strong).
+
+### 12.3 Reading
+
+Across every suite -- single threats, course-altering targets, two threats at
+different times, drifting forecasts, a near-vs-far dilemma; 205 mechanism and
+ablation runs, no contact -- the horizon weighting moves this planner along
+the same clearance-vs-cost curve as the dynamic-obstacle gain. The reason is
+structural and measured: a threat closer than ~4 s is the same for every
+candidate (§11), and a threat further than ~20 s does not yet move the
+planner, under any weighting (§12.1, §12.2). What remains in between is the
+band a weighting can reshape, and there a uniform average with a matched gain
+does the same job.
 

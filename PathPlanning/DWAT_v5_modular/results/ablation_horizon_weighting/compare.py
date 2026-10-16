@@ -5,6 +5,8 @@ Run from the repo root:
     python -m PathPlanning.DWAT_v5_modular.results.ablation_horizon_weighting.compare --turning
     python -m PathPlanning.DWAT_v5_modular.results.ablation_horizon_weighting.compare --frontier
     python -m PathPlanning.DWAT_v5_modular.results.ablation_horizon_weighting.compare --slalom
+    python -m PathPlanning.DWAT_v5_modular.results.ablation_horizon_weighting.compare --arcs
+    python -m PathPlanning.DWAT_v5_modular.results.ablation_horizon_weighting.compare --dilemma
 
 
 Per run: goal, min clearance (capsule, as encounter_report), delay vs the
@@ -102,7 +104,7 @@ def main():
               f"reversals={sum(m['rev'] for m in ms):>4} side OK/VIOL={sum(m['ok'] for m in ms)}/{sum(m['bad'] for m in ms)}")
 
 
-if __name__ == "__main__" and not {"--turning", "--frontier", "--slalom"} & set(sys.argv):
+if __name__ == "__main__" and not {"--turning", "--frontier", "--slalom", "--arcs", "--dilemma"} & set(sys.argv):
     main()
 
 
@@ -256,3 +258,119 @@ def slalom():
 
 if __name__ == "__main__" and "--slalom" in sys.argv:
     slalom()
+
+
+ARMS_MECH = {
+    "uniform (lT=0)": "runs/v21.13/mech_uniform",
+    "uni x1.58": "runs/v21.13/mech_uniform_gain1p58",
+    "v21.13 (lT=1)": "runs/v21.13/mech_v21.13",
+    "uni x3.15": "runs/v21.13/mech_uniform_gain3p15",
+    "strong (lT=3)": "runs/v21.13/mech_discount_strong",
+}
+
+
+def arcs():
+    """owarc215_*: steadily turning targets, COLREGs off (mech_* configs).
+
+    phantom -- the forecast says collision, the target passes clear: the
+    manoeuvre is wasted, so less of it is better, provided clearance holds.
+    hidden -- a real collision the forecast misses until late: clearance.
+    """
+    base = load(BASE["ow"])
+    tab = {}
+    for arm, root in ARMS_MECH.items():
+        for p in glob.glob(f"{root}/encounters/owarc215_*/log_details.json"):
+            sc = Path(p).parent.name.split("__")[0].replace("owarc215_", "")
+            m = metrics(p, base)
+            d = json.load(open(p))
+            tab.setdefault(sc, {})[arm] = dict(m, collision=d.get("collision_event") is not None)
+    cols = ("goal", "collision", "clear", "maxdev", "delay", "turn")
+    print(f"{'scene':<30}{'arm':<16}" + "".join(f"{c:>10}" for c in cols))
+    for sc in sorted(tab):
+        for arm in ARMS_MECH:
+            m = tab[sc].get(arm)
+            if m is None:
+                print(f"{sc:<30}{arm:<16}   (missing)")
+                continue
+            print(f"{sc:<30}{arm:<16}" + "".join(
+                f"{str(m[c]):>10}" if isinstance(m[c], bool) else f"{m[c]:>10.2f}" for c in cols))
+        print()
+    print("discounted minus uniform at equal turning (hidden: clearance; phantom: max deviation at equal clearance)")
+    for kind in ("phantom", "hidden", "straight"):
+        for darm in DISCOUNTED:
+            v = []
+            for sc, m in tab.items():
+                if kind not in sc or len(m) < len(ARMS_MECH):
+                    continue
+                if kind == "phantom":
+                    xs = np.array([m[u]["clear"] for u in UNIFORM]); ys = np.array([m[u]["maxdev"] for u in UNIFORM])
+                    x = m[darm]["clear"]; y = m[darm]["maxdev"]
+                else:
+                    xs = np.array([m[u]["turn"] for u in UNIFORM]); ys = np.array([m[u]["clear"] for u in UNIFORM])
+                    x = m[darm]["turn"]; y = m[darm]["clear"]
+                if xs.min() <= x <= xs.max() and np.ptp(xs) > 1e-9:
+                    o = np.argsort(xs)
+                    v.append(y - float(np.interp(x, xs[o], ys[o])))
+            txt = f"{np.mean(v):+.3f} (n={len(v)}, + in {sum(a > 0.01 for a in v)}, - in {sum(a < -0.01 for a in v)})" if v else "no point inside the uniform range"
+            print(f"  {kind:<8} {darm:<14} {txt}")
+
+
+if __name__ == "__main__" and "--arcs" in sys.argv:
+    arcs()
+
+
+def dilemma():
+    """ow_dilemma_*: hold for the near vessel A, then move for the far vessel B.
+
+    Per run: clearance to A and to B, contact, and when the ego first moves
+    more than DEV_ON to starboard of its obstacle-free path, relative to A's
+    closest approach (negative = it moved while A was still ahead/abeam).
+    """
+    base = load(BASE["ow"])
+    bt = np.asarray(base["trajectory"], float)
+    print(f"{'scene':<16}{'arm':<16}{'goal':>6}{'contact':>8}{'clear A':>9}{'clear B':>9}"
+          f"{'stbd move - t(A cpa)':>22}{'delay':>7}{'turn':>8}")
+    tab = {}
+    for sc in sorted({Path(p).parent.name.split("__")[0]
+                      for p in glob.glob("runs/v21.13/mech_*/combined/ow_dilemma_*/log_details.json")}):
+        for arm, root in ARMS_MECH.items():
+            ps = glob.glob(f"{root}/combined/{sc}__*/log_details.json")
+            if not ps:
+                print(f"{sc:<16}{arm:<16}   (missing)")
+                continue
+            d = json.load(open(ps[0]))
+            goal, rows = cr.score(ps[0])
+            m = metrics(ps[0], base)
+            tr = np.asarray(d["trajectory"], float)
+            # signed lateral offset from the obstacle-free path: + to starboard
+            n = min(len(tr), len(bt))
+            off = []
+            for x, y, yaw in tr[:n, :3]:
+                j = int(np.argmin(np.hypot(bt[:, 0] - x, bt[:, 1] - y)))
+                h = bt[j, 2]
+                off.append(math.sin(h) * (x - bt[j, 0]) - math.cos(h) * (y - bt[j, 1]))
+            off = np.array(off)
+            k = np.nonzero(off > DEV_ON)[0]
+            t_move = k[0] * 0.1 - rows[0]["t_cpa"] if len(k) else float("nan")
+            r = dict(goal=goal, contact=d.get("collision_event") is not None, a=rows[0]["clear"],
+                     b=rows[1]["clear"], move=t_move, delay=m["delay"], turn=m["turn"])
+            tab.setdefault(sc, {})[arm] = r
+            print(f"{sc:<16}{arm:<16}{str(goal):>6}{str(r['contact']):>8}{r['a']:>9.2f}{r['b']:>9.2f}"
+                  f"{t_move:>+22.1f}{r['delay']:>7.1f}{r['turn']:>8.1f}")
+        print()
+    print("discounted minus uniform, worse of the two clearances at equal turning")
+    for darm in DISCOUNTED:
+        v = []
+        for sc, m in tab.items():
+            if len(m) < len(ARMS_MECH):
+                continue
+            xs = np.array([m[u]["turn"] for u in UNIFORM]); ys = np.array([min(m[u]["a"], m[u]["b"]) for u in UNIFORM])
+            x = m[darm]["turn"]
+            if xs.min() <= x <= xs.max():
+                o = np.argsort(xs)
+                v.append(min(m[darm]["a"], m[darm]["b"]) - float(np.interp(x, xs[o], ys[o])))
+        print(f"  {darm:<14} " + (f"{np.mean(v):+.3f} (n={len(v)})" if v else "no point inside the uniform range"))
+
+
+if __name__ == "__main__" and "--dilemma" in sys.argv:
+    dilemma()
