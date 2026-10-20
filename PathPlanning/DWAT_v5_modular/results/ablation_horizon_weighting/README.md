@@ -506,3 +506,36 @@ aggregation. These two scenes are excluded from the mean-vs-max judgement.
 At 0.2 and 0.4 u/s the crossings behave like head-on (all families on one
 curve).
 
+### 13.3 Long exposure (`owenc215_overtake*`, `owexp2111_converge_stbd_*`, 45 runs)
+
+Overtaking, being overtaken, and a shallow convergence at the ego's own speed
+(25° / 45°, closing 0.22 / 0.38 u/s): the target stays close for a long
+time. `s<1u` is the time the ego spends within 1 u of a target.
+
+| scene | mean uniform clearance (gains low / mid / high) | max uniform clearance | s<1u: mean vs max uniform |
+|---|---|---|---|
+| ego overtakes a slow vessel | 0.70 / 0.87 / 1.08 | **0.04** / 0.54 / 0.87 | 11 / 6 / 0 vs 14 / 13 / 10 |
+| ego overtaken | 0.71 / 0.92 / 1.15 | **0.05 / 0.05** / 0.92 | 10 / 5 / 0 vs **18 / 19** / 8 |
+| ego overtaken fast | 0.61 / 0.81 / 1.05 | **0.04** / 0.61 / 0.93 | 10 / 5 / 0 vs 8 / 14 / 8 |
+
+Max discount is worse still: at 0.1 it **grazes** the vessel it overtakes
+(t = 83.2 s, 0.0015 u deep); at 0.4 it spends 38 s within 1 u of the vessel
+overtaking it. At equal delay, being overtaken, max discount sits 0.66 u
+below the mean curve.
+
+**This is the mirror image of §13.2.** Mean's cost grows with how long the
+ego is close; max's depends only on the closest point. A brief, fast threat
+is diluted under mean (head-on at 1.2 u/s: 0.02 u); a long, slow,
+near-parallel one costs max nothing more once its closest point is set
+(overtaking: 0.04–0.05 u, up to 19 s within 1 u). The max gains that matched
+mean on head-on are too weak for overtaking; mean's, too weak for fast
+traffic. **Complementary failure modes: no single gain fixes either
+aggregation across both kinds of encounter.**
+
+The convergences abort under every family with COLREGs off (the ego runs
+alongside the target, heading −64° / −45° against the target's −65° / −45°,
+and strays > 9 u off the path, item 15) 18–30 s after the closest approach.
+The encounter phase, logged before the abort, shows the same pattern: max,
+discounted above all, allows more time close (up to 11 s within 1 u against
+0 for mean).
+

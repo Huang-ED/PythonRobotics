@@ -389,6 +389,26 @@ FAMILIES = {
 }
 
 
+def exposure(p, levels=(1.0, 1.5)):
+    """Seconds the ego spends within each clearance level of any target.
+
+    Same hull and pairing as encounter_report: trajectory[k+1] against the
+    targets logged at entry k.
+    """
+    from PathPlanning.DWAT_v5_modular.adapters import do_nothing_check as dnc
+    d = json.load(open(p))
+    tr = np.asarray(d["trajectory"], float)
+    rows = [e["dynamic_obstacles_pos"] for e in d["log_entries"]]
+    if not rows or not rows[0]:
+        return {lv: 0.0 for lv in levels}
+    obs = np.asarray(rows, float)
+    T = min(len(obs), len(tr) - 1)
+    ego = tr[1:T + 1]
+    r = float(d["config"].get("obstacle_radius", 0.5))
+    clr = np.min([dnc.surface_clearance(ego, obs[:T, j], r, d["config"]) for j in range(obs.shape[1])], axis=0)
+    return {lv: float(np.sum(clr < lv)) * float(d["config"]["dt"]) for lv in levels}
+
+
 def _family_runs(scene_glob):
     """{scene: {family: {gain: metrics}}} for runs under runs/v21.13/<config>/<group>/."""
     base = load(BASE["ow"])
@@ -402,6 +422,8 @@ def _family_runs(scene_glob):
                 m = metrics(p, base)
                 m["contact"] = d.get("collision_event") is not None
                 m["near"] = sum(r["clear"] < 1.0 for r in rows)
+                ex = exposure(p)
+                m["t1"], m["t15"] = ex[1.0], ex[1.5]
                 out.setdefault(sc, {}).setdefault(fam, {})[g] = m
     return out
 
@@ -410,11 +432,12 @@ def aggregation(scene_glob="*"):
     tab = _family_runs(scene_glob)
     for sc in sorted(tab):
         print(f"\n{sc}")
-        print(f"  {'family':<15}{'gain':>8}{'goal':>6}{'contact':>8}{'clear':>7}{'maxdev':>8}{'delay':>7}{'turn':>8}{'<1u':>5}")
+        print(f"  {'family':<15}{'gain':>8}{'goal':>6}{'contact':>8}{'clear':>7}{'maxdev':>8}{'delay':>7}{'turn':>8}"
+              f"{'<1u':>5}{'s<1u':>7}{'s<1.5u':>8}")
         for fam in FAMILIES:
             for g, m in sorted(tab[sc].get(fam, {}).items()):
                 print(f"  {fam:<15}{g:>8.3f}{str(m['goal']):>6}{str(m['contact']):>8}{m['clear']:>7.2f}"
-                      f"{m['maxdev']:>8.2f}{m['delay']:>7.1f}{m['turn']:>8.1f}{m['near']:>5}")
+                      f"{m['maxdev']:>8.2f}{m['delay']:>7.1f}{m['turn']:>8.1f}{m['near']:>5}{m['t1']:>7.1f}{m['t15']:>8.1f}")
         mean = tab[sc].get("mean uniform", {})
         if len(mean) < 2:
             continue
