@@ -7,6 +7,7 @@ Run from the repo root:
     python -m PathPlanning.DWAT_v5_modular.results.ablation_horizon_weighting.compare --slalom
     python -m PathPlanning.DWAT_v5_modular.results.ablation_horizon_weighting.compare --arcs
     python -m PathPlanning.DWAT_v5_modular.results.ablation_horizon_weighting.compare --dilemma
+    python -m PathPlanning.DWAT_v5_modular.results.ablation_horizon_weighting.compare --aggregation 'owarc215_*_straight'
 
 
 Per run: goal, min clearance (capsule, as encounter_report), delay vs the
@@ -104,7 +105,7 @@ def main():
               f"reversals={sum(m['rev'] for m in ms):>4} side OK/VIOL={sum(m['ok'] for m in ms)}/{sum(m['bad'] for m in ms)}")
 
 
-if __name__ == "__main__" and not {"--turning", "--frontier", "--slalom", "--arcs", "--dilemma"} & set(sys.argv):
+if __name__ == "__main__" and not {"--turning", "--frontier", "--slalom", "--arcs", "--dilemma", "--aggregation"} & set(sys.argv):
     main()
 
 
@@ -374,3 +375,59 @@ def dilemma():
 
 if __name__ == "__main__" and "--dilemma" in sys.argv:
     dilemma()
+
+
+# 2x2: aggregation (mean / max) x time weighting (uniform / v21.13's discount),
+# COLREGs off. Each family is a curve over its own gains; mean+discount was
+# shown equivalent to mean+uniform at equal cost (section 5), so it enters as a
+# single point.
+FAMILIES = {
+    "mean uniform": {0.98: "mech_uniform", 1.5484: "mech_uniform_gain1p58", 3.0821: "mech_uniform_gain3p15"},
+    "mean discount": {0.98: "mech_v21.13"},
+    "max uniform": {0.1: "mech_max_uniform_g010", 0.2: "mech_max_uniform_g020", 0.4: "mech_max_uniform_g040"},
+    "max discount": {0.1: "mech_max_discount_g010", 0.2: "mech_max_discount_g020", 0.4: "mech_max_discount_g040"},
+}
+
+
+def _family_runs(scene_glob):
+    """{scene: {family: {gain: metrics}}} for runs under runs/v21.13/<config>/<group>/."""
+    base = load(BASE["ow"])
+    out = {}
+    for fam, arms in FAMILIES.items():
+        for g, cfgname in arms.items():
+            for p in glob.glob(f"runs/v21.13/{cfgname}/*/{scene_glob}__*/log_details.json"):
+                sc = Path(p).parent.name.split("__")[0]
+                d = json.load(open(p))
+                goal, rows = cr.score(p)
+                m = metrics(p, base)
+                m["contact"] = d.get("collision_event") is not None
+                m["near"] = sum(r["clear"] < 1.0 for r in rows)
+                out.setdefault(sc, {}).setdefault(fam, {})[g] = m
+    return out
+
+
+def aggregation(scene_glob="*"):
+    tab = _family_runs(scene_glob)
+    for sc in sorted(tab):
+        print(f"\n{sc}")
+        print(f"  {'family':<15}{'gain':>8}{'goal':>6}{'contact':>8}{'clear':>7}{'maxdev':>8}{'delay':>7}{'turn':>8}{'<1u':>5}")
+        for fam in FAMILIES:
+            for g, m in sorted(tab[sc].get(fam, {}).items()):
+                print(f"  {fam:<15}{g:>8.3f}{str(m['goal']):>6}{str(m['contact']):>8}{m['clear']:>7.2f}"
+                      f"{m['maxdev']:>8.2f}{m['delay']:>7.1f}{m['turn']:>8.1f}{m['near']:>5}")
+        mean = tab[sc].get("mean uniform", {})
+        if len(mean) < 2:
+            continue
+        for fam in ("max uniform", "max discount", "mean discount"):
+            for cost in ("turn", "delay"):
+                xs = np.array([m[cost] for m in mean.values()]); ys = np.array([m["clear"] for m in mean.values()])
+                o = np.argsort(xs)
+                gaps = [m["clear"] - float(np.interp(m[cost], xs[o], ys[o]))
+                        for m in tab[sc].get(fam, {}).values() if xs.min() <= m[cost] <= xs.max()]
+                if gaps:
+                    print(f"  {fam:<15} vs mean curve at equal {cost:<5}: {np.mean(gaps):+.3f} u (n={len(gaps)})")
+
+
+if __name__ == "__main__" and "--aggregation" in sys.argv:
+    i = sys.argv.index("--aggregation")
+    aggregation(sys.argv[i + 1] if len(sys.argv) > i + 1 else "*")

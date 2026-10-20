@@ -601,9 +601,22 @@ for _base, _c, _signs in (("head_on", 180.0, (1,)), ("cross_stbd_090", 90.0, (1,
                     name=f"{_base}_{_arc}{_side}_r{int(_r * 10):02d}", course_rel_deg=_c, speed=0.40,
                     t_meet=90.0, arc=_arc, turn_rate_deg=_sgn * _r))
 
+# Target-speed sweep: the same collision legs as head_on / cross_stbd_090,
+# meeting the ego at the same point at 90 s, with the target at 0.2-1.2 u/s.
+# Speed sets how long the target is close: under "mean" aggregation a brief
+# danger is diluted over the 33 s horizon, under "max" it is not. At 0.8 and
+# 1.2 u/s the spawn lies outside the 100 u basin; targets are not
+# bounds-checked, so they sail in. Mechanism test, COLREGs off.
+OPENWATER_SPEED_CASES = [
+    dict(name=f"{_b}_v{int(round(_v * 10)):02d}", course_rel_deg=_c, speed=_v, t_meet=90.0)
+    for _b, _c in (("head_on", 180.0), ("cross_stbd_090", 90.0))
+    for _v in (0.2, 0.4, 0.8, 1.2)
+]
+
 SUITES = {"openwater": OPENWATER_CASES, "video3": VIDEO3_CASES,
           "openwater_turning": OPENWATER_TURNING_CASES,
-          "openwater_arcs": OPENWATER_ARC_CASES}
+          "openwater_arcs": OPENWATER_ARC_CASES,
+          "openwater_speed": OPENWATER_SPEED_CASES}
 
 
 # Combined scenes: several targets in ONE scenario, the way video3 ships three
