@@ -32,6 +32,7 @@ weighting.
 [10 Two threats at different times](#10-two-threats-at-different-times-the-staggered-slalom) ·
 [11 Why: what the weighting can and cannot reach](#11-why-what-the-weighting-can-and-cannot-reach) ·
 [12 Mechanism tests: forecasts that drift, and a near-vs-far dilemma](#12-mechanism-tests-forecasts-that-drift-and-a-near-vs-far-dilemma) ·
+[13 Mean vs max](#13-mean-vs-max-integrated-vs-extremum-aggregation) ·
 [8 Caveats](#8-caveats) · [9 Reproducing](#9-reproducing)
 
 ---
@@ -441,4 +442,67 @@ does reorder candidates -- mid-encounter, where the discount factor varies by
 and are re-planned away (§11). The collision veto is the same for every arm;
 removing it changes the choice at 0/216 states under uniform and 3/216 under
 the strong discount (all head-on), so it does not drive the comparison.
+
+## 13 Mean vs max: integrated vs extremum aggregation
+
+The draft's other comparison: reduce each candidate's severity profile S(t)
+by its time-weighted **mean** (integrated, duration-sensitive) or by its
+**max** (extremum: the closest point of approach, duration-blind). 2 × 2 with
+the time weighting: mean / max × uniform / v21.13's discount. Max has its
+own gains (`v21.13/mech_max_{uniform,discount}_g{010,020,040}.json`);
+mean + discount was already shown equal to mean + uniform at equal cost (§5)
+and is not re-run. COLREGs off for the mechanism tests. `compare.py
+--aggregation '<scene glob>'`.
+
+**Why max can differ where the discount could not.** Open-loop at logged
+v21.13 states, the mean/max spread ratio across candidates has a median of
+0.13 (head-on) to 0.35 (being overtaken) and varies 20-fold between states
+(10–90%: 0.02–0.65), so no single gain can turn max into mean; and max picks
+a different candidate at 35–65% of states, a median of 1–15 yaw-rate cells
+apart (90th percentile 16–36), against 1–5 for the discount.
+
+### 13.1 Stage 0 (`owarc215_*_straight`, 12 runs)
+
+All clean. Max gains 0.1 / 0.2 / 0.4 give clearances 0.42–1.12 u,
+bracketing mean's 0.41–0.96; at equal cost all four families within
+~0.05 u of the mean curve.
+
+### 13.2 Target-speed sweep (`owspd2111_*`, 72 runs)
+
+Same collision legs, target at 0.2 / 0.4 / 0.8 / 1.2 u/s, all meeting the
+ego at 90 s. Under mean a fast target is close for less of the 33 s
+horizon, so its danger is diluted; under max it is not.
+
+**Head-on -- the prediction holds.** Clearance per gain (lowest / middle /
+highest):
+
+| target speed | mean uniform | max uniform | max discount |
+|---|---|---|---|
+| 0.2 | 0.52 / 0.73 / 0.99 | 0.49 / 0.84 / 1.09 | 0.33 / 0.76 / 1.03 |
+| 0.4 | 0.41 / 0.62 / 0.89 | 0.53 / 0.87 / 1.11 | 0.42 / 0.78 / 1.06 |
+| 0.8 | 0.16 / 0.44 / 0.75 | 0.57 / 0.88 / 1.13 | 0.49 / 0.82 / 1.07 |
+| 1.2 | **0.02** / 0.27 / 0.64 | 0.59 / 0.87 / 1.12 | 0.46 / 0.83 / 1.07 |
+
+At equal cost the families share one trade-off curve at every speed (max
+minus mean: +0.01 to +0.07 u at equal turning or delay) -- max is not more
+efficient. What differs is where a **fixed gain** lands on it: mean's effort
+falls as the target speeds up (lowest gain: 75° → 70° → 50° of extra heading
+change from 0.2 to 0.8 u/s), and at 1.2 u/s it reacts so late that it ends
+with both the largest manoeuvre (2.14 u, 107°) and a near graze (0.02 u).
+Max's clearance at a fixed gain stays within 0.49–0.59 u (lowest gain) from
+0.2 to 1.2 u/s. A planner is deployed with one gain; with mean, that gain
+cannot be right for slow and fast traffic alike. **Max is roughly invariant
+to target speed; mean is not.**
+
+**Starboard crossing at 0.8 and 1.2 u/s -- a COLREGs-off artefact.** Every
+family loses its route there: the ego turns with the fast crosser (to port,
+the way the target is going), runs alongside it and strays > 9 u off the
+path, so the follower aborts (OPEN_PROBLEMS item 15). Two runs graze it
+first, 0.003–0.011 u deep: mean uniform 0.98 at 1.2 u/s (t = 88.6 s) and max
+discount 0.1 at 0.8 u/s (t = 101.2 s). With COLREGs on (v21.13) both scenes
+reach the goal, passing astern as the give-way vessel at 0.81 / 0.61 u: the
+side rule prevents a failure the cost alone allows, under either
+aggregation. These two scenes are excluded from the mean-vs-max judgement.
+At 0.2 and 0.4 u/s the crossings behave like head-on (all families on one
+curve).
 
