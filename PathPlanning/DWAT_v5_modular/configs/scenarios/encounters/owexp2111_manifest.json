@@ -1,0 +1,72 @@
+[
+  {
+    "meeting_point": [
+      50.0,
+      42.06
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      30.98,
+      82.85
+    ],
+    "target_course_deg": -65.0,
+    "course_rel_deg": 25.0,
+    "target_speed": 0.5,
+    "closing_speed": 0.216,
+    "rel_bearing_deg": 77.5,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 0.0,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "converge_stbd_025",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owexp2111_converge_stbd_025.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 90.0,
+        "threat": true
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      50.0,
+      42.06
+    ],
+    "t_meet_s": 90.0,
+    "ego_heading_deg": -90.0,
+    "ego_speed": 0.5,
+    "spawn": [
+      18.18,
+      73.88
+    ],
+    "target_course_deg": -45.0,
+    "course_rel_deg": 45.0,
+    "target_speed": 0.5,
+    "closing_speed": 0.383,
+    "rel_bearing_deg": 67.5,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 24.7,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "converge_stbd_045",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/owexp2111_converge_stbd_045.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.11/baseline/openwater_baseline__20260923_160746/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 90.0,
+        "threat": true
+      }
+    ]
+  }
+]

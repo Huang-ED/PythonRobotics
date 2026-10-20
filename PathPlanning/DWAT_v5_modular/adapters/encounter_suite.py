@@ -613,10 +613,24 @@ OPENWATER_SPEED_CASES = [
     for _v in (0.2, 0.4, 0.8, 1.2)
 ]
 
+# Long exposure: a shallow-angle convergence at the ego's own speed, so the
+# relative velocity is small and the target stays close for a long time
+# (closing 0.22 u/s at 25 deg, 0.38 u/s at 45 deg, against 0.9 head-on).
+# "mean" weighs how LONG the ego is close, "max" only the closest point, so
+# the two should trade depth against duration differently. +course_rel = the
+# target heads to port of the ego, i.e. converges from starboard. Mechanism
+# test, COLREGs off -- where the planner is mirror-symmetric, so the port-side
+# copies would only repeat these.
+OPENWATER_EXPOSURE_CASES = [
+    dict(name=f"converge_stbd_{int(_c):03d}", course_rel_deg=_c, speed=0.50, t_meet=90.0)
+    for _c in (25.0, 45.0)
+]
+
 SUITES = {"openwater": OPENWATER_CASES, "video3": VIDEO3_CASES,
           "openwater_turning": OPENWATER_TURNING_CASES,
           "openwater_arcs": OPENWATER_ARC_CASES,
-          "openwater_speed": OPENWATER_SPEED_CASES}
+          "openwater_speed": OPENWATER_SPEED_CASES,
+          "openwater_exposure": OPENWATER_EXPOSURE_CASES}
 
 
 # Combined scenes: several targets in ONE scenario, the way video3 ships three
