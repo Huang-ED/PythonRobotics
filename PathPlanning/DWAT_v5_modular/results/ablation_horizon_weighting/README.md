@@ -539,3 +539,64 @@ The encounter phase, logged before the abort, shows the same pattern: max,
 discounted above all, allows more time close (up to 11 s within 1 u against
 0 for mean).
 
+
+### 13.4 The full 2×2×2: (mean / max) × (uniform / discount) × (COLREGs off / on)
+
+One gain per family, chosen beforehand; the others are run only where it
+fails. Mean: 0.98 (v21.13's). Max: 0.4, the only max gain safe in every
+scene of §13.1–§13.3. With COLREGs on, `ablation_max_{uniform,discount}_g040`
+(the `mech_*` configs with `colregs_mode: side_preference`). Is 0.4 a sane
+partner for the COLREGs term? Open-loop at every head-on/give-way state
+(`owenc215_head_on`, `cross_stbd_*`), removing the COLREGs terms changes the
+choice at 74–100% of states under max 0.4 against 75–100% under mean 0.98:
+the side rule still decides, though its spread is 1.5–3.4× the dynamic
+term's against 2.4–8.3× under mean.
+
+Goal reached without contact (worst clearance); COLREGs violations in
+brackets. Basic = the 11 `owenc215_*` scenes; speed/exposure = the 8
+`owspd2111_*` and 2 `owexp2111_*` scenes.
+
+| aggregation | weighting | gain | COLREGs | basic (11) | speed/exposure (10) | v3crowd5/6/7 |
+|---|---|---|---|---|---|---|
+| mean | uniform | 0.98 | off | 11/11 (0.40) [3] | 6/10: 3 aborts, 1 contact + abort; head-on v12 0.02 | -- |
+| mean | discount | 0.98 | off | 11/11 (0.54) [3] | 7/10: 3 aborts; head-on v12 0.14 | -- |
+| max | uniform | 0.4 | off | 11/11 (0.87) [4] | 6/10: 4 aborts (0.99) | -- |
+| max | discount | 0.4 | off | 11/11 (0.68) [3] | 6/10: 4 aborts (0.93) | crowd7 only: goal (0.74) [1] |
+| mean | uniform | 0.98 | on | 11/11 (0.40) [0] | 10/10 (0.55) [0] | 3/3 (0.63) [0] |
+| mean | discount | 0.98 | on | 11/11 (0.54) [0] | 10/10 (0.61) [0] | 3/3 (0.72) [0] |
+| max | uniform | 0.4 | on | 11/11 (0.87) [0] | 10/10 (1.04) [0] | 3/3 (1.03) [0] |
+| max | discount | 0.4 | on | 11/11 (0.68) [0] | 10/10 (0.98) [0] | **2/3**: crowd7 aborts (item 15) |
+
+COLREGs off, the violations are the expected ones (the cost alone has no
+side preference; port/stbd crossings are mirror images and come out
+identical). The aborts are the turn-with failure of §13.3 / Part III, and
+they are not a gain problem: mean at ×1.58 and ×3.15 (uniform and
+discounted, `mech_discount_gain*` added for this) aborts on the same 3–4
+scenes, as do max 0.1 and 0.2. What the higher mean gains do fix is the
+fast head-on: 0.02 / 0.27 / 0.64 u (uniform), 0.14 / 0.41 / 0.73 u
+(discounted).
+
+COLREGs on, every arm passes all 21 open-water scenes. Mean's speed weakness
+nearly disappears in the head-on (0.96–0.98 u at 1.2 u/s): the side rule
+commits the ego early. It remains in the fast crossing (1.06 → 0.55 u from
+0.2 to 1.2 u/s), where max holds 1.25 u; max's head-on clearance is 1.43 u
+at every target speed. Max at 0.4 is the stronger setting: on speed/exposure
+it turns 89–92° and is delayed 1.9–2.1 s against 72–75° and 1.4–1.5 s for
+mean, so "max keeps more clearance" here is partly "max 0.4 is a larger
+gain".
+
+**v3crowd7, max discount 0.4, COLREGs on: path lost (item 15) at 149 s, no
+contact.** From ~100 s the ego follows the route south, overtaking target 4
+(0.4 u/s, SSE, Rule 13: no COLREGs cost), which sits 2–2.5 u off its port
+bow. At ~136 s the route turns east -- across target 4's wake. Mean (both)
+and max uniform turn at 136–140 s and pass astern of it; max discount holds
+course, and from 140 s target 4 lies between the ego and its local goal.
+Open-loop at those states, **every** aggregation holds course: it is a trap
+state, and the arms differ only in whether the ~3 s window before it is
+used. Debugging on the same scene: max discount 0.2 (COLREGs on) is caught
+the same way; 0.1 is not (it swung west at 100 s and never got alongside);
+max discount 0.4 with COLREGs off reaches the goal (0.74 u, one violation),
+because the earlier COLREGs-driven manoeuvres put the ego elsewhere. Getting
+out would need dropping astern (slowing), which the speed term penalises and
+the max aggregation does not reward, since a long parallel run costs max no
+more than its closest point.
