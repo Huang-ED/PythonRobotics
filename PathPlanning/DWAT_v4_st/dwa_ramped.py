@@ -387,6 +387,16 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
     _ob_vel = dynamic_ob_vel
     if has_dynamic and _ob_pred == "frozen":
         _ob_vel = np.zeros_like(np.asarray(dynamic_ob_vel, dtype=float))
+    # The runner advances the targets to t+dt before planning, but rollout row 0
+    # is the ego at t, so row j is paired with the targets one step ahead
+    # (about 0.05 u along track). "aligned" steps the targets back to t for the
+    # veto and the obstacle cost; "legacy" keeps the old pairing.
+    _ob_time = str(getattr(config, "dynamic_ob_time_base", "legacy"))
+    if _ob_time not in ("legacy", "aligned"):
+        raise ValueError(f"unknown dynamic_ob_time_base {_ob_time!r}")
+    _ob_pos = dynamic_ob_pos
+    if has_dynamic and _ob_time == "aligned":
+        _ob_pos = np.asarray(dynamic_ob_pos, dtype=float) - np.asarray(dynamic_ob_vel, dtype=float) * config.dt
     for v in _vs:
         for y in _ws:
 
@@ -442,7 +452,7 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
                 # CALL NEW SPATIOTEMPORAL CHECKER
                 d_side_arr, is_collision = calc_trajectory_clearance_and_collision(
                     trajectory_for_obstacle,
-                    dynamic_ob_pos,
+                    _ob_pos, # dynamic_ob_pos unless dynamic_ob_time_base is "aligned"
                     np.array(dynamic_ob_radii),
                     _ob_vel, # <--- Pass Velocity (zeros when prediction is "frozen")
                     config
@@ -457,7 +467,7 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
                 elif _ob_mode != "graded":
                     dynamic_ob_cost = _alternative_dynamic_cost(
                         _ob_mode, trajectory_for_obstacle, d_side_arr,
-                        dynamic_ob_pos, _ob_vel, dynamic_ob_radii, config)
+                        _ob_pos, _ob_vel, dynamic_ob_radii, config)
                     current_side_comp = dynamic_ob_cost
                     current_direct_comp = 0.0
                 else:

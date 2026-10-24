@@ -3,6 +3,7 @@
 Run from the repo root:
     python -m PathPlanning.DWAT_v5_modular.results.baselines_ablations.compare
     python -m PathPlanning.DWAT_v5_modular.results.baselines_ablations.compare --v3crowd
+    python -m PathPlanning.DWAT_v5_modular.results.baselines_ablations.compare --tight
 
 Every arm differs from v21.13 only in the keys its config sets
 (configs/algorithm/v21.13/{baseline,ablation}_*.json); all keep the vessel
@@ -20,12 +21,16 @@ import numpy as np
 from PathPlanning.DWAT_v5_modular.results.ablation_horizon_weighting.compare import (
     BASE, load, metrics)
 
+# An arm may draw on several run roots (v21.13's scenes were run under two
+# config names with identical contents); the latest run of a scene wins.
 ARMS = {
-    "v21.13": "runs/v21.13/port_turn_release6",
+    "v21.13": ["runs/v21.13/port_turn_release6", "runs/v21.13"],
+    "v21.13 aligned": "runs/v21.13/time_aligned",
     "B1 frozen g.05": "runs/v21.13/baseline_frozen_mincl_g005",
     "B1 frozen g.10": "runs/v21.13/baseline_frozen_mincl_g010",
     "B1 frozen g.20": "runs/v21.13/baseline_frozen_mincl_g020",
     "B2 veto only": "runs/v21.13/baseline_veto_only",
+    "B2 aligned": "runs/v21.13/baseline_veto_only_aligned",
     "B3 CRI g.10": "runs/v21.13/baseline_cri_g010",
     "B3 CRI g.25": "runs/v21.13/baseline_cri_g025",
     "B3 CRI g.50": "runs/v21.13/baseline_cri_g050",
@@ -35,6 +40,9 @@ ARMS = {
 }
 OPEN_WATER = ["owenc215_*", "ow_sequence215", "ow_simultaneous215"]
 V3CROWD = ["v3crowd5_v2111", "v3crowd6_v2111", "v3crowd7_v2111"]
+# Encounters where v21.13's own clearance is near the binary zone (0.68 u):
+# near-versus-far dilemma, course-altering targets, staggered slalom.
+TIGHT = ["ow_dilemma_d??", "owturn215_*", "ow_slalom_*"]
 
 
 def outcome(p):
@@ -47,9 +55,11 @@ def outcome(p):
 
 
 def latest(root, scene_glob):
+    roots = [root] if isinstance(root, str) else root
+    found = [p for r in roots for p in glob.glob(f"{r}/*/{scene_glob}__*/log_details.json")]
     out = {}
-    for p in sorted(glob.glob(f"{root}/*/{scene_glob}__*/log_details.json")):
-        out[Path(p).parent.name.split("__")[0]] = p     # sorted: latest timestamp wins
+    for p in sorted(found, key=lambda q: Path(q).parent.name.split("__")[-1]):
+        out[Path(p).parent.name.split("__")[0]] = p     # latest timestamp wins
     return out
 
 
@@ -78,13 +88,15 @@ def main(scenes):
         if not ms:
             continue
         outs = [m["out"] for m in ms]
+        # delay and turning only mean something for runs that reached the goal
+        ok = [m for m in ms if m["out"] == "goal"] or [dict(delay=np.nan, turn=np.nan)]
         print(f"  {arm:<16} n={len(ms):>2} goal={outs.count('goal'):>2} contact={outs.count('CONTACT')} "
               f"abort={outs.count('abort') + outs.count('nogoal')} "
               f"min clear={min(m['clear'] for m in ms):6.3f} mean clear={np.mean([m['clear'] for m in ms]):.3f} "
-              f"mean delay={np.mean([m['delay'] for m in ms]):5.1f}s "
-              f"mean extra turn={np.mean([m['turn'] for m in ms]):6.1f}deg "
-              f"side OK/VIOL={sum(m['ok'] for m in ms)}/{sum(m['bad'] for m in ms)}")
+              f"| goal runs: mean delay={np.mean([m['delay'] for m in ok]):5.1f}s "
+              f"mean extra turn={np.mean([m['turn'] for m in ok]):6.1f}deg "
+              f"| side OK/VIOL={sum(m['ok'] for m in ms)}/{sum(m['bad'] for m in ms)}")
 
 
 if __name__ == "__main__":
-    main(V3CROWD if "--v3crowd" in sys.argv else OPEN_WATER)
+    main(V3CROWD if "--v3crowd" in sys.argv else TIGHT if "--tight" in sys.argv else OPEN_WATER)

@@ -180,6 +180,11 @@ class Config:
         # rollout; "frozen" holds it at its current position (prediction off).
         # Affects the dynamic-obstacle term and its veto only, not the COLREGs layer.
         self.dynamic_ob_prediction = "constant_velocity"
+        # Time base of the targets in the veto and the obstacle cost (dwa_ramped).
+        # "legacy" (default): rollout row j meets the targets at t + (j+1) dt,
+        # one step ahead, since the runner moves them before planning.
+        # "aligned": row j meets them at t + j dt, as the contact check does.
+        self.dynamic_ob_time_base = "legacy"
         # "continuous" (default): the local goal slides along the path.
         # "waypoint": the local goal is the active turning point itself.
         self.local_goal_mode = "continuous"
