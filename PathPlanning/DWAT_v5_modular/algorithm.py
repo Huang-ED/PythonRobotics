@@ -202,13 +202,18 @@ def run_simulation(
                         "local-goal divergence -- most likely stalled just outside "
                         "catch_goal_dist"
                     )
-                dwagoal = _choose_local_goal(
-                    road_map=map_ctx.road_map,
-                    i_turning_point=i_turning_point,
-                    current_xy=x[:2],
-                    dist_localgoal=config.dist_localgoal,
-                    recovery=str(getattr(config, "local_goal_recovery", "abort")),
-                )
+                if str(getattr(config, "local_goal_mode", "continuous")) == "waypoint":
+                    # Ablation: discrete waypoint switching -- aim at the
+                    # active turning point itself until within the switch radius.
+                    dwagoal = np.asarray(turning_point, dtype=float)
+                else:
+                    dwagoal = _choose_local_goal(
+                        road_map=map_ctx.road_map,
+                        i_turning_point=i_turning_point,
+                        current_xy=x[:2],
+                        dist_localgoal=config.dist_localgoal,
+                        recovery=str(getattr(config, "local_goal_recovery", "abort")),
+                    )
 
                 map_ctx.map_manager.update_dynamic_obstacles(config.dt)
 

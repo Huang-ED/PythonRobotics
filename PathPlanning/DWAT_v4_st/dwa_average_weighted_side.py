@@ -156,6 +156,33 @@ class Config:
         self.colregs_release_dist = None      # [m] unlock once opening beyond this; None -> dcpa gate
         self.colregs_port_turn_gain = 0.0     # [1/rad] cost of altering to port of the locked heading; 0 -> off
         self.colregs_turn_eval_time = 10.0    # [s] how far into a candidate that heading is read
+        # Dynamic-obstacle term, for baselines and ablations (dwa_ramped only).
+        # Every mode keeps the predicted-contact veto; only the finite cost of
+        # a non-colliding candidate changes.
+        #   "graded"        (default) Gaussian severity, time-weighted -- the paper's term
+        #   "binary"        severity is max_side_weight_dist inside
+        #                   dynamic_ob_binary_dist, 0 outside; same weighting
+        #   "veto_only"     no severity: every non-colliding candidate scores 0
+        #                   (Missura & Bennewitz 2019, the first-collision scheme)
+        #   "min_clearance" side_cost_gain * max(0, D - min clearance over the
+        #                   rollout), D = dynamic_ob_clearance_range (classic DWA)
+        #   "cri"           side_cost_gain * uniform mean over the rollout of a
+        #                   DCPA/TCPA/distance collision risk index (Gu et al. 2025)
+        self.dynamic_ob_cost_mode = "graded"
+        self.dynamic_ob_binary_dist = 0.68     # [m] where the default Gaussian is at half peak
+        self.dynamic_ob_clearance_range = 4.0  # [m] "min_clearance" saturation distance
+        self.cri_d1 = 1.0     # [m] safe encounter distance (DCPA and distance memberships)
+        self.cri_d2 = 2.0     # [m] absolute safe distance, 2 * d1
+        self.cri_D1 = 2.0     # [m] distance of last action (TCPA membership)
+        self.cri_D2 = 10.0    # [m] distance of action (TCPA membership)
+        self.cri_weights = (0.5, 0.3, 0.2)  # DCPA, TCPA, distance
+        # "constant_velocity" (default) extrapolates each target over the
+        # rollout; "frozen" holds it at its current position (prediction off).
+        # Affects the dynamic-obstacle term and its veto only, not the COLREGs layer.
+        self.dynamic_ob_prediction = "constant_velocity"
+        # "continuous" (default): the local goal slides along the path.
+        # "waypoint": the local goal is the active turning point itself.
+        self.local_goal_mode = "continuous"
         # What to do when every candidate that PASSED admissibility scores inf
         # -- i.e. Guard B, "No best trajectory found":
         # "raise" -> ValueError (classic), "least_bad" -> keep the safest one.

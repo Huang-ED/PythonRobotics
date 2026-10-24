@@ -187,6 +187,78 @@ def predict_trajectory_obstacle(x_init, v, y, config):
         time += config.dt
     return trajectory[:i]
 
+def _alternative_dynamic_cost(mode, trajectory, d_side_arr, ob_pos, ob_vel, ob_radii, config):
+    """Dynamic-obstacle cost of a non-colliding candidate for the non-default
+    ``dynamic_ob_cost_mode`` values (baselines and ablations).
+
+    ``d_side_arr`` is the per-step minimum surface clearance the veto already
+    computed against the same (possibly frozen) target motion.
+    """
+    gain = float(config.side_cost_gain)
+    if mode == "veto_only":
+        return 0.0
+    if mode == "min_clearance":
+        rng = float(config.dynamic_ob_clearance_range)
+        return gain * max(0.0, rng - float(np.min(d_side_arr)))
+    if mode == "binary":
+        peak = float(config.max_side_weight_dist)
+        sev = np.where(d_side_arr < float(config.dynamic_ob_binary_dist), peak, 0.0)
+        times = np.arange(trajectory.shape[0]) * config.dt
+        w = np.exp(-max(config.time_decay_lambda, 0.0) * times)
+        cost, _, _ = aggregate_compound_costs(
+            sev, w, getattr(config, "dynamic_ob_cost_aggregation", "mean"))
+        return gain * cost
+    if mode == "cri":
+        return gain * float(np.mean(_cri_per_step(trajectory, ob_pos, ob_vel, ob_radii, config)))
+    raise ValueError(f"unknown dynamic_ob_cost_mode {mode!r}")
+
+
+def _cri_per_step(trajectory, ob_pos, ob_vel, ob_radii, config):
+    """Collision risk index at each rollout step, after Gu et al. (2025).
+
+    At step k the own ship's straight-line velocity (v_k along psi_k) and each
+    target's constant velocity give DCPA/TCPA; with the current separation
+    they are mapped through fuzzy memberships and weighted. Distances are
+    centre distances less the target radius and half the hull length. Opening
+    targets (TCPA < 0) carry no TCPA risk. Returns max over targets, shape (T,).
+    """
+    d1, d2 = float(config.cri_d1), float(config.cri_d2)
+    D1, D2 = float(config.cri_D1), float(config.cri_D2)
+    wD, wT, wd = (float(w) for w in config.cri_weights)
+    T = trajectory.shape[0]
+    times = np.arange(T) * config.dt
+    pos = np.asarray(ob_pos, dtype=float)
+    vel = np.asarray(ob_vel, dtype=float)
+    pred = pos[:, None, :] + vel[:, None, :] * times[None, :, None]            # (N, T, 2)
+    r = pred - trajectory[None, :, 0:2]
+    own_v = trajectory[:, 3:4] * np.stack([np.cos(trajectory[:, 2]),
+                                           np.sin(trajectory[:, 2])], axis=1)  # (T, 2)
+    w = vel[:, None, :] - own_v[None, :, :]
+    ww = np.sum(w * w, axis=2)
+    speed = np.sqrt(ww)
+    safe_ww = np.where(ww > 1e-12, ww, 1.0)
+    tcpa = np.where(ww > 1e-12, -np.sum(r * w, axis=2) / safe_ww, -np.inf)
+    off = np.asarray(ob_radii, dtype=float)[:, None] + 0.5 * float(config.robot_length)
+    dcpa_c = np.hypot(*(r + w * np.where(np.isfinite(tcpa), tcpa, 0.0)[..., None]).transpose(2, 0, 1))
+    dcpa = dcpa_c - off
+    dist = np.hypot(r[..., 0], r[..., 1]) - off
+
+    u_dcpa = np.where(dcpa <= d1, 1.0, np.where(
+        dcpa >= d2, 0.0, 0.5 - 0.5 * np.sin(np.pi * (dcpa - 0.5 * (d1 + d2)) / (d2 - d1))))
+    safe_speed = np.where(speed > 1e-9, speed, 1.0)
+    t1 = np.where(dcpa <= D1, np.sqrt(np.maximum(D1 ** 2 - dcpa ** 2, 0.0)),
+                  dcpa - D1) / safe_speed
+    t2 = np.sqrt(np.maximum(D2 ** 2 - dcpa ** 2, 0.0)) / safe_speed
+    ramp = np.where(t2 > t1, ((t2 - tcpa) / np.where(t2 > t1, t2 - t1, 1.0)) ** 2, 0.0)
+    u_tcpa = np.where(tcpa < 0.0, 0.0, np.where(
+        tcpa <= t1, 1.0, np.where(tcpa >= t2, 0.0, ramp)))
+    u_tcpa = np.where(speed > 1e-9, u_tcpa, 0.0)
+    u_dist = np.where(dist <= d1, 1.0, np.where(
+        dist >= d2, 0.0, ((d2 - dist) / (d2 - d1)) ** 2))
+    cri = wD * u_dcpa + wT * u_tcpa + wd * u_dist
+    return np.max(cri, axis=0)
+
+
 def _sample_axis(lo, hi, resolution, anchor, mode):
     """Sample points across one dynamic-window axis.
 
@@ -305,6 +377,16 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
     _adm_mode, _s1_ob = base.stage1_setup(x, static_ob, static_ob_radii, dynamic_ob_pos,
                                           dynamic_ob_radii, dynamic_ob_vel, config)
     _s1_step = lambda s, u: _step(s, u, config)
+    # Baseline / ablation switches for the dynamic-obstacle term (Config docs).
+    _ob_mode = str(getattr(config, "dynamic_ob_cost_mode", "graded"))
+    if _ob_mode not in ("graded", "binary", "veto_only", "min_clearance", "cri"):
+        raise ValueError(f"unknown dynamic_ob_cost_mode {_ob_mode!r}")
+    _ob_pred = str(getattr(config, "dynamic_ob_prediction", "constant_velocity"))
+    if _ob_pred not in ("constant_velocity", "frozen"):
+        raise ValueError(f"unknown dynamic_ob_prediction {_ob_pred!r}")
+    _ob_vel = dynamic_ob_vel
+    if has_dynamic and _ob_pred == "frozen":
+        _ob_vel = np.zeros_like(np.asarray(dynamic_ob_vel, dtype=float))
     for v in _vs:
         for y in _ws:
 
@@ -359,10 +441,10 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
             if has_dynamic:
                 # CALL NEW SPATIOTEMPORAL CHECKER
                 d_side_arr, is_collision = calc_trajectory_clearance_and_collision(
-                    trajectory_for_obstacle, 
-                    dynamic_ob_pos, 
-                    np.array(dynamic_ob_radii), 
-                    dynamic_ob_vel, # <--- Pass Velocity
+                    trajectory_for_obstacle,
+                    dynamic_ob_pos,
+                    np.array(dynamic_ob_radii),
+                    _ob_vel, # <--- Pass Velocity (zeros when prediction is "frozen")
                     config
                 )
 
@@ -372,6 +454,12 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
                     dynamic_ob_cost = float("inf")
                     current_side_comp = float("inf")
                     current_direct_comp = float("inf")
+                elif _ob_mode != "graded":
+                    dynamic_ob_cost = _alternative_dynamic_cost(
+                        _ob_mode, trajectory_for_obstacle, d_side_arr,
+                        dynamic_ob_pos, _ob_vel, dynamic_ob_radii, config)
+                    current_side_comp = dynamic_ob_cost
+                    current_direct_comp = 0.0
                 else:
                     # 1. Calculate Side Cost Vector (one per trajectory point)
                     side_norm = np.maximum(config.max_side_weight_dist, 1e-6)
