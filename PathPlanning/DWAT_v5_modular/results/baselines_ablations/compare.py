@@ -39,8 +39,10 @@ ARMS = {
     "A2 binary": "runs/v21.13/ablation_binary",
     "A3 no pred": "runs/v21.13/ablation_nopred",
     # The same arms with the targets stepped back to the rollout's time base
-    # (dynamic_ob_time_base "aligned"): their open-water contacts are all
-    # shallower than the 0.05 u one-step offset.
+    # (dynamic_ob_time_base "aligned"), because their open-water contacts are
+    # all shallower than the 0.05 u one-step offset. Result (2026-10-25): B1
+    # and A3 keep the same contacts (frozen targets: the veto never sees the
+    # target's motion); B3's one contact goes, leaving four passes at 0.000 u.
     "B1 g.20 aligned": "runs/v21.13/baseline_frozen_mincl_g020_aligned",
     "B3 g.50 aligned": "runs/v21.13/baseline_cri_g050_aligned",
     "A3 aligned": "runs/v21.13/ablation_nopred_aligned",
