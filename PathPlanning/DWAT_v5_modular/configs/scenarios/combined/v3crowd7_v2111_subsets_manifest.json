@@ -1,0 +1,74 @@
+{
+  "source": "v3crowd7_v2111.json",
+  "n_ships": 7,
+  "scenes": {
+    "v3crowd7_v2111_drop1": {
+      "ships": [
+        "T2",
+        "T3",
+        "T4",
+        "T5",
+        "T6",
+        "T7"
+      ]
+    },
+    "v3crowd7_v2111_drop2": {
+      "ships": [
+        "T1",
+        "T3",
+        "T4",
+        "T5",
+        "T6",
+        "T7"
+      ]
+    },
+    "v3crowd7_v2111_drop3": {
+      "ships": [
+        "T1",
+        "T2",
+        "T4",
+        "T5",
+        "T6",
+        "T7"
+      ]
+    },
+    "v3crowd7_v2111_drop4": {
+      "ships": [
+        "T1",
+        "T2",
+        "T3",
+        "T5",
+        "T6",
+        "T7"
+      ]
+    },
+    "v3crowd7_v2111_drop6": {
+      "ships": [
+        "T1",
+        "T2",
+        "T3",
+        "T4",
+        "T5",
+        "T7"
+      ]
+    },
+    "v3crowd7_v2111_only5": {
+      "ships": [
+        "T5"
+      ]
+    },
+    "v3crowd7_v2111_only45": {
+      "ships": [
+        "T4",
+        "T5"
+      ]
+    },
+    "v3crowd7_v2111_only456": {
+      "ships": [
+        "T4",
+        "T5",
+        "T6"
+      ]
+    }
+  }
+}

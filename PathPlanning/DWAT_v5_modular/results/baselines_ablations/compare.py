@@ -5,6 +5,7 @@ Run from the repo root:
     python -m PathPlanning.DWAT_v5_modular.results.baselines_ablations.compare --v3crowd
     python -m PathPlanning.DWAT_v5_modular.results.baselines_ablations.compare --tight
     python -m PathPlanning.DWAT_v5_modular.results.baselines_ablations.compare --v3enc
+    python -m PathPlanning.DWAT_v5_modular.results.baselines_ablations.compare --v3bend
 
 Every arm differs from v21.13 only in the keys its config sets
 (configs/algorithm/v21.13/{baseline,ablation}_*.json); all keep the vessel
@@ -57,6 +58,9 @@ V3CROWD = ["v3crowd5_v2111", "v3crowd6_v2111", "v3crowd7_v2111"]
 TIGHT = ["ow_dilemma_d??", "owturn215_*", "ow_slalom_*"]
 # Single encounters along the coastal route, one per bend slot and geometry.
 V3ENC = ["v3enc2113_*"]
+# One ship met at the coastal route's double port bend, built as the single-ship
+# core of the v3crowd5/7 failures; it turns out to be a give-way crossing first.
+V3BEND = ["v3bend2113_*"]
 
 
 def outcome(p):
@@ -114,4 +118,4 @@ def main(scenes):
 
 if __name__ == "__main__":
     main(V3CROWD if "--v3crowd" in sys.argv else TIGHT if "--tight" in sys.argv
-         else V3ENC if "--v3enc" in sys.argv else OPEN_WATER)
+         else V3ENC if "--v3enc" in sys.argv else V3BEND if "--v3bend" in sys.argv else OPEN_WATER)

@@ -562,8 +562,11 @@ VIDEO3_CASES = [
 # route's double port bend (+47 deg at (44,46), +41 deg at (47,39), ~124 s).
 # The ship holds a straight course south down the channel while the route
 # turns east, so it sits on the INSIDE of the ego's turn. This is the single-
-# ship core of the v3crowd5 (T3: 0.40 u/s, t_meet 115) and v3crowd7 (T4: 0.45,
+# ship core of the v3crowd5 (T4: 0.40 u/s, t_meet 115) and v3crowd7 (T5: 0.45,
 # 116) encounters in which binary severity and frozen targets lost the route.
+# Run under v21.13 (P5, 2026-10-26) it is not an overtake: the ego approaches
+# on the -123 deg leg, so at ~72 s the ship is a crossing on its starboard bow
+# and the ego gives way astern (~100 s) before the bend. No arm loses the route.
 # Speed sets how long the overtake lasts (closing 0.05-0.15 u/s); t_meet sets
 # where the ego draws level and the ship's course, which is the ego's heading
 # at the meeting (-79 deg at 115 s, -69 at 118). The channel admits little
