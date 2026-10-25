@@ -37,6 +37,12 @@ ARMS = {
     "A1 waypoint": "runs/v21.13/ablation_waypoint",
     "A2 binary": "runs/v21.13/ablation_binary",
     "A3 no pred": "runs/v21.13/ablation_nopred",
+    # The same arms with the targets stepped back to the rollout's time base
+    # (dynamic_ob_time_base "aligned"): their open-water contacts are all
+    # shallower than the 0.05 u one-step offset.
+    "B1 g.20 aligned": "runs/v21.13/baseline_frozen_mincl_g020_aligned",
+    "B3 g.50 aligned": "runs/v21.13/baseline_cri_g050_aligned",
+    "A3 aligned": "runs/v21.13/ablation_nopred_aligned",
 }
 OPEN_WATER = ["owenc215_*", "ow_sequence215", "ow_simultaneous215"]
 V3CROWD = ["v3crowd5_v2111", "v3crowd6_v2111", "v3crowd7_v2111"]
