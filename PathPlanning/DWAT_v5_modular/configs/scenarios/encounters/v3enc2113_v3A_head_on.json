@@ -1,0 +1,34 @@
+{
+  "group": "encounters",
+  "image_path": "EnvData/maps/land_shapes_ht_crop.png",
+  "map_size": [
+    100,
+    100
+  ],
+  "enable_map_boundary_obstacles": true,
+  "start_position": [
+    70.0,
+    90.0
+  ],
+  "goal_position": [
+    60.0,
+    10.0
+  ],
+  "dynamic_obstacles": [
+    {
+      "motion_type": "waypoint",
+      "waypoints": [
+        [
+          50.6358,
+          59.4288
+        ],
+        [
+          122.6939,
+          171.0029
+        ]
+      ],
+      "speed": 0.4,
+      "radius": 0.5
+    }
+  ]
+}

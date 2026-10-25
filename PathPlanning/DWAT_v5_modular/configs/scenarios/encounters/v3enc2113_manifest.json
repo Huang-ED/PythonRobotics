@@ -1,0 +1,352 @@
+[
+  {
+    "meeting_point": [
+      60.4,
+      74.55
+    ],
+    "t_meet_s": 45.0,
+    "ego_heading_deg": -122.9,
+    "ego_speed": 0.5,
+    "spawn": [
+      50.64,
+      59.43
+    ],
+    "target_course_deg": 57.1,
+    "course_rel_deg": 180.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.9,
+    "rel_bearing_deg": 0.0,
+    "sector": "head-on (R14)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 17.2,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "v3A_head_on",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/v3enc2113_v3A_head_on.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.13/baseline/v3_baseline_step__20261025_091504/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 45.4,
+        "threat": true
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      60.4,
+      74.55
+    ],
+    "t_meet_s": 45.0,
+    "ego_heading_deg": -122.9,
+    "ego_speed": 0.5,
+    "spawn": [
+      42.8,
+      70.76
+    ],
+    "target_course_deg": 12.1,
+    "course_rel_deg": 135.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.832,
+    "rel_bearing_deg": 19.9,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 15.0,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "v3A_cross_stbd_045",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/v3enc2113_v3A_cross_stbd_045.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.13/baseline/v3_baseline_step__20261025_091504/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 45.0,
+        "threat": true
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      60.4,
+      74.55
+    ],
+    "t_meet_s": 45.0,
+    "ego_heading_deg": -122.9,
+    "ego_speed": 0.5,
+    "spawn": [
+      45.28,
+      84.32
+    ],
+    "target_course_deg": -32.9,
+    "course_rel_deg": 90.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.64,
+    "rel_bearing_deg": 38.7,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 6.0,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "v3A_cross_stbd_090",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/v3enc2113_v3A_cross_stbd_090.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.13/baseline/v3_baseline_step__20261025_091504/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 45.0,
+        "threat": true
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      60.4,
+      74.55
+    ],
+    "t_meet_s": 45.0,
+    "ego_heading_deg": -122.9,
+    "ego_speed": 0.5,
+    "spawn": [
+      56.61,
+      92.15
+    ],
+    "target_course_deg": -77.9,
+    "course_rel_deg": 45.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.357,
+    "rel_bearing_deg": 52.5,
+    "sector": "crossing from starboard (R15, ego give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 0.0,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "v3A_cross_stbd_135",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/v3enc2113_v3A_cross_stbd_135.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.13/baseline/v3_baseline_step__20261025_091504/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 45.0,
+        "threat": true
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      60.4,
+      74.55
+    ],
+    "t_meet_s": 45.0,
+    "ego_heading_deg": -122.9,
+    "ego_speed": 0.5,
+    "spawn": [
+      78.0,
+      78.34
+    ],
+    "target_course_deg": -167.9,
+    "course_rel_deg": -45.0,
+    "target_speed": 0.4,
+    "closing_speed": 0.357,
+    "rel_bearing_deg": 307.5,
+    "sector": "crossing from port (R17, ego stand-on)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 0.0,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "v3A_cross_port_045",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/v3enc2113_v3A_cross_port_045.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.13/baseline/v3_baseline_step__20261025_091504/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 45.0,
+        "threat": true
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      60.4,
+      74.55
+    ],
+    "t_meet_s": 45.0,
+    "ego_heading_deg": -122.9,
+    "ego_speed": 0.5,
+    "spawn": [
+      67.96,
+      69.67
+    ],
+    "target_course_deg": -212.9,
+    "course_rel_deg": -90.0,
+    "target_speed": 0.2,
+    "closing_speed": 0.539,
+    "rel_bearing_deg": 338.2,
+    "sector": "crossing from port (R17, ego stand-on)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 0.0,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "v3A_cross_port_090",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/v3enc2113_v3A_cross_port_090.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.13/baseline/v3_baseline_step__20261025_091504/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 45.0,
+        "threat": true
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      60.4,
+      74.55
+    ],
+    "t_meet_s": 45.0,
+    "ego_heading_deg": -122.9,
+    "ego_speed": 0.5,
+    "spawn": [
+      65.28,
+      82.11
+    ],
+    "target_course_deg": -122.9,
+    "course_rel_deg": 0.0,
+    "target_speed": 0.2,
+    "closing_speed": 0.3,
+    "rel_bearing_deg": 0.0,
+    "sector": "overtaking, ego overtakes (R13, give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 0.0,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "v3A_overtake_ego",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/v3enc2113_v3A_overtake_ego.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.13/baseline/v3_baseline_step__20261025_091504/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 46.3,
+        "threat": true
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      51.15,
+      37.18
+    ],
+    "t_meet_s": 133.0,
+    "ego_heading_deg": -26.6,
+    "ego_speed": 0.5,
+    "spawn": [
+      86.82,
+      19.3
+    ],
+    "target_course_deg": 153.4,
+    "course_rel_deg": 180.0,
+    "target_speed": 0.3,
+    "closing_speed": 0.8,
+    "rel_bearing_deg": 0.0,
+    "sector": "head-on (R14)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 101.8,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "v3B_head_on",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/v3enc2113_v3B_head_on.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.13/baseline/v3_baseline_step__20261025_091504/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 132.9,
+        "threat": true
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      51.15,
+      37.18
+    ],
+    "t_meet_s": 133.0,
+    "ego_heading_deg": -26.6,
+    "ego_speed": 0.5,
+    "spawn": [
+      89.01,
+      49.76
+    ],
+    "target_course_deg": -161.6,
+    "course_rel_deg": -135.0,
+    "target_speed": 0.3,
+    "closing_speed": 0.743,
+    "rel_bearing_deg": 343.4,
+    "sector": "crossing from port (R17, ego stand-on)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 99.4,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "v3B_cross_port_135",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/v3enc2113_v3B_cross_port_135.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.13/baseline/v3_baseline_step__20261025_091504/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 133.0,
+        "threat": true
+      }
+    ]
+  },
+  {
+    "meeting_point": [
+      51.15,
+      37.18
+    ],
+    "t_meet_s": 133.0,
+    "ego_heading_deg": -26.6,
+    "ego_speed": 0.5,
+    "spawn": [
+      27.36,
+      49.09
+    ],
+    "target_course_deg": -26.6,
+    "course_rel_deg": 0.0,
+    "target_speed": 0.2,
+    "closing_speed": 0.3,
+    "rel_bearing_deg": 0.0,
+    "sector": "overtaking, ego overtakes (R13, give-way)",
+    "planned_cpa": 0.0,
+    "t_detect_s": 49.7,
+    "land_samples": 0,
+    "first_land_t": null,
+    "navigable": true,
+    "name": "v3B_overtake_ego",
+    "file": "PathPlanning/DWAT_v5_modular/configs/scenarios/encounters/v3enc2113_v3B_overtake_ego.json",
+    "spawn_in_map": true,
+    "do_nothing": [
+      {
+        "log": "runs/v21.13/baseline/v3_baseline_step__20261025_091504/log_details.json",
+        "min_clearance": -0.7,
+        "t_cpa_s": 133.0,
+        "threat": true
+      }
+    ]
+  }
+]
