@@ -4,6 +4,7 @@ Run from the repo root:
     python -m PathPlanning.DWAT_v5_modular.results.baselines_ablations.compare
     python -m PathPlanning.DWAT_v5_modular.results.baselines_ablations.compare --v3crowd
     python -m PathPlanning.DWAT_v5_modular.results.baselines_ablations.compare --tight
+    python -m PathPlanning.DWAT_v5_modular.results.baselines_ablations.compare --v3enc
 
 Every arm differs from v21.13 only in the keys its config sets
 (configs/algorithm/v21.13/{baseline,ablation}_*.json); all keep the vessel
@@ -43,12 +44,17 @@ ARMS = {
     "B1 g.20 aligned": "runs/v21.13/baseline_frozen_mincl_g020_aligned",
     "B3 g.50 aligned": "runs/v21.13/baseline_cri_g050_aligned",
     "A3 aligned": "runs/v21.13/ablation_nopred_aligned",
+    # v21.13 with catch_turning_point_dist = dist_localgoal = 9 u: no local-goal
+    # jumps at the coastal route's short legs.
+    "sr9": "runs/v21.13/switch_radius9",
 }
 OPEN_WATER = ["owenc215_*", "ow_sequence215", "ow_simultaneous215"]
 V3CROWD = ["v3crowd5_v2111", "v3crowd6_v2111", "v3crowd7_v2111"]
 # Encounters where v21.13's own clearance is near the binary zone (0.68 u):
 # near-versus-far dilemma, course-altering targets, staggered slalom.
 TIGHT = ["ow_dilemma_d??", "owturn215_*", "ow_slalom_*"]
+# Single encounters along the coastal route, one per bend slot and geometry.
+V3ENC = ["v3enc2113_*"]
 
 
 def outcome(p):
@@ -75,17 +81,17 @@ def main(scenes):
     for arm, root in ARMS.items():
         for g in scenes:
             for scene, p in latest(root, g).items():
-                m = metrics(p, bases["v3" if "v3crowd" in scene else "ow"])
+                m = metrics(p, bases["v3" if scene.startswith("v3") else "ow"])
                 m["out"] = outcome(p)
                 table.setdefault(scene, {})[arm] = m
     cols = ["clear", "delay", "turn", "maxdev", "ok", "bad"]
-    print(f"{'scene':<28}{'arm':<16}{'out':>8}" + "".join(f"{c:>8}" for c in cols))
+    print(f"{'scene':<34}{'arm':<16}{'out':>8}" + "".join(f"{c:>8}" for c in cols))
     for scene in sorted(table):
         for arm in ARMS:
             m = table[scene].get(arm)
             if m is None:
                 continue
-            print(f"{scene:<28}{arm:<16}{m['out']:>8}" + "".join(
+            print(f"{scene:<34}{arm:<16}{m['out']:>8}" + "".join(
                 f"{m[c]:8.2f}" if isinstance(m[c], float) else f"{m[c]:>8}" for c in cols))
         print()
     print("SUMMARY")
@@ -105,4 +111,5 @@ def main(scenes):
 
 
 if __name__ == "__main__":
-    main(V3CROWD if "--v3crowd" in sys.argv else TIGHT if "--tight" in sys.argv else OPEN_WATER)
+    main(V3CROWD if "--v3crowd" in sys.argv else TIGHT if "--tight" in sys.argv
+         else V3ENC if "--v3enc" in sys.argv else OPEN_WATER)

@@ -558,6 +558,27 @@ VIDEO3_CASES = [
     dict(name="v3B_overtake_ego",    course_rel_deg=0.0,    speed=0.20, t_meet=133.0),
 ]
 
+# video3 bend tier: the ego overtakes a slightly slower ship just before the
+# route's double port bend (+47 deg at (44,46), +41 deg at (47,39), ~124 s).
+# The ship holds a straight course south down the channel while the route
+# turns east, so it sits on the INSIDE of the ego's turn. This is the single-
+# ship core of the v3crowd5 (T3: 0.40 u/s, t_meet 115) and v3crowd7 (T4: 0.45,
+# 116) encounters in which binary severity and frozen targets lost the route.
+# Speed sets how long the overtake lasts (closing 0.05-0.15 u/s); t_meet sets
+# where the ego draws level and the ship's course, which is the ego's heading
+# at the meeting (-79 deg at 115 s, -69 at 118). The channel admits little
+# else: on the ego's line only t_meet 115-118 floats (at 110-114 the ship runs
+# onto the corner, at 120 onto the east shore), and a ship 0.5 u to port, on
+# the inside of the turn, touches land at the corner for every t_meet 112-118.
+# 0.5 u to starboard floats throughout; every case here still hits a
+# do-nothing v21.13 ego and a do-nothing waypoint-switching (A1) ego.
+VIDEO3_BEND_CASES = [
+    dict(name=f"overtake_s{int(round(_v * 100)):02d}_t{int(_t)}{_tag}",
+         course_rel_deg=0.0, speed=_v, t_meet=_t, cpa=_cpa)
+    for _t, _cpa, _tag in ((115.0, 0.0, ""), (118.0, 0.0, ""), (115.0, -0.5, "_stbd05"))
+    for _v in (0.35, 0.40, 0.45)
+]
+
 # Course-altering targets on the open-water basin. Same collision legs as
 # head_on / cross_stbd_090 / cross_port_090 above, so each pairs with an
 # existing straight case. The alteration is 45 deg, 20 s before the meeting:
@@ -627,6 +648,7 @@ OPENWATER_EXPOSURE_CASES = [
 ]
 
 SUITES = {"openwater": OPENWATER_CASES, "video3": VIDEO3_CASES,
+          "video3_bend": VIDEO3_BEND_CASES,
           "openwater_turning": OPENWATER_TURNING_CASES,
           "openwater_arcs": OPENWATER_ARC_CASES,
           "openwater_speed": OPENWATER_SPEED_CASES,
