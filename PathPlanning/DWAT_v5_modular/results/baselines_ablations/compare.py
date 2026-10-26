@@ -6,6 +6,7 @@ Run from the repo root:
     python -m PathPlanning.DWAT_v5_modular.results.baselines_ablations.compare --tight
     python -m PathPlanning.DWAT_v5_modular.results.baselines_ablations.compare --v3enc
     python -m PathPlanning.DWAT_v5_modular.results.baselines_ablations.compare --v3bend
+    python -m PathPlanning.DWAT_v5_modular.results.baselines_ablations.compare --subsets
 
 Every arm differs from v21.13 only in the keys its config sets
 (configs/algorithm/v21.13/{baseline,ablation}_*.json); all keep the vessel
@@ -61,6 +62,11 @@ V3ENC = ["v3enc2113_*"]
 # One ship met at the coastal route's double port bend, built as the single-ship
 # core of the v3crowd5/7 failures; it turns out to be a give-way crossing first.
 V3BEND = ["v3bend2113_*"]
+# v3crowd5/7 with ships left out (scene_subsets.py) and the two-ship v3crowd5
+# scene with its bend ship retimed (ship_retime.py): which ships and which
+# timing A2's failure at the bend needs. Subsets (2026-10-26): A2 fails in 4 of
+# the 5 runs where the bend ship locks as an overtake, 0 of 9 as a crossing.
+SUBSETS = ["v3crowd5_v2111", "v3crowd7_v2111", "v3crowd5_v2111_*", "v3crowd7_v2111_*"]
 
 
 def outcome(p):
@@ -118,4 +124,5 @@ def main(scenes):
 
 if __name__ == "__main__":
     main(V3CROWD if "--v3crowd" in sys.argv else TIGHT if "--tight" in sys.argv
-         else V3ENC if "--v3enc" in sys.argv else V3BEND if "--v3bend" in sys.argv else OPEN_WATER)
+         else V3ENC if "--v3enc" in sys.argv else V3BEND if "--v3bend" in sys.argv
+         else SUBSETS if "--subsets" in sys.argv else OPEN_WATER)

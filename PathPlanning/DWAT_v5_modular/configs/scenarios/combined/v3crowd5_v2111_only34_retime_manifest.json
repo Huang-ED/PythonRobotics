@@ -1,0 +1,113 @@
+{
+  "source": "v3crowd5_v2111_only34.json",
+  "scenes": {
+    "v3crowd5_v2111_only34_s035_dtm2": {
+      "ship": "T2",
+      "speed": 0.35,
+      "shift": -2.0,
+      "pivot": 115.0,
+      "start": [
+        37.8918,
+        83.8236
+      ],
+      "land_blocked_samples": 68,
+      "min_gap_to_other_ships": 4.34
+    },
+    "v3crowd5_v2111_only34_s035_dt0": {
+      "ship": "T2",
+      "speed": 0.35,
+      "shift": 0.0,
+      "pivot": 115.0,
+      "start": [
+        38.0203,
+        83.1355
+      ],
+      "land_blocked_samples": 68,
+      "min_gap_to_other_ships": 3.94
+    },
+    "v3crowd5_v2111_only34_s035_dtp2": {
+      "ship": "T2",
+      "speed": 0.35,
+      "shift": 2.0,
+      "pivot": 115.0,
+      "start": [
+        38.1489,
+        82.4474
+      ],
+      "land_blocked_samples": 68,
+      "min_gap_to_other_ships": 3.55
+    },
+    "v3crowd5_v2111_only34_s035_dtp4": {
+      "ship": "T2",
+      "speed": 0.35,
+      "shift": 4.0,
+      "pivot": 115.0,
+      "start": [
+        38.2774,
+        81.7593
+      ],
+      "land_blocked_samples": 68,
+      "min_gap_to_other_ships": 3.15
+    },
+    "v3crowd5_v2111_only34_s040_dtm2": {
+      "ship": "T2",
+      "speed": 0.4,
+      "shift": -2.0,
+      "pivot": 115.0,
+      "start": [
+        36.8176,
+        89.5741
+      ],
+      "land_blocked_samples": 60,
+      "min_gap_to_other_ships": 5.73
+    },
+    "v3crowd5_v2111_only34_s040_dtp2": {
+      "ship": "T2",
+      "speed": 0.4,
+      "shift": 2.0,
+      "pivot": 115.0,
+      "start": [
+        37.1114,
+        88.0013
+      ],
+      "land_blocked_samples": 60,
+      "min_gap_to_other_ships": 4.94
+    },
+    "v3crowd5_v2111_only34_s040_dtp4": {
+      "ship": "T2",
+      "speed": 0.4,
+      "shift": 4.0,
+      "pivot": 115.0,
+      "start": [
+        37.2583,
+        87.2149
+      ],
+      "land_blocked_samples": 60,
+      "min_gap_to_other_ships": 4.55
+    },
+    "v3crowd5_v2111_only34_s045_dtp2": {
+      "ship": "T2",
+      "speed": 0.45,
+      "shift": 2.0,
+      "pivot": 115.0,
+      "start": [
+        36.0739,
+        93.5552
+      ],
+      "land_blocked_samples": 53,
+      "min_gap_to_other_ships": 5.97
+    },
+    "v3crowd5_v2111_only34_s045_dtp4": {
+      "ship": "T2",
+      "speed": 0.45,
+      "shift": 4.0,
+      "pivot": 115.0,
+      "start": [
+        36.2392,
+        92.6705
+      ],
+      "land_blocked_samples": 53,
+      "min_gap_to_other_ships": 5.58
+    }
+  }
+}
