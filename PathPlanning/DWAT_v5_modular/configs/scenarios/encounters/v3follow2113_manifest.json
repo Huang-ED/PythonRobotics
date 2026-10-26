@@ -1,0 +1,253 @@
+{
+  "reference_log": "runs/v21.13/baseline/v3_baseline_step__20261025_091504/log_details.json",
+  "base_scenario": "PathPlanning/DWAT_v5_modular/configs/scenarios/baseline/v3_baseline_step.json",
+  "route": [
+    [
+      70.0,
+      90.0
+    ],
+    [
+      48.0,
+      55.0
+    ],
+    [
+      44.0,
+      46.0
+    ],
+    [
+      47.0,
+      39.0
+    ],
+    [
+      66.0,
+      30.0
+    ],
+    [
+      69.0,
+      27.0
+    ],
+    [
+      60.0,
+      10.0
+    ]
+  ],
+  "leave_at": 5,
+  "scenes": {
+    "v3follow2113_s035_l155": {
+      "speed": 0.35,
+      "level_s": 155.0,
+      "level_route_s": 74.33,
+      "ego_off_route_at_level": 0.04,
+      "start": [
+        59.3135,
+        72.9988
+      ],
+      "land_blocked_samples": 0,
+      "first_land_t": null,
+      "do_nothing": {
+        "min_clearance": -0.694,
+        "t_cpa_s": 152.4,
+        "threat": true
+      },
+      "gate_entry": {
+        "t_s": 125.6,
+        "role": "overtaking",
+        "bearing_deg": 11.2,
+        "alpha_deg": 174.5,
+        "range": 4.41
+      }
+    },
+    "v3follow2113_s035_l163": {
+      "speed": 0.35,
+      "level_s": 163.0,
+      "level_route_s": 78.3,
+      "ego_off_route_at_level": 0.5,
+      "start": [
+        58.6911,
+        72.0085
+      ],
+      "land_blocked_samples": 0,
+      "first_land_t": null,
+      "do_nothing": {
+        "min_clearance": -0.403,
+        "t_cpa_s": 159.4,
+        "threat": true
+      },
+      "gate_entry": {
+        "t_s": 126.5,
+        "role": "overtaking",
+        "bearing_deg": 8.3,
+        "alpha_deg": 176.7,
+        "range": 5.44
+      }
+    },
+    "v3follow2113_s035_l171": {
+      "speed": 0.35,
+      "level_s": 171.0,
+      "level_route_s": 82.54,
+      "ego_off_route_at_level": 0.68,
+      "start": [
+        57.9252,
+        70.7901
+      ],
+      "land_blocked_samples": 0,
+      "first_land_t": null,
+      "do_nothing": {
+        "min_clearance": -0.042,
+        "t_cpa_s": 169.2,
+        "threat": true
+      },
+      "gate_entry": {
+        "t_s": 139.0,
+        "role": "overtaking",
+        "bearing_deg": 0.1,
+        "alpha_deg": 179.2,
+        "range": 5.01
+      }
+    },
+    "v3follow2113_s040_l155": {
+      "speed": 0.4,
+      "level_s": 155.0,
+      "level_route_s": 74.33,
+      "ego_off_route_at_level": 0.04,
+      "start": [
+        63.4379,
+        79.5602
+      ],
+      "land_blocked_samples": 0,
+      "first_land_t": null,
+      "do_nothing": {
+        "min_clearance": -0.7,
+        "t_cpa_s": 151.1,
+        "threat": true
+      },
+      "gate_entry": {
+        "t_s": 115.4,
+        "role": "overtaking",
+        "bearing_deg": 7.3,
+        "alpha_deg": 176.0,
+        "range": 4.33
+      }
+    },
+    "v3follow2113_s040_l163": {
+      "speed": 0.4,
+      "level_s": 163.0,
+      "level_route_s": 78.3,
+      "ego_off_route_at_level": 0.5,
+      "start": [
+        63.0283,
+        78.9086
+      ],
+      "land_blocked_samples": 0,
+      "first_land_t": null,
+      "do_nothing": {
+        "min_clearance": -0.503,
+        "t_cpa_s": 157.8,
+        "threat": true
+      },
+      "gate_entry": {
+        "t_s": 125.7,
+        "role": "overtaking",
+        "bearing_deg": 9.9,
+        "alpha_deg": 173.6,
+        "range": 3.7
+      }
+    },
+    "v3follow2113_s040_l171": {
+      "speed": 0.4,
+      "level_s": 171.0,
+      "level_route_s": 82.54,
+      "ego_off_route_at_level": 0.68,
+      "start": [
+        62.4753,
+        78.0288
+      ],
+      "land_blocked_samples": 0,
+      "first_land_t": null,
+      "do_nothing": {
+        "min_clearance": -0.039,
+        "t_cpa_s": 169.5,
+        "threat": true
+      },
+      "gate_entry": {
+        "t_s": 126.8,
+        "role": "overtaking",
+        "bearing_deg": 6.4,
+        "alpha_deg": 176.4,
+        "range": 4.63
+      }
+    },
+    "v3follow2113_s045_l155": {
+      "speed": 0.45,
+      "level_s": 155.0,
+      "level_route_s": 74.33,
+      "ego_off_route_at_level": 0.04,
+      "start": [
+        67.5622,
+        86.1217
+      ],
+      "land_blocked_samples": 3,
+      "first_land_t": 258.5,
+      "do_nothing": {
+        "min_clearance": -0.7,
+        "t_cpa_s": 151.5,
+        "threat": true
+      },
+      "gate_entry": {
+        "t_s": 102.8,
+        "role": "overtaking",
+        "bearing_deg": -10.9,
+        "alpha_deg": 175.1,
+        "range": 3.73
+      }
+    },
+    "v3follow2113_s045_l163": {
+      "speed": 0.45,
+      "level_s": 163.0,
+      "level_route_s": 78.3,
+      "ego_off_route_at_level": 0.5,
+      "start": [
+        67.3655,
+        85.8087
+      ],
+      "land_blocked_samples": 4,
+      "first_land_t": 258.0,
+      "do_nothing": {
+        "min_clearance": -0.666,
+        "t_cpa_s": 154.1,
+        "threat": true
+      },
+      "gate_entry": {
+        "t_s": 102.8,
+        "role": "overtaking",
+        "bearing_deg": -10.2,
+        "alpha_deg": 140.3,
+        "range": 4.09
+      }
+    },
+    "v3follow2113_s045_l171": {
+      "speed": 0.45,
+      "level_s": 171.0,
+      "level_route_s": 82.54,
+      "ego_off_route_at_level": 0.68,
+      "start": [
+        67.0253,
+        85.2676
+      ],
+      "land_blocked_samples": 7,
+      "first_land_t": 256.5,
+      "do_nothing": {
+        "min_clearance": -0.216,
+        "t_cpa_s": 159.4,
+        "threat": true
+      },
+      "gate_entry": {
+        "t_s": 101.3,
+        "role": "overtaking",
+        "bearing_deg": -6.4,
+        "alpha_deg": 161.2,
+        "range": 4.81
+      }
+    }
+  }
+}

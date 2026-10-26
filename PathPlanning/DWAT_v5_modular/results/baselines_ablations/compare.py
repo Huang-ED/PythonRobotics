@@ -7,6 +7,7 @@ Run from the repo root:
     python -m PathPlanning.DWAT_v5_modular.results.baselines_ablations.compare --v3enc
     python -m PathPlanning.DWAT_v5_modular.results.baselines_ablations.compare --v3bend
     python -m PathPlanning.DWAT_v5_modular.results.baselines_ablations.compare --subsets
+    python -m PathPlanning.DWAT_v5_modular.results.baselines_ablations.compare --v3follow
 
 Every arm differs from v21.13 only in the keys its config sets
 (configs/algorithm/v21.13/{baseline,ablation}_*.json); all keep the vessel
@@ -66,7 +67,15 @@ V3BEND = ["v3bend2113_*"]
 # scene with its bend ship retimed (ship_retime.py): which ships and which
 # timing A2's failure at the bend needs. Subsets (2026-10-26): A2 fails in 4 of
 # the 5 runs where the bend ship locks as an overtake, 0 of 9 as a crossing.
+# Retimed (P7): the role does not decide it; each arm loses the route once in 9.
+# What does: overtaking on the outside of the bend a ship too fast to outrun
+# (0.40-0.45 u/s), where v21.13 turns in behind it (8 of 8 across both sets)
+# and A2 never slows (0 of 5). At 0.35 u/s both cut ahead, A2 sooner.
 SUBSETS = ["v3crowd5_v2111", "v3crowd7_v2111", "v3crowd5_v2111_*", "v3crowd7_v2111_*"]
+# One ship sailing the route ahead of the ego and carrying straight on at the
+# 73 deg starboard turn round the east headland (route_follower.py): P7's
+# situation built from scratch, overtaken from astern on a steady heading.
+V3FOLLOW = ["v3follow2113_*"]
 
 
 def outcome(p):
@@ -125,4 +134,5 @@ def main(scenes):
 if __name__ == "__main__":
     main(V3CROWD if "--v3crowd" in sys.argv else TIGHT if "--tight" in sys.argv
          else V3ENC if "--v3enc" in sys.argv else V3BEND if "--v3bend" in sys.argv
-         else SUBSETS if "--subsets" in sys.argv else OPEN_WATER)
+         else SUBSETS if "--subsets" in sys.argv else V3FOLLOW if "--v3follow" in sys.argv
+         else OPEN_WATER)
