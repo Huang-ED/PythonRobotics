@@ -156,6 +156,12 @@ class Config:
         self.colregs_release_dist = None      # [m] unlock once opening beyond this; None -> dcpa gate
         self.colregs_port_turn_gain = 0.0     # [1/rad] cost of altering to port of the locked heading; 0 -> off
         self.colregs_turn_eval_time = 10.0    # [s] how far into a candidate that heading is read
+        # Comparison encodings for the COLREGs layer (colregs.py docstring);
+        # these defaults are the layer above.
+        self.colregs_classifier = "two_bearing"   # or "one_bearing" (Xu 2024, Guan & Wang 2023)
+        self.colregs_lock = True                  # False: re-classify every cycle
+        self.colregs_encoding = "outcome"         # or "yaw_rate_sign" (Xu), "prune_port" (Guan & Wang)
+        self.colregs_yaw_rate_gain = 0.0          # [s/rad] Xu's term, colregs_encoding "yaw_rate_sign"
         # Dynamic-obstacle term, for baselines and ablations (dwa_ramped only).
         # Every mode keeps the predicted-contact veto; only the finite cost of
         # a non-colliding candidate changes.

@@ -300,16 +300,21 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
                                      return_candidates=False,
                                      candidate_stride=1,
                                      candidate_max_count=None, # <--- New Argument
-                                     colregs_side_mask=None, colregs_ref_yaw=None):
+                                     colregs_side_mask=None, colregs_ref_yaw=None,
+                                     colregs_stand_on_count=0):
     """
     Calculation final input with dynamic window, splitting cost functions
     for static and dynamic obstacles.
 
     ``colregs_side_mask`` marks which of the dynamic obstacles carry a COLREGs
     side rule (colregs.py), and ``colregs_ref_yaw`` the heading each one locked
-    at; None or all-False adds nothing to any cost.
+    at; None or all-False adds nothing to any cost. ``colregs_stand_on_count``
+    (stand-on crossing targets) is read only by the "yaw_rate_sign" encoding.
     """
-    if colregs_side_mask is not None and np.any(colregs_side_mask):
+    _col_enc = colregs.encoding(config) if colregs_side_mask is not None else "outcome"
+    _col_give = int(np.sum(colregs_side_mask)) if colregs_side_mask is not None else 0
+    _col_stand = int(colregs_stand_on_count)
+    if _col_enc == "outcome" and colregs_side_mask is not None and np.any(colregs_side_mask):
         _col_pos = dynamic_ob_pos[colregs_side_mask]
         _col_vel = dynamic_ob_vel[colregs_side_mask]
         _col_ref = colregs_ref_yaw[colregs_side_mask]
@@ -399,6 +404,9 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
         _ob_pos = np.asarray(dynamic_ob_pos, dtype=float) - np.asarray(dynamic_ob_vel, dtype=float) * config.dt
     for v in _vs:
         for y in _ws:
+
+            if _col_enc == "prune_port" and _col_give > 0 and y > 1e-9:
+                continue    # Guan & Wang 2023: no port command while giving way
 
             if _s1_ob is not None:
                 if not base.braking_rollout_admissible(x, v, y, *_s1_ob, config, _s1_step):
@@ -505,6 +513,10 @@ def calc_control_and_trajectory_merged(x, dw, config, goal,
             if _col_pos is not None and dynamic_ob_cost != float("inf"):
                 colregs_side = colregs.side_cost(trajectory_for_obstacle, _col_pos, _col_vel, config)
                 colregs_port = colregs.port_turn_cost(trajectory_for_obstacle, _col_ref, config)
+            elif (_col_enc == "yaw_rate_sign" and (_col_give or _col_stand)
+                  and dynamic_ob_cost != float("inf")):
+                # Logged in the port-turn slot: it is the turn-direction term.
+                colregs_port = colregs.yaw_rate_sign_cost(y, _col_give, _col_stand, config)
 
             # Parenthesised as one term: the sum order fixes the last bit, and
             # with it which candidate wins a near-tie (v21.13 runs reproduce).
@@ -624,6 +636,7 @@ def dwa_control_merged(x, config, goal,
     
     # Filter positions, radii, AND velocities
     colregs_side_mask = colregs_ref = None
+    colregs_stand_on = 0
     if colregs.enabled(config):
         # Classified on the UNFILTERED list: its order is map_manager's, which
         # is what keeps a locked role attached to the same vessel.
@@ -635,6 +648,7 @@ def dwa_control_merged(x, config, goal,
         )
         colregs_side_mask = np.array([roles[i] in colregs.SIDE_RULE_ROLES for i in kept], dtype=bool)
         colregs_ref = colregs.ref_yaw(config)[kept] if kept else np.empty(0)
+        colregs_stand_on = sum(roles[i] == colregs.CROSSING_STAND_ON for i in kept)
     else:
         dyn_ob_pos_filt, dyn_ob_radii_filt, dyn_ob_vel_filt = filter_obstacles_by_direction(
             x, dynamic_ob_pos, dynamic_ob_radii, dynamic_ob_vel, max_angle=config.obstacle_max_angle
@@ -650,6 +664,7 @@ def dwa_control_merged(x, config, goal,
         candidate_max_count=candidate_max_count,
         colregs_side_mask=colregs_side_mask,
         colregs_ref_yaw=colregs_ref,
+        colregs_stand_on_count=colregs_stand_on,
     )
 
     if return_candidates:

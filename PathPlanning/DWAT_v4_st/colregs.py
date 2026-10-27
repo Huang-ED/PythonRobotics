@@ -50,6 +50,30 @@ costs per candidate. ``port_turn_cost`` is further gated by its own gain,
 Not modelled: what a stand-on vessel should do (R17 -- the cost does not
 forbid it from manoeuvring), R13's side (it names none), restricted
 visibility, traffic separation, narrow channels.
+
+Comparison encodings (baselines for the COLREGs layer; defaults keep the
+layer above exactly):
+
+``colregs_classifier``  "two_bearing" (above) or "one_bearing": the role from
+    the target's bearing off the ego's bow alone, as in Xu et al. 2024 and
+    Guan & Wang 2023. Head-on within +-colregs_head_on_deg, give-way crossing
+    to starboard and stand-on crossing to port up to 112.5 deg, overtaken
+    abaft that.
+``colregs_lock``  True (above) or False: re-classify every cycle and take the
+    port-turn reference from the present heading, so nothing persists.
+``colregs_encoding``  how a role enters the planner.
+    "outcome" (above): side_cost + port_turn_cost.
+    "yaw_rate_sign": Xu et al. 2024, eq. 17. Per target, cost
+        colregs_yaw_rate_gain * omega for head-on and give-way crossing
+        (a port command costs, a starboard one is rewarded) and
+        -colregs_yaw_rate_gain * omega for a stand-on crossing (Xu turns to
+        port to pass astern of a crosser from port). omega is the candidate's
+        yaw-rate setpoint, positive to port.
+    "prune_port": Guan & Wang 2023. While any head-on or give-way target is
+        at risk, candidates with a port yaw-rate setpoint (omega > 0) are
+        removed from the window. Their stand-on rule ("keep course and
+        speed") is not applied: the targets here never give way, so a hard
+        stand-on would make contact certain.
 """
 
 import math
@@ -100,6 +124,15 @@ def _tcpa_dcpa(r, w):
     return tcpa, float(np.hypot(*(r + w * tcpa)))
 
 
+def _role_one_bearing(beta, head_on):
+    """Role from the target's bearing off the ego's bow only (Xu 2024, Guan 2023)."""
+    if abs(beta) <= head_on:
+        return HEAD_ON
+    if abs(beta) > _STERN_SECTOR:
+        return OVERTAKEN
+    return CROSSING_GIVE_WAY if beta < 0.0 else CROSSING_STAND_ON
+
+
 def _role(beta, alpha, head_on):
     if abs(beta) <= head_on and abs(alpha) <= head_on:
         return HEAD_ON
@@ -128,6 +161,9 @@ def classify(x, ob_pos, ob_vel, config):
     release = dcpa_gate if release is None else float(release)
     head_on = math.radians(float(config.colregs_head_on_deg))
     min_speed = float(config.colregs_min_target_speed)
+    one_bearing = str(getattr(config, "colregs_classifier", "two_bearing")) == "one_bearing"
+    if not bool(getattr(config, "colregs_lock", True)):
+        locked.clear()
 
     roles, ref_yaw = [], []
     for i in range(n):
@@ -157,7 +193,7 @@ def classify(x, ob_pos, ob_vel, config):
 
         beta = _wrap(math.atan2(r[1], r[0]) - yaw)
         alpha = _wrap(math.atan2(-r[1], -r[0]) - math.atan2(u[1], u[0]))
-        role = _role(beta, alpha, head_on)
+        role = _role_one_bearing(beta, head_on) if one_bearing else _role(beta, alpha, head_on)
         locked[i] = (role, yaw)
         roles.append(role)
         ref_yaw.append(yaw)
@@ -199,6 +235,22 @@ def port_turn_cost(trajectory, ref, config):
     k = min(int(round(float(config.colregs_turn_eval_time) / config.dt)), trajectory.shape[0] - 1)
     dyaw = (trajectory[k, 2] - ref + np.pi) % (2.0 * np.pi) - np.pi   # > 0: to port of ref
     return float(gain * np.sum(np.maximum(dyaw, 0.0)))
+
+
+def encoding(config):
+    enc = str(getattr(config, "colregs_encoding", "outcome"))
+    if enc not in ("outcome", "yaw_rate_sign", "prune_port"):
+        raise ValueError(f"unknown colregs_encoding {enc!r}")
+    return enc
+
+
+def yaw_rate_sign_cost(omega, n_give_way, n_stand_on, config):
+    """Xu et al. 2024 (eq. 17): reward the sign of the yaw-rate setpoint.
+
+    One term per target: +gain * omega for each head-on or give-way target (a
+    port command costs), -gain * omega for each stand-on crossing target.
+    """
+    return float(config.colregs_yaw_rate_gain) * float(omega) * (n_give_way - n_stand_on)
 
 
 def record_best_cost(config, side, port_turn):

@@ -33,8 +33,13 @@ _DEFAULT_COLREGS_CONFIG = (Path(__file__).resolve().parents[1]
 _FAR = 2.0
 
 
-def score(log_path, colregs_config=_DEFAULT_COLREGS_CONFIG):
-    """(reached_goal, [one dict per target])."""
+def score(log_path, colregs_config=_DEFAULT_COLREGS_CONFIG, replay=False):
+    """(reached_goal, [one dict per target]).
+
+    ``replay`` ignores the run's own colregs log and re-classifies with
+    ``colregs_config``, so runs that used different role logic (the COLREGs
+    comparison encodings) are judged against the same roles.
+    """
     d = json.load(open(log_path))
     cfg = d["config"]
     traj = np.asarray(d["trajectory"], float)
@@ -51,14 +56,18 @@ def score(log_path, colregs_config=_DEFAULT_COLREGS_CONFIG):
     dt = float(cfg["dt"])
 
     logged = [e.get("colregs", {}).get("roles") for e in ents[:T]]
-    if any(logged):
+    if any(logged) and not replay:
         roles_t = [r or [] for r in logged]
         src = "log"
     else:
         c = base.Config()
+        default = base.Config()
         for k, v in cfg.items():
             if hasattr(c, k) and k != "robot_type":
                 setattr(c, k, v)
+        for k in vars(default):
+            if k.startswith("colregs_"):        # the run's own role logic does not carry over
+                setattr(c, k, getattr(default, k))
         for k, v in json.load(open(colregs_config)).items():
             if k.startswith("colregs_"):
                 setattr(c, k, v)
@@ -97,11 +106,13 @@ def main():
     ap.add_argument("logs", nargs="+", help="log_details.json files")
     ap.add_argument("--colregs-config", default=str(_DEFAULT_COLREGS_CONFIG),
                     help="config whose colregs_* keys replay roles for runs without a colregs log")
+    ap.add_argument("--replay", action="store_true",
+                    help="replay roles with --colregs-config even where the run logged its own")
     args = ap.parse_args()
 
     tally = Counter()
     for p in args.logs:
-        goal, rows = score(p, args.colregs_config)
+        goal, rows = score(p, args.colregs_config, replay=args.replay)
         name = Path(p).parent.name.split("__")[0]
         for r in rows:
             tally[r["verdict"]] += 1
